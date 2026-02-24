@@ -1,0 +1,20 @@
+<<<<<<< HEAD
+# updated
+gunicorn
+django
+dj-database-url
+python-decouple
+whitenoise
+djangorestframework
+django-cors-headers
+psycopg2-binary
+=======
+django
+gunicorn
+dj-database-url
+django-decouple
+whitenoise
+djangorestframework
+django-cors-headers
+psycopg2-binary
+>>>>>>> a05e27984daec75506ef783ff3cc6be2434e00c1

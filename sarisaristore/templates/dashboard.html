@@ -1,0 +1,194 @@
+<!--
+  dashboard.html — Main Single-Page Application (SPA) shell.
+
+  Loads all CSS (with ?v= cache-bust suffixes) and all JS modules.
+  The <body> contains:
+    • Top-nav bar with page-switch buttons + logout
+    • <main> with hidden .page sections (profit, calendar, prices,
+      inventory, debtors, settings) — only one shows at a time
+    • Floating cart button + slide-out cart/search panel
+    • Nav-spacer script (keeps content below the fixed nav)
+
+  JS load order (matters):
+    database.js → dark-mode.js → dialog-system.js → cart.js →
+    inventory.js → profit.js → calendar.js → settings.js →
+    price_list.js → debtors.js → dashboard.js
+-->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Store Dashboard</title>
+    
+    <!-- CSS Files -->
+    <link href="{% static 'css/reset.css' %}?v=20260206" rel="stylesheet" />
+    <link href="{% static 'css/variables.css' %}?v=20260206" rel="stylesheet" />
+    <link href="{% static 'css/badges.css' %}?v=20260206" rel="stylesheet" />
+    <link href="{% static 'css/cards.css' %}?v=20260206" rel="stylesheet" />
+    <link href="{% static 'css/darkmode.css' %}?v=20260206" rel="stylesheet" />
+    <link href="{% static 'css/navigations.css' %}?v=20260206" rel="stylesheet" />
+    <link href="{% static 'css/pages.css' %}?v=20260206" rel="stylesheet" />
+    <link href="{% static 'css/calendar.css' %}?v=20260206b" rel="stylesheet" />
+    <link href="{% static 'css/product.css' %}?v=20260206" rel="stylesheet" />
+    <link href="{% static 'css/cart-system.css' %}?v=20260206b" rel="stylesheet" />
+    <link href="{% static 'css/mobile-responsive.css' %}?v=20260206b" rel="stylesheet" /></head>
+    <link rel="stylesheet" href="{% static 'css/cash-payment-modal.css' %}?v=20260206b">
+    <body>
+    <!-- NAVIGATION -->
+    <nav class="top-nav" id="mainNav">
+        <div class="nav-brand">
+            <span class="brand-icon">🏪</span>
+            <span class="brand-text">Joram's</span>
+        </div>
+
+        <div class="nav-links">
+            <button id="btnProfit" class="active">📊 SALES</button>
+            <button id="btnCalendar">📅 CALENDAR</button>
+            <button id="btnPrice">💲 PRICES</button>
+            <button id="btnInventory">📦 INVENTORY</button>
+            <button id="btnDebt">🧾 DEBTORS</button>
+            <button id="btnSettings">⚙️ SETTINGS</button>
+            <a href="{% url 'logout' %}">
+                <button class="btn-logout">🚪 Logout</button>
+            </a>
+        </div>
+    </nav>
+
+    <!-- NAV SPACER -->
+    <div id="navSpacer" class="nav-spacer"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="page-container" id="mainContent">
+        <section id="profitPage" class="page active-page">
+            <div id="profitContent"></div>
+        </section>
+
+        <section id="calendarPage" class="page">
+            <div id="calendarContent"></div>
+        </section>
+
+        <section id="pricePage" class="page">
+            <div id="priceListContent"></div>
+        </section>
+
+        <section id="inventoryPage" class="page">
+            <div id="inventoryContent"></div>
+        </section>
+
+        <section id="debtPage" class="page">
+            <h1 class="main-page-header">🧾 Debtors Management</h1>
+            <div id="debtorsContent"></div>
+        </section>
+
+        <section id="settingsPage" class="page">
+            <h1 class="main-page-header">⚙️ Store Settings</h1>
+            <div id="settingsContent" class="settings-grid"></div>
+        </section>
+    </main>
+
+    <!-- FLOATING CART BUTTON -->
+    <div id="floatingCart" class="floating-cart">
+        🛒<span id="cartCount" class="cart-count">0</span>
+    </div>
+
+    <!-- CART PANEL - Hidden by default, shown via .open class -->
+    <aside id="searchPanel" class="search-panel">
+        <div class="search-panel-header">
+            <h2>🛒 Shopping Cart</h2>
+            <button class="btn-close-panel" onclick="toggleCartPanel()">✕</button>
+        </div>
+
+        <div class="search-section">
+            <div class="search-input-wrapper">
+                <input 
+                    type="text" 
+                    id="generalSearch" 
+                    class="search-input" 
+                    placeholder="🔍 Search products..."
+                    autocomplete="off"
+                />
+                <button class="clear-search-btn" onclick="clearSearch()" title="Clear search">✕</button>
+            </div>
+            <div id="searchResults" class="search-results"></div>
+        </div>
+
+        <div class="cart-section">
+            <div id="cartItems" class="cart-items">
+                <p class="empty-cart">🛒 Cart is empty<br><small>Search and click products to add</small></p>
+            </div>
+            
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <strong>Total:</strong>
+                    <span>₱<span id="cartTotal">0.00</span></span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- JS FILES - Order matters! -->
+    <script src="{% static 'js/database.js' %}?v=20260206c"></script>
+    <script src="{% static 'js/notifications.js' %}"></script>  <!-- ADD THIS LINE -->
+    <script src="{% static 'js/dark-mode.js' %}?v=20260206"></script>
+    <script src="{% static 'js/dialog-system.js' %}?v=20260206b"></script>
+    <script src="{% static 'js/cart.js' %}?v=20260206d"></script>
+    <script src="{% static 'js/inventory.js' %}?v=20260222"></script>    
+    <script src="{% static 'js/profit.js' %}?v=20260206f"></script>
+    <script src="{% static 'js/calendar.js' %}?v=20260206b"></script>
+    <script src="{% static 'js/settings.js' %}?v=20260206"></script>
+    <script src="{% static 'js/price_list.js' %}?v=20260206f"></script>
+    <script src="{% static 'js/debtors.js' %}?v=20260206c"></script>
+    <script src="{% static 'js/dashboard.js' %}?v=20260206f"></script>
+    <script src="{% static 'js/loading.js' %}?v=20260206"></script>
+
+    <!-- NAV SPACER SCRIPT -->
+    <script>
+        (function() {
+            function updateNavSpacer() {
+                const nav = document.getElementById('mainNav');
+                const spacer = document.getElementById('navSpacer');
+                if (nav && spacer) spacer.style.height = nav.offsetHeight + 'px';
+            }
+            document.addEventListener('DOMContentLoaded', updateNavSpacer);
+            window.addEventListener('load', updateNavSpacer);
+            window.addEventListener('resize', updateNavSpacer);
+            new MutationObserver(updateNavSpacer).observe(document.body, {attributes: true, attributeFilter: ['class']});
+        })();
+    </script>
+
+    <!-- Minimal inline styles for nav spacer -->
+    <style>
+        .nav-spacer {
+            display: block;
+            width: 100%;
+            min-height: 70px;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-spacer { min-height: 140px; }
+        }
+        
+       @media (max-width: 480px) {
+    .nav-spacer { min-height: 130px; }
+}
+
+@media (max-width: 768px) {
+    .nav-links .btn-logout,
+    .nav-links button.btn-logout,
+    body.dark-mode .nav-links .btn-logout,
+    body.dark-mode .nav-links button.btn-logout {
+        background: linear-gradient(145deg, #f04555, #cc2f3e) !important;
+        color: white !important;
+        box-shadow: 6px 6px 14px rgba(0,0,0,0.25), -6px -6px 14px rgba(255,120,120,0.3) !important;
+    }
+}
+        
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+</body>
+</html>
