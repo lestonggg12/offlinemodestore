@@ -1,0 +1,864 @@
+/**
+ * notifications.js — Enhanced with Product Navigation
+ *
+ * CROSS-DEVICE SYNC FIX:
+ * - Settings change history is now read from window.storeSettings.changeHistory
+ *   which is loaded FROM THE SERVER (StoreSettings.change_history DB field).
+ * - localStorage is no longer used for change history at all.
+ * - Every device (phone, PC, tablet) reads and writes the same server record,
+ *   so a save on a phone is visible on the PC on the next refresh cycle.
+ *
+ * HOW IT WORKS:
+ *   Phone saves settings
+ *     → settings.js appends to changeHistory, sends full array to server
+ *     → server stores it in StoreSettings.change_history
+ *   PC refreshes notifications (every 5 min, or on bell click)
+ *     → refreshNotifications() calls initSettings() to re-fetch from server
+ *     → window.storeSettings.changeHistory now contains the phone's changes
+ *     → badge and dropdown update automatically
+ *
+ * OTHER FIXES:
+ * - Mobile view fills full screen correctly (no clipped list, no scroll jump)
+ * - ALERTS bell appears to the RIGHT of SETTINGS button
+ * - Bell button colors blend correctly in dark mode
+ */
+
+console.log('🔔 Loading enhanced notifications module...');
+
+// =============================================================================
+//  GLOBAL STATE
+// =============================================================================
+
+let notificationDropdownOpen = false;
+let notificationData = {
+    lowStock: [],
+    settingsChanges: [],
+    cleanupInfo: null,
+    lastUpdated: null
+};
+
+// =============================================================================
+//  CSRF HELPER
+// =============================================================================
+
+function getCsrfToken() {
+    return document.cookie
+        .split('; ')
+        .find(row => row.startsWith('csrftoken='))
+        ?.split('=')[1];
+}
+
+// =============================================================================
+//  INITIALIZATION
+// =============================================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔔 Initializing enhanced notification system...');
+
+    injectNotificationBell();
+    refreshNotifications();
+
+    // Refresh notifications every 5 minutes (pulls latest from server)
+    setInterval(refreshNotifications, 5 * 60 * 1000);
+    setInterval(updateCleanupTimer, 60 * 1000);
+
+    console.log('✅ Enhanced notification system initialized');
+});
+
+// =============================================================================
+//  INJECT NOTIFICATION BELL
+// =============================================================================
+
+function injectNotificationBell() {
+    const settingsBtn = document.getElementById('btnSettings');
+
+    if (!settingsBtn || !settingsBtn.parentElement) {
+        console.error('❌ Could not find settings button');
+        return;
+    }
+
+    const bellBtn = document.createElement('button');
+    bellBtn.id    = 'btnNotifications';
+    bellBtn.className = 'nav-button notification-bell-btn';
+    bellBtn.innerHTML = `
+        <span class="nav-icon">🔔</span>
+        <span class="nav-label">ALERTS</span>
+        <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
+    `;
+
+    // Insert AFTER settings button
+    settingsBtn.parentElement.insertBefore(bellBtn, settingsBtn.nextSibling);
+
+    injectNotificationStyles();
+
+    bellBtn.addEventListener('click', toggleNotificationDropdown);
+
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('notificationDropdown');
+        const bellBtn  = document.getElementById('btnNotifications');
+        if (dropdown && bellBtn &&
+            !dropdown.contains(e.target) &&
+            !bellBtn.contains(e.target)) {
+            closeNotificationDropdown();
+        }
+    });
+
+    console.log('✅ Notification bell injected after settings button');
+}
+
+// =============================================================================
+//  REFRESH NOTIFICATIONS
+//  — re-fetches settings from server so cross-device changes are picked up
+// =============================================================================
+
+async function refreshNotifications() {
+    console.log('🔄 Refreshing notifications...');
+
+    try {
+        // ── Pull latest settings (including changeHistory) from server ─────
+        // This is the key step that makes cross-device sync work:
+        // even if this device didn't save the changes, it reads them here.
+        const settingsRes = await fetch('/api/get-settings/');
+        if (settingsRes.ok) {
+            const freshSettings = await settingsRes.json();
+            // Merge into global state, preserving any locally-set keys
+            window.storeSettings = {
+                ...window.storeSettings,
+                ...freshSettings,
+                debtSurcharge: parseFloat(freshSettings.debtSurcharge ?? 0) || 0,
+                changeHistory:  Array.isArray(freshSettings.changeHistory)
+                                    ? freshSettings.changeHistory
+                                    : []
+            };
+            console.log('☁️ Settings (+ change history) synced from server');
+        }
+
+        // ── Low stock alerts from product database ─────────────────────────
+        const products      = await DB.getProducts();
+        const lowStockLimit = window.storeSettings?.lowStockLimit || 10;
+
+        notificationData.lowStock = products.filter(p => {
+            const qty = parseFloat(p.quantity || p.stock || 0);
+            return qty > 0 && qty < lowStockLimit;
+        }).sort((a, b) =>
+            parseFloat(a.quantity || a.stock || 0) - parseFloat(b.quantity || b.stock || 0)
+        );
+
+        // ── Change history comes from server (via window.storeSettings) ────
+        notificationData.settingsChanges = window.storeSettings?.changeHistory || [];
+
+        notificationData.cleanupInfo = getCleanupInfo();
+        notificationData.lastUpdated = new Date();
+
+        updateNotificationBadge();
+
+        if (notificationDropdownOpen) {
+            renderNotificationDropdown();
+        }
+
+        console.log(`✅ ${notificationData.lowStock.length} low stock, ${notificationData.settingsChanges.length} settings changes`);
+    } catch (error) {
+        console.error('❌ Error refreshing notifications:', error);
+    }
+}
+
+// =============================================================================
+//  UPDATE NOTIFICATION BADGE
+// =============================================================================
+
+function updateNotificationBadge() {
+    const badge = document.getElementById('notificationBadge');
+    if (!badge) return;
+
+    const total = notificationData.lowStock.length + notificationData.settingsChanges.length;
+
+    if (total > 0) {
+        badge.textContent = total > 99 ? '99+' : total;
+        badge.style.display = 'flex';
+        badge.style.animation = 'none';
+        setTimeout(() => { badge.style.animation = 'notificationPulse 0.5s ease'; }, 10);
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// =============================================================================
+//  TOGGLE DROPDOWN
+// =============================================================================
+
+function toggleNotificationDropdown(e) {
+    e.stopPropagation();
+    if (notificationDropdownOpen) {
+        closeNotificationDropdown();
+    } else {
+        openNotificationDropdown();
+    }
+}
+
+function openNotificationDropdown() {
+    closeNotificationDropdown();
+
+    const dropdown     = document.createElement('div');
+    dropdown.id        = 'notificationDropdown';
+    dropdown.className = 'notification-dropdown';
+
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+        dropdown.style.cssText = `
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            max-height: 100vh;
+            border-radius: 0;
+        `;
+        // FIX: only suppress scroll — no position:fixed which causes scroll-jump
+        document.body.style.overflow = 'hidden';
+    } else {
+        const bellBtn = document.getElementById('btnNotifications');
+        const rect    = bellBtn.getBoundingClientRect();
+        dropdown.style.position = 'fixed';
+        dropdown.style.top      = `${rect.bottom + 10}px`;
+        dropdown.style.right    = `${window.innerWidth - rect.right}px`;
+    }
+
+    document.body.appendChild(dropdown);
+    renderNotificationDropdown();
+
+    setTimeout(() => { dropdown.classList.add('active'); }, 10);
+    notificationDropdownOpen = true;
+}
+
+function closeNotificationDropdown() {
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.remove('active');
+        setTimeout(() => {
+            if (dropdown.parentElement) dropdown.parentElement.removeChild(dropdown);
+        }, 300);
+    }
+    // FIX: only restore overflow (no position/width reset → no scroll jump)
+    document.body.style.overflow = '';
+    notificationDropdownOpen = false;
+}
+
+// =============================================================================
+//  RENDER DROPDOWN
+// =============================================================================
+
+function renderNotificationDropdown() {
+    const dropdown = document.getElementById('notificationDropdown');
+    if (!dropdown) return;
+
+    let html = `
+        <div class="notification-header">
+            <h3>📬 Notifications</h3>
+            <button class="notification-close-btn" onclick="window.NotificationSystem.close()">✕</button>
+        </div>
+        <div class="notification-content-wrapper">
+    `;
+
+    // Cleanup Timer
+    const cleanupInfo = getCleanupInfo();
+    html += `
+        <div class="notification-section cleanup-section">
+            <div class="section-header">
+                <span class="section-icon">⏰</span>
+                <span class="section-title">Auto-Cleanup</span>
+            </div>
+            <div class="cleanup-info-card">
+                <div class="cleanup-timer">
+                    <span class="timer-icon">🕐</span>
+                    <span class="timer-text">Next cleanup in <strong>${cleanupInfo.timeUntil}</strong></span>
+                </div>
+                <div class="cleanup-details">
+                    <p>🗑️ Old transactions will be automatically cleaned at midnight</p>
+                    <p>📊 Historical data is preserved in the calendar</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Settings Changes (from server — cross-device)
+    if (notificationData.settingsChanges.length > 0) {
+        html += `
+            <div class="notification-section">
+                <div class="section-header">
+                    <span class="section-icon">⚙️</span>
+                    <span class="section-title">Settings Changes</span>
+                    <span class="section-count">${notificationData.settingsChanges.length}</span>
+                </div>
+                <div class="notification-list">
+        `;
+
+        const recentChanges = notificationData.settingsChanges.slice(-5).reverse();
+        recentChanges.forEach(change => {
+            const timeAgo = getTimeAgo(new Date(change.timestamp));
+            html += `
+                <div class="notification-item settings-change">
+                    <div class="item-icon">⚙️</div>
+                    <div class="item-content">
+                        <div class="item-title">Settings Updated</div>
+                        <div class="item-meta">
+                            <span class="time-badge">🕐 ${timeAgo}</span>
+                        </div>
+                        <div class="settings-change-details">
+                            ${Object.entries(change.changes).map(([key, value]) =>
+                                `<div class="change-item">
+                                    <strong>${formatSettingName(key)}:</strong> ${formatSettingValue(key, value)}
+                                </div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    <button class="item-action-btn clear-notification"
+                            onclick="window.NotificationSystem.clearSettingsChange('${change.id}')">
+                        ✕
+                    </button>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+
+        if (notificationData.settingsChanges.length > 5) {
+            html += `
+                <div class="notification-footer">
+                    <button class="view-all-btn" onclick="window.NotificationSystem.clearAllSettingsChanges()">
+                        Clear all settings notifications
+                    </button>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+    }
+
+    // Low Stock
+    html += `
+        <div class="notification-section">
+            <div class="section-header">
+                <span class="section-icon">⚠️</span>
+                <span class="section-title">Low Stock Alerts</span>
+                <span class="section-count">${notificationData.lowStock.length}</span>
+            </div>
+    `;
+
+    if (notificationData.lowStock.length === 0) {
+        html += `
+            <div class="empty-state">
+                <span class="empty-icon">✅</span>
+                <p>All products are well stocked!</p>
+            </div>
+        `;
+    } else {
+        html += '<div class="notification-list">';
+
+        notificationData.lowStock.slice(0, 10).forEach((product) => {
+            const qty      = parseFloat(product.quantity || product.stock || 0);
+            const category = window.CATEGORIES?.find(c => c.id === (product.category || product.category_id));
+            const categoryIcon = category?.icon || '📦';
+
+            let urgencyClass = 'low', urgencyIcon = '💡';
+            if (qty === 0)     { urgencyClass = 'critical'; urgencyIcon = '🚨'; }
+            else if (qty <= 3) { urgencyClass = 'high';     urgencyIcon = '⚠️'; }
+            else if (qty <= 5) { urgencyClass = 'medium';   urgencyIcon = '⚡'; }
+
+            html += `
+                <div class="notification-item ${urgencyClass}" data-product-id="${product.id}">
+                    <div class="item-icon">${categoryIcon}</div>
+                    <div class="item-content">
+                        <div class="item-title">${product.name}</div>
+                        <div class="item-meta">
+                            <span class="urgency-badge">${urgencyIcon} ${qty} left</span>
+                            <span class="category-badge">${category?.name || 'Uncategorized'}</span>
+                        </div>
+                    </div>
+                    <button class="item-action-btn"
+                            onclick="window.NotificationSystem.goToProduct('${product.id}', '${product.category || product.category_id}')">
+                        <span>Restock</span> →
+                    </button>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+
+        if (notificationData.lowStock.length > 10) {
+            html += `
+                <div class="notification-footer">
+                    <button class="view-all-btn" onclick="window.NotificationSystem.goToInventory()">
+                        View all ${notificationData.lowStock.length} low stock items →
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    html += '</div></div>';
+
+    if (notificationData.lastUpdated) {
+        html += `
+            <div class="notification-footer-info">
+                <span class="update-time">🔄 Updated ${getTimeAgo(notificationData.lastUpdated)}</span>
+            </div>
+        `;
+    }
+
+    dropdown.innerHTML = html;
+}
+
+// =============================================================================
+//  NAVIGATION HELPERS
+// =============================================================================
+
+function goToProduct(productId, categoryId) {
+    console.log('📦 Navigating to product:', productId);
+    closeNotificationDropdown();
+    if (typeof showPage === 'function') showPage('inventoryPage');
+    setTimeout(() => {
+        if (categoryId && typeof window.selectedCategory !== 'undefined') {
+            window.selectedCategory = categoryId;
+            if (typeof window.renderInventory === 'function') {
+                window.renderInventory();
+                setTimeout(() => highlightAndScrollToProduct(productId), 200);
+            }
+        }
+    }, 100);
+}
+
+function highlightAndScrollToProduct(productId) {
+    const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+    if (productCard) {
+        productCard.style.transition = 'all 0.3s ease';
+        productCard.style.border     = '3px solid #f59e0b';
+        productCard.style.boxShadow  = '0 0 20px rgba(245, 158, 11, 0.4)';
+        productCard.style.transform  = 'scale(1.02)';
+        productCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        let pulseCount = 0;
+        const pulseInterval = setInterval(() => {
+            if (pulseCount >= 3) {
+                clearInterval(pulseInterval);
+                setTimeout(() => {
+                    productCard.style.border    = '';
+                    productCard.style.boxShadow = '';
+                    productCard.style.transform = '';
+                }, 1000);
+                return;
+            }
+            productCard.style.transform = pulseCount % 2 === 0 ? 'scale(1.05)' : 'scale(1.02)';
+            pulseCount++;
+        }, 300);
+    } else {
+        console.warn('⚠️ Product card not found:', productId);
+    }
+}
+
+function goToInventory(categoryId) {
+    closeNotificationDropdown();
+    if (typeof showPage === 'function') showPage('inventoryPage');
+    if (categoryId && typeof window.selectedCategory !== 'undefined') {
+        setTimeout(() => {
+            window.selectedCategory = categoryId;
+            if (typeof window.renderInventory === 'function') window.renderInventory();
+        }, 100);
+    }
+}
+
+// =============================================================================
+//  SETTINGS CHANGE MANAGEMENT
+//  — all operations write back to the SERVER via /api/save-settings/
+//    so every device sees the update on the next refresh.
+// =============================================================================
+
+/**
+ * Called by settings.js immediately after a successful server save.
+ * At this point window.storeSettings.changeHistory is already updated,
+ * so we just need to refresh the notification UI.
+ */
+function onSettingsSaved(latestRecord) {
+    // window.storeSettings.changeHistory is already updated by settings.js
+    notificationData.settingsChanges = window.storeSettings?.changeHistory || [];
+    updateNotificationBadge();
+    if (notificationDropdownOpen) renderNotificationDropdown();
+    console.log('✅ Notification UI refreshed after server save:', latestRecord);
+}
+
+/**
+ * Remove a single change record from the server-side history.
+ */
+async function clearSettingsChange(changeId) {
+    if (!window.storeSettings) return;
+
+    const updated = (window.storeSettings.changeHistory || []).filter(c => c.id !== changeId);
+    window.storeSettings.changeHistory = updated;
+
+    // Persist to server
+    await persistHistoryToServer(updated);
+    notificationData.settingsChanges = updated;
+    updateNotificationBadge();
+    if (notificationDropdownOpen) renderNotificationDropdown();
+    console.log('✅ Settings change cleared:', changeId);
+}
+
+/**
+ * Remove all change records from the server-side history.
+ */
+async function clearAllSettingsChanges() {
+    if (!window.storeSettings) return;
+
+    window.storeSettings.changeHistory = [];
+    await persistHistoryToServer([]);
+    notificationData.settingsChanges = [];
+    updateNotificationBadge();
+    if (notificationDropdownOpen) renderNotificationDropdown();
+    console.log('✅ All settings changes cleared');
+}
+
+/**
+ * Write the given history array back to the server without changing
+ * any other settings fields.
+ */
+async function persistHistoryToServer(history) {
+    if (!window.storeSettings) return;
+    try {
+        await fetch('/api/save-settings/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken':  getCsrfToken()
+            },
+            body: JSON.stringify({
+                ...window.storeSettings,
+                changeHistory: history
+            })
+        });
+        console.log('☁️ Change history persisted to server');
+    } catch (err) {
+        console.error('❌ Failed to persist change history to server:', err);
+    }
+}
+
+// =============================================================================
+//  HELPER FUNCTIONS
+// =============================================================================
+
+function getCleanupInfo() {
+    const now      = new Date();
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const diff     = tomorrow - now;
+    const hours    = Math.floor(diff / 1000 / 60 / 60);
+    const minutes  = Math.floor((diff / 1000 / 60) % 60);
+    return { timeUntil: `${hours}h ${minutes}m`, hours, minutes, timestamp: tomorrow };
+}
+
+function updateCleanupTimer() {
+    const timerText = document.querySelector('.timer-text');
+    if (timerText && notificationDropdownOpen) {
+        const info = getCleanupInfo();
+        timerText.innerHTML = `Next cleanup in <strong>${info.timeUntil}</strong>`;
+    }
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60)     return 'just now';
+    if (seconds < 120)    return '1 minute ago';
+    if (seconds < 3600)   return `${Math.floor(seconds / 60)} minutes ago`;
+    if (seconds < 7200)   return '1 hour ago';
+    if (seconds < 86400)  return `${Math.floor(seconds / 3600)} hours ago`;
+    if (seconds < 172800) return '1 day ago';
+    return `${Math.floor(seconds / 86400)} days ago`;
+}
+
+function formatSettingName(key) {
+    return { profitMargin: 'Profit Margin', lowStockLimit: 'Low Stock Alert', debtSurcharge: 'Debt Surcharge' }[key] || key;
+}
+
+function formatSettingValue(key, value) {
+    if (key === 'lowStockLimit') return `${value} units`;
+    return `${value}%`;
+}
+
+// =============================================================================
+//  STYLES
+// =============================================================================
+
+function injectNotificationStyles() {
+    const styleId = 'notification-system-styles';
+    if (document.getElementById(styleId)) return;
+
+    const style   = document.createElement('style');
+    style.id      = styleId;
+    style.textContent = `
+        .notification-bell-btn { position: relative; }
+
+        body.dark-mode #btnNotifications {
+            background: rgba(203, 223, 189, 0.08);
+            color: #a8c99c;
+            border-color: rgba(203, 223, 189, 0.15);
+        }
+        body.dark-mode #btnNotifications:hover {
+            background: rgba(203, 223, 189, 0.18);
+            color: #cbdfbd;
+            border-color: rgba(203, 223, 189, 0.3);
+        }
+        body.dark-mode #btnNotifications.active {
+            background: rgba(203, 223, 189, 0.22);
+            color: #d4e09b;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 8px; right: 8px;
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 800;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            border: 2px solid var(--nav-bg, #2d5535);
+        }
+        body.dark-mode .notification-badge {
+            border-color: #1a2a1f;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.5);
+        }
+        @keyframes notificationPulse {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* ── Dropdown ── */
+        .notification-dropdown {
+            background: white;
+            border-radius: 20px;
+            width: 420px;
+            max-height: 600px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            z-index: 9999;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .notification-dropdown.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification-header {
+            background: linear-gradient(135deg, #cbdfbd 0%, #a8c99c 100%);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+        }
+        .notification-header h3 { margin: 0; font-size: 1.3rem; font-weight: 800; color: #2d5535; }
+
+        .notification-close-btn {
+            background: rgba(255,255,255,0.3); border: none;
+            width: 32px; height: 32px; border-radius: 8px;
+            cursor: pointer; font-size: 18px; color: #2d5535;
+            transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .notification-close-btn:hover { background: rgba(255,255,255,0.5); transform: rotate(90deg); }
+
+        .notification-content-wrapper {
+            overflow-y: auto; overflow-x: hidden;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            scroll-behavior: smooth;
+        }
+
+        .notification-section { padding: 20px; border-bottom: 1px solid #F0F0F0; flex-shrink: 0; }
+        .notification-section:last-of-type { border-bottom: none; }
+
+        .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .section-icon { font-size: 20px; }
+        .section-title { font-size: 15px; font-weight: 800; color: #5D534A; flex: 1; }
+        .section-count {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: white; padding: 4px 10px; border-radius: 12px;
+            font-size: 12px; font-weight: 800;
+        }
+
+        .cleanup-info-card {
+            background: linear-gradient(135deg, rgba(168,201,156,0.15), rgba(203,223,189,0.1));
+            border-radius: 12px; padding: 16px; border-left: 4px solid #a8c99c;
+        }
+        .cleanup-timer { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; color: #5D534A; }
+        .timer-icon { font-size: 24px; animation: clockTick 2s ease-in-out infinite; }
+        @keyframes clockTick { 0%,100%{transform:rotate(0deg)} 25%{transform:rotate(10deg)} 75%{transform:rotate(-10deg)} }
+        .cleanup-details { font-size: 13px; color: #7F8C8D; line-height: 1.6; }
+        .cleanup-details p { margin: 6px 0; }
+
+        .notification-list {
+            max-height: 350px;
+            overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column; gap: 10px;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain; scroll-behavior: smooth;
+        }
+        .notification-list::-webkit-scrollbar { width: 6px; }
+        .notification-list::-webkit-scrollbar-track { background: #F0F0F0; border-radius: 3px; }
+        .notification-list::-webkit-scrollbar-thumb { background: #CBD5E0; border-radius: 3px; }
+        .notification-list::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
+
+        .notification-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px; border-radius: 12px;
+            transition: all 0.2s ease; cursor: pointer;
+            user-select: none; -webkit-user-select: none;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+        }
+        .notification-item:hover  { transform: translateX(4px); }
+        .notification-item:active { opacity: 0.8; }
+        .notification-item.critical { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.1));  border-left: 4px solid #EF4444; }
+        .notification-item.high     { background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(245,158,11,0.1)); border-left: 4px solid #F59E0B; }
+        .notification-item.medium   { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.1));  border-left: 4px solid #3B82F6; }
+        .notification-item.low      { background: linear-gradient(135deg, rgba(168,201,156,0.15), rgba(203,223,189,0.1)); border-left: 4px solid #a8c99c; }
+        .notification-item.settings-change { background: linear-gradient(135deg, rgba(147,197,253,0.15), rgba(59,130,246,0.1)); border-left: 4px solid #3B82F6; }
+
+        .item-icon { font-size: 32px; flex-shrink: 0; }
+        .item-content { flex: 1; min-width: 0; }
+        .item-title { font-size: 14px; font-weight: 700; color: #2D3748; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .urgency-badge, .category-badge, .time-badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+        .urgency-badge  { background: rgba(0,0,0,0.1);           color: #5D534A; }
+        .category-badge { background: rgba(203,223,189,0.3);     color: #3e5235; }
+        .time-badge     { background: rgba(147,197,253,0.3);     color: #1e40af; }
+
+        .settings-change-details { margin-top: 8px; font-size: 12px; color: #64748b; }
+        .change-item { margin: 4px 0; padding: 4px 8px; background: rgba(255,255,255,0.5); border-radius: 6px; }
+        .change-item strong { color: #334155; }
+
+        .item-action-btn {
+            background: linear-gradient(135deg, #cbdfbd, #a8c99c);
+            color: #2d5535; border: none; padding: 8px 14px;
+            border-radius: 8px; font-size: 13px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .item-action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(203,223,189,0.4); }
+        .item-action-btn.clear-notification { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626; padding: 6px 10px; }
+        .item-action-btn.clear-notification:hover { background: linear-gradient(135deg, #fecaca, #fca5a5); }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #9E9382; }
+        .empty-icon  { font-size: 48px; display: block; margin-bottom: 12px; }
+        .empty-state p { margin: 0; font-size: 15px; }
+
+        .notification-footer { padding: 16px; border-top: 1px solid #F0F0F0; text-align: center; }
+        .view-all-btn {
+            background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
+            color: #5D534A; border: none; padding: 12px 24px;
+            border-radius: 10px; font-size: 14px; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease; width: 100%;
+        }
+        .view-all-btn:hover { background: linear-gradient(135deg, #E5E7EB, #D1D5DB); transform: translateY(-2px); }
+
+        .notification-footer-info {
+            padding: 12px 20px; text-align: center;
+            background: #F9FAFB; border-top: 1px solid #F0F0F0;
+            flex-shrink: 0;
+        }
+        .update-time { font-size: 12px; color: #9E9382; }
+
+        /* ══ DARK MODE ══ */
+        body.dark-mode .notification-dropdown { background: #1a2a1f; border-color: rgba(203,223,189,0.15); }
+        body.dark-mode .notification-header { background: linear-gradient(135deg, #2d3e2f, #1f2e22); border-bottom-color: rgba(203,223,189,0.15); }
+        body.dark-mode .notification-header h3 { color: #a8c99c; }
+        body.dark-mode .notification-close-btn { background: rgba(203,223,189,0.12); color: #a8c99c; }
+        body.dark-mode .notification-close-btn:hover { background: rgba(203,223,189,0.22); }
+        body.dark-mode .notification-section { border-bottom-color: rgba(255,255,255,0.07); }
+        body.dark-mode .section-title { color: #d1d5db; }
+        body.dark-mode .cleanup-info-card { background: linear-gradient(135deg, rgba(168,201,156,0.1), rgba(90,158,111,0.08)); border-left-color: #5a9e6f; }
+        body.dark-mode .cleanup-timer  { color: #c8d8c0; }
+        body.dark-mode .cleanup-details { color: #8aaa90; }
+        body.dark-mode .notification-list::-webkit-scrollbar-track { background: #1f2e24; }
+        body.dark-mode .notification-list::-webkit-scrollbar-thumb { background: #3a5040; }
+        body.dark-mode .notification-item.settings-change { background: linear-gradient(135deg, rgba(96,165,250,0.12), rgba(59,130,246,0.08)); }
+        body.dark-mode .item-title     { color: #e8f0e8; }
+        body.dark-mode .urgency-badge  { background: rgba(255,255,255,0.08); color: #c0c8bc; }
+        body.dark-mode .category-badge { background: rgba(203,223,189,0.15); color: #a8c99c; }
+        body.dark-mode .time-badge     { background: rgba(147,197,253,0.15); color: #93c5fd; }
+        body.dark-mode .settings-change-details { color: #8a9fa8; }
+        body.dark-mode .change-item    { background: rgba(255,255,255,0.05); }
+        body.dark-mode .change-item strong { color: #b0c4b8; }
+        body.dark-mode .item-action-btn { background: linear-gradient(135deg, rgba(203,223,189,0.2), rgba(168,201,156,0.15)); color: #a8c99c; border: 1px solid rgba(168,201,156,0.25); }
+        body.dark-mode .item-action-btn:hover { background: linear-gradient(135deg, rgba(203,223,189,0.3), rgba(168,201,156,0.25)); color: #cbdfbd; }
+        body.dark-mode .item-action-btn.clear-notification { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.1)); color: #f87171; border-color: rgba(239,68,68,0.2); }
+        body.dark-mode .empty-state    { color: #5a7060; }
+        body.dark-mode .view-all-btn   { background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.04)); color: #a0b8a0; border: 1px solid rgba(255,255,255,0.08); }
+        body.dark-mode .view-all-btn:hover { background: linear-gradient(135deg, rgba(203,223,189,0.12), rgba(168,201,156,0.08)); color: #cbdfbd; }
+        body.dark-mode .notification-footer { border-top-color: rgba(255,255,255,0.07); }
+        body.dark-mode .notification-footer-info { background: rgba(0,0,0,0.2); border-top-color: rgba(255,255,255,0.07); }
+        body.dark-mode .update-time { color: #5a7060; }
+
+        /* ══ MOBILE (≤ 768px) ══ */
+        @media (max-width: 768px) {
+            .notification-dropdown {
+                width: 100vw  !important; max-width: 100vw !important;
+                height: 100vh !important; max-height: 100vh !important;
+                left: 0 !important; right: 0 !important;
+                top: 0 !important; bottom: 0 !important;
+                border-radius: 0 !important;
+                padding-top:    env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            .notification-header {
+                padding: max(20px, calc(env(safe-area-inset-top) + 10px)) 20px 20px 20px;
+            }
+            /* FIX: let wrapper fill remaining height */
+            .notification-content-wrapper {
+                flex: 1 1 0;
+                max-height: none;
+                overflow-y: auto;
+            }
+            /* FIX: remove fixed 350px cap inside full-screen panel */
+            .notification-list {
+                max-height: none;
+                overflow-y: visible;
+            }
+            .notification-section { flex-shrink: 0; }
+            .notification-item    { min-height: 60px; padding: 14px 12px; }
+            .item-action-btn      { min-height: 44px; min-width: 80px; justify-content: center; }
+            .notification-footer-info {
+                padding-bottom: max(12px, env(safe-area-inset-bottom));
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+    console.log('✅ Notification styles injected');
+}
+
+// =============================================================================
+//  EXPORT TO WINDOW
+// =============================================================================
+
+window.NotificationSystem = {
+    refresh:                 refreshNotifications,
+    close:                   closeNotificationDropdown,
+    goToInventory:           goToInventory,
+    goToProduct:             goToProduct,
+    onSettingsSaved:         onSettingsSaved,          // called by settings.js after save
+    clearSettingsChange:     clearSettingsChange,
+    clearAllSettingsChanges: clearAllSettingsChanges
+};
+
+console.log('✅ Enhanced notifications module loaded!');

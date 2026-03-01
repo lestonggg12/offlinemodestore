@@ -1,0 +1,154 @@
+<!-- profit.html - All HTML templates for profit/sales functionality -->
+
+<!-- Template: page-header -->
+<template id="template-profit-page-header">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h2 style="color: var(--accent); margin-bottom: 5px;">📊 Sales Performance</h2>
+    <p style="color: #666; font-size: 13px;">Sales automatically reset at midnight (12:00 AM)</p>
+  </div>
+</template>
+
+<!-- Template: period-section-start -->
+<template id="template-period-section-start">
+  <div class="period-section">
+    <h3 style="color: var(--teal); margin-bottom: 15px;" class="period-title"></h3>
+    <div class="profit-summary">
+  </div>
+</template>
+
+<!-- Template: revenue-card -->
+<template id="template-revenue-card">
+  <div class="profit-card revenue-card">
+    <h3>Revenue</h3>
+    <div class="profit-amount" data-revenue></div>
+    <small class="sales-count"></small>
+  </div>
+</template>
+
+<!-- Template: profit-card -->
+<template id="template-profit-card">
+  <div class="profit-card profit-card-main">
+    <h3>Profit</h3>
+    <div class="profit-amount" data-profit></div>
+    <small class="period-label"></small>
+  </div>
+</template>
+
+<!-- Template: period-section-end -->
+<template id="template-period-section-end">
+    </div>
+  </div>
+</template>
+
+<!-- Template: potential-profit-section -->
+<template id="template-potential-profit-section">
+  <h3 style="color: var(--teal); margin: 25px 0 15px 0;">💎 Potential Profit</h3>
+  <div class="profit-summary">
+    <div class="profit-card" style="background: linear-gradient(135deg, var(--primary), var(--accent));">
+      <h3>From Current Inventory</h3>
+      <div class="profit-amount" data-potential-profit></div>
+      <small>if all stock sells</small>
+    </div>
+  </div>
+</template>
+
+<!-- Template: recent-sales-section-start -->
+<template id="template-recent-sales-section-start">
+  <div class="recent-sales" style="margin-top: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3 style="margin: 0;">📝 Recent Sales</h3>
+      <div class="clear-button-container"></div>
+    </div>
+</template>
+
+<!-- Template: clear-history-button -->
+<template id="template-clear-history-button">
+  <button class="btn-clear-history" id="btnClearHistory">
+    🗑️ Clear Transaction History
+  </button>
+</template>
+
+<!-- Template: clear-history-button-styles -->
+<template id="template-clear-history-styles">
+  <style>
+    .btn-clear-history {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--red), #ef5350);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      box-shadow: 0 3px 0 #c62828;
+    }
+    .btn-clear-history:hover {
+      background: linear-gradient(135deg, #c62828, #e53935);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 0 #b71c1c, 0 6px 15px rgba(0,0,0,0.3);
+    }
+    .btn-clear-history:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 0 #c62828;
+    }
+  </style>
+</template>
+
+<!-- Template: sales-table-start -->
+<template id="template-sales-table-start">
+  <table class="sales-table">
+    <thead>
+      <tr>
+        <th>Date &amp; Time</th>
+        <th>Items</th>
+        <th>Total</th>
+        <th>Profit</th>
+        <th>Payment</th>
+      </tr>
+    </thead>
+    <tbody class="sales-table-body">
+</template>
+
+<!-- Template: sales-table-row -->
+<template id="template-sales-table-row">
+  <tr class="sale-row">
+    <td class="sale-date">
+      <strong class="date-text"></strong><br>
+      <small style="color: #666;" class="time-text"></small>
+    </td>
+    <td class="sale-items"></td>
+    <td><strong class="sale-total"></strong></td>
+    <td class="profit-positive sale-profit"></td>
+    <td><span class="payment-badge" data-payment-type></span></td>
+  </tr>
+</template>
+
+<!-- Template: sales-table-end -->
+<template id="template-sales-table-end">
+    </tbody>
+  </table>
+</template>
+
+<!-- Template: no-sales -->
+<template id="template-no-sales">
+  <p class="no-data">No sales recorded yet. Start making sales to see them here!</p>
+</template>
+
+<!-- Template: recent-sales-section-end -->
+<template id="template-recent-sales-section-end">
+  </div>
+</template>
+
+<!-- Template: profit-summary-styles -->
+<template id="template-profit-summary-styles">
+  <style>
+    .profit-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+  </style>
+</template>

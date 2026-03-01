@@ -1,0 +1,104 @@
+<!-- cart.html - All HTML templates for cart functionality -->
+
+<!-- Template: empty-cart -->
+<template id="template-empty-cart">
+  <p class="empty-cart">
+    🛒 Cart is empty<br>
+    <small>Search and click products to add</small>
+  </p>
+</template>
+
+<!-- Template: cart-list-header -->
+<template id="template-cart-list-header">
+  <div class="cart-list-header"><strong>Items in Cart:</strong></div>
+  <div class="cart-list">
+</template>
+
+<!-- Template: cart-item -->
+<template id="template-cart-item">
+  <div class="cart-item">
+    <div class="cart-item-header">
+      <strong class="cart-item-name">{{name}}</strong>
+      <button class="btn-remove-mini btn-cart-remove" data-product-id="{{id}}" title="Remove">✕</button>
+    </div>
+    <div class="cart-item-details">
+      <span class="cart-item-price">₱{{price}} each</span>
+    </div>
+    <div class="cart-item-controls">
+      <button class="btn-qty-round btn-qty-minus" data-product-id="{{id}}" title="Decrease">−</button>
+      <input type="number" 
+             value="{{quantity}}"
+             min="1"
+             class="qty-input-cart"
+             data-cart-id="{{id}}"
+             title="Click to edit quantity">
+      <button class="btn-qty-round btn-qty-plus" data-product-id="{{id}}" title="Increase">+</button>
+    </div>
+    <div class="cart-item-subtotal">
+      <span class="subtotal-label">Subtotal:</span>
+      <span class="subtotal-amount">₱{{subtotal}}</span>
+    </div>
+  </div>
+</template>
+
+<!-- Template: cart-list-footer -->
+<template id="template-cart-list-footer">
+  </div>
+  <button class="btn-clear-cart" onclick="clearCart()">🗑️ Clear All</button>
+</template>
+
+<!-- Template: search-no-results -->
+<template id="template-search-no-results">
+  <p class="no-results">
+    ❌ No products found<br>
+    <small>Try a different search term</small>
+  </p>
+</template>
+
+<!-- Template: search-results-header -->
+<template id="template-search-results-header">
+  <div class="product-search-header"><strong>Search Results:</strong></div>
+  <div class="product-list">
+</template>
+
+<!-- Template: product-search-item -->
+<template id="template-product-search-item">
+  <div class="product-item {{inCartClass}}" 
+       data-product-id="{{id}}"
+       onclick="addToCart('{{id}}')"
+       style="cursor: pointer;">
+    <div class="product-info">
+      <div class="product-name-row">
+        <strong>{{name}}</strong>
+        {{inCartBadge}}
+      </div>
+      <div class="product-details-row">
+        <span class="product-price">₱{{price}}</span>
+        <span class="product-stock">{{quantity}} available</span>
+      </div>
+    </div>
+    <div class="product-action">
+      {{actionHint}}
+    </div>
+  </div>
+</template>
+
+<!-- Template: in-cart-badge -->
+<template id="template-in-cart-badge">
+  <span class="in-cart-badge">✓ {{cartQty}} in cart</span>
+</template>
+
+<!-- Template: action-hint-edit -->
+<template id="template-action-hint-edit">
+  <span class="edit-qty-hint">Click to edit ✏️</span>
+</template>
+
+<!-- Template: action-hint-add -->
+<template id="template-action-hint-add">
+  <span class="add-hint">Click to add +</span>
+</template>
+
+<!-- Template: search-results-footer -->
+<template id="template-search-results-footer">
+  </div>
+</template>
