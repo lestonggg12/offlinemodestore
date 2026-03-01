@@ -21,7 +21,7 @@ from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce, TruncDate
 from django.utils import timezone
 
-from rest_framework import request, status
+from rest_framework import status  # ✅ CORRECT
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
