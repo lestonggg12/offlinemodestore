@@ -21,7 +21,7 @@ from django.db.models import Sum, Count
 from django.db.models.functions import Coalesce, TruncDate
 from django.utils import timezone
 
-from rest_framework import status
+from rest_framework import request, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -298,7 +298,7 @@ def debtor_detail(request, pk):
     if request.method == 'GET':
         return Response(DebtorSerializer(debtor).data)
     if request.method == 'PUT':
-        serializer = DebtorSerializer(debtor, data=request.data)
+        serializer = DebtorSerializer(debtor, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
