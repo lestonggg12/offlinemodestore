@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Secret Key & Debug
 SECRET_KEY = config('DJANGO_SECRET_KEY')
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Allowed Hosts
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'store',
+   'sarisaristore.store'
 ]
 
 # Middleware
@@ -38,8 +38,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'sarisaristore.urls'
-
+ROOT_URLCONF = 'sarisaristore.sarisaristore.urls'
 # Templates
 TEMPLATES = [
     {
@@ -57,8 +56,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'sarisaristore.wsgi.application'
-
+WSGI_APPLICATION = 'sarisaristore.sarisaristore.wsgi.application'
 # Database (use DATABASE_URL if present, else fallback to SQLite)
 DATABASE_URL = config('DATABASE_URL', default='')
 if DATABASE_URL:
