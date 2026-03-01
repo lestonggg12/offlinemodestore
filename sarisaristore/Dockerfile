@@ -9,6 +9,12 @@ COPY . .
 
 ENV PYTHONPATH=/app:/app/sarisaristore
 ENV DJANGO_SETTINGS_MODULE=settings
-RUN python manage.py collectstatic --noinput
+
 EXPOSE 8000
 CMD ["gunicorn", "wsgi:application", "--bind", "0.0.0.0:8000"]
+```
+
+## And update your Procfile to run collectstatic at startup:
+```
+release: python manage.py collectstatic --noinput && python manage.py migrate
+web: gunicorn wsgi:application --bind 0.0.0.0:$PORT
