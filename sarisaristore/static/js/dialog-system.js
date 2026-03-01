@@ -258,6 +258,7 @@
                     height: 300px;
                 }
 
+                /* PRIMARY BUTTON — Green Confirm */
                 .dialog-btn-primary { 
                     background: linear-gradient(135deg, #cbdfbd 0%, #a8c99c 100%);
                     color: #2d5a3b;
@@ -278,29 +279,44 @@
                     transform: translateY(-1px);
                 }
 
+                /* SECONDARY BUTTON — Red Cancel */
                 .dialog-btn-secondary { 
-                    background: linear-gradient(135deg, #FEE2E2, #FECACA);
-                    color: #DC2626;
-                    border: 2px solid #fca5a5;
-                    backdrop-filter: blur(10px);
+                    background: linear-gradient(135deg, #e74c3c, #c41e3a) !important;
+                    color: #ffffff !important;
+                    border: 1px solid rgba(231, 76, 60, 0.4) !important;
+                    box-shadow: 
+                        0 6px 20px rgba(231, 76, 60, 0.3),
+                        0 0 0 2px rgba(231, 76, 60, 0.15) inset !important;
                 }
 
                 .dialog-btn-secondary:hover {
-                    background: linear-gradient(135deg, #FECACA, #FCA5A5);
-                    color: #B91C1C;
-                    border-color: #f87171;
-                    transform: translateY(-2px);
+                    background: linear-gradient(135deg, #c41e3a, #a61828) !important;
+                    color: #ffffff !important;
+                    border-color: rgba(231, 76, 60, 0.6) !important;
+                    transform: translateY(-3px) !important;
+                    box-shadow: 
+                        0 12px 30px rgba(231, 76, 60, 0.4),
+                        0 0 0 2px rgba(231, 76, 60, 0.2) inset !important;
                 }
 
+                /* DARK MODE — Secondary Button */
                 body.dark-mode .dialog-btn-secondary {
-                    background: rgba(127, 29, 29, 0.4);
-                    color: #f87171;
-                    border-color: rgba(248, 113, 113, 0.3);
+                    background: linear-gradient(135deg, #7a2c2c, #5a1a1a) !important;
+                    color: #ff9999 !important;
+                    border-color: rgba(232, 80, 80, 0.3) !important;
+                    box-shadow: 
+                        0 6px 20px rgba(122, 44, 44, 0.4),
+                        0 0 0 2px rgba(232, 80, 80, 0.15) inset !important;
                 }
 
                 body.dark-mode .dialog-btn-secondary:hover {
-                    background: rgba(153, 27, 27, 0.5);
-                    color: #fca5a5;
+                    background: linear-gradient(135deg, #8a3c3c, #6a2a2a) !important;
+                    color: #ffcccc !important;
+                    border-color: rgba(232, 80, 80, 0.5) !important;
+                    transform: translateY(-3px) !important;
+                    box-shadow: 
+                        0 12px 30px rgba(122, 44, 44, 0.5),
+                        0 0 0 2px rgba(232, 80, 80, 0.2) inset !important;
                 }
                 
                 @keyframes fadeIn { 
@@ -436,5 +452,5 @@
     };
 
     window.DialogSystem = DialogSystem;
-    console.log("✅ DialogSystem V5 initialized with modern glassmorphic design.");
+    console.log("✅ DialogSystem V5 initialized with RED cancel button styling.");
 })();

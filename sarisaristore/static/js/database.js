@@ -343,14 +343,15 @@ const DB = {
     try {
       const sales = await this.apiCall('/sales/');
       return sales.map(s => ({
-        id:             s.id,
-        date:           s.date,
-        total:          parseFloat(s.total),
-        profit:         parseFloat(s.profit || 0),
-        paymentType:    s.payment_method,
-        payment_method: s.payment_method,
-        items:          s.items || [],
-      }));
+  id:             s.id,
+  date:           s.date,
+  total:          parseFloat(s.total),
+  profit:         parseFloat(s.profit || 0),
+  paymentType:    s.payment_method,
+  payment_method: s.payment_method,
+  customer_name:  s.customer_name || '',  
+  items:          s.items || [],
+}));
     } catch (error) {
       console.error('❌ Failed to fetch sales:', error);
       return [];
@@ -369,12 +370,13 @@ const DB = {
         totalProfit    += (itemPrice - itemCost) * quantity;
         return { product_id: item.id || item.productId || item.product_id, quantity, price: itemPrice, cost: itemCost };
       });
-      const saleData = {
-        total:          parseFloat(sale.total.toFixed(2)),
-        profit:         parseFloat(totalProfit.toFixed(2)),
-        payment_method: sale.paymentType || sale.payment_method || 'cash',
-        items:          itemsWithCost,
-      };
+     const saleData = {
+  total:          parseFloat(sale.total.toFixed(2)),
+  profit:         parseFloat(totalProfit.toFixed(2)),
+  payment_method: sale.paymentType || sale.payment_method || 'cash',
+  customer_name:  sale.customer_name || '',    // ← ADD THIS
+  items:          itemsWithCost,
+};
       const newSale = await this.apiCall('/sales/', 'POST', saleData);
       await this.syncUI();
       return newSale;
@@ -503,34 +505,11 @@ const DB = {
 
   async updateDebtor(id, updates) {
     try {
-      const debtors       = await this.getDebtors();
-      const currentDebtor = debtors.find(d => parseInt(d.id) === parseInt(id));
-      if (!currentDebtor) throw new Error(`Debtor with ID ${id} not found`);
-      const updateData = {
-        name:              updates.name      !== undefined ? updates.name      : currentDebtor.name,
-        contact:           updates.contact   !== undefined ? updates.contact   : (currentDebtor.contact || ''),
-        total_debt:        updates.totalAmount !== undefined ? parseFloat(updates.totalAmount) :
-                           (updates.total_debt !== undefined ? parseFloat(updates.total_debt) :
-                            parseFloat(currentDebtor.totalAmount || 0)),
-        paid:              updates.paid      !== undefined ? updates.paid      : (currentDebtor.paid || false),
-        original_total:    updates.original_total    !== undefined ? parseFloat(updates.original_total)    : parseFloat(currentDebtor.original_total    || 0),
-        surcharge_percent: updates.surcharge_percent !== undefined ? parseFloat(updates.surcharge_percent) : parseFloat(currentDebtor.surcharge_percent || 0),
-        surcharge_amount:  updates.surcharge_amount  !== undefined ? parseFloat(updates.surcharge_amount)  : parseFloat(currentDebtor.surcharge_amount  || 0),
-      };
-      if (updates.paid === true) {
-        updateData.date_paid = updates.date_paid || new Date().toISOString();
-      } else if (currentDebtor.date_paid) {
-        updateData.date_paid = currentDebtor.date_paid;
-      }
-      const items = currentDebtor.products || currentDebtor.items || [];
-      if (items.length > 0) {
-        updateData.items = items.map(item => ({
-          product_id: item.product_id || item.id || item.productId,
-          quantity:   parseInt(item.quantity),
-          price:      parseFloat(item.price),
-          cost:       parseFloat(item.cost || 0),
-        }));
-      }
+      // Only send fields that are allowed by the backend and required for the update
+      const updateData = {};
+      if (updates.paid !== undefined) updateData.paid = updates.paid;
+      if (updates.date_paid !== undefined) updateData.date_paid = updates.date_paid;
+      // Optionally add more fields if needed by your backend
       const updatedDebtor = await this.apiCall(`/debtors/${id}/`, 'PUT', updateData);
       await this.syncUI();
       return updatedDebtor;

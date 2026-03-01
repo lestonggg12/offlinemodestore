@@ -1,7 +1,5 @@
 // =============================================================================
-//  PRICE LIST MODULE
-//  UPDATED: getCategories() now async — fetches from DB.getCategories()
-//           so dynamic/custom categories appear automatically.
+//  PRICE LIST MODULE — NEO-GLASSMORPHIC EDITION
 // =============================================================================
 
 // =============================================================================
@@ -10,16 +8,12 @@
 
 let selectedPriceCategory = null;
 
-/**
- * Returns categories array.
- * Tries DB.getCategories() first; falls back to window.CATEGORIES.
- */
 async function getCategories() {
     try {
         if (typeof DB !== 'undefined' && typeof DB.getCategories === 'function') {
             const cats = await DB.getCategories();
             if (cats && cats.length) {
-                window.CATEGORIES = cats;   // keep global in sync
+                window.CATEGORIES = cats;
                 return cats;
             }
         }
@@ -27,27 +21,513 @@ async function getCategories() {
         console.warn('⚠️ DB.getCategories() failed, using window.CATEGORIES fallback:', e);
     }
 
-    if (window.CATEGORIES && Array.isArray(window.CATEGORIES)) {
-        return window.CATEGORIES;
-    }
+    if (window.CATEGORIES && Array.isArray(window.CATEGORIES)) return window.CATEGORIES;
 
-    // Last resort — hardcoded defaults
     console.warn('⚠️ No categories found, using hardcoded defaults');
     const defaults = [
-        { id:'beverages',           name:'Beverages',                    icon:'🥤',  color:'linear-gradient(135deg,#e3b04b 0%,#d19a3d 100%)' },
-        { id:'school',              name:'School Supplies',               icon:'📚',  color:'linear-gradient(135deg,#d48c2e 0%,#ba7a26 100%)' },
-        { id:'snacks',              name:'Snacks',                        icon:'🍿',  color:'linear-gradient(135deg,#a44a3f 0%,#934635 100%)' },
-        { id:'foods',               name:'Whole Foods',                   icon:'🍚',  color:'linear-gradient(135deg,#967751 0%,#92784f 100%)' },
-        { id:'bath',                name:'Bath, Hygiene & Laundry Soaps', icon:'🧼',  color:'linear-gradient(135deg,#f3c291 0%,#e5b382 100%)' },
-        { id:'wholesale_beverages', name:'Wholesale Beverages',           icon:'📦',  color:'linear-gradient(135deg,#cc8451 0%,#b87545 100%)' },
-        { id:'liquor',              name:'Hard Liquors',                  icon:'🍺',  color:'linear-gradient(135deg,#e2e8b0 0%,#ced49d 100%)' },
+        { id:'beverages',           name:'Beverages',                    icon:'🥤', color:'linear-gradient(135deg,#e3b04b 0%,#d19a3d 100%)' },
+        { id:'school',              name:'School Supplies',               icon:'📚', color:'linear-gradient(135deg,#d48c2e 0%,#ba7a26 100%)' },
+        { id:'snacks',              name:'Snacks',                        icon:'🍿', color:'linear-gradient(135deg,#a44a3f 0%,#934635 100%)' },
+        { id:'foods',               name:'Whole Foods',                   icon:'🍚', color:'linear-gradient(135deg,#967751 0%,#92784f 100%)' },
+        { id:'bath',                name:'Bath, Hygiene & Laundry Soaps', icon:'🧼', color:'linear-gradient(135deg,#f3c291 0%,#e5b382 100%)' },
+        { id:'wholesale_beverages', name:'Wholesale Beverages',           icon:'📦', color:'linear-gradient(135deg,#cc8451 0%,#b87545 100%)' },
+        { id:'liquor',              name:'Hard Liquors',                  icon:'🍺', color:'linear-gradient(135deg,#e2e8b0 0%,#ced49d 100%)' },
     ];
     window.CATEGORIES = defaults;
     return defaults;
 }
 
 // =============================================================================
-//  2. INITIALIZATION
+//  2. INJECT GLOBAL GLASSMORPHIC STYLES
+// =============================================================================
+
+(function injectPriceStyles() {
+    if (document.getElementById('price-neo-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'price-neo-styles';
+    s.textContent = `
+        /* ── CSS Variables ── */
+        #priceListContent {
+            --neo-float:
+                0 8px 32px rgba(80,140,75,0.22),
+                0 2px 8px  rgba(80,140,75,0.12),
+                0 -2px 0   rgba(255,255,255,0.9) inset,
+                0 1px 0    rgba(80,140,75,0.15)  inset;
+            --neo-float-hover:
+                0 18px 50px rgba(80,140,75,0.30),
+                0 4px 16px  rgba(80,140,75,0.18),
+                0 -2px 0    rgba(255,255,255,0.95) inset;
+        }
+
+        /* ── Summary stat cards ── */
+        #priceListContent .gl-stat-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-radius: 20px;
+            padding: 20px 24px;
+            flex: 1;
+            min-width: 180px;
+            max-width: 280px;
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+            backdrop-filter: blur(18px) saturate(1.6);
+            -webkit-backdrop-filter: blur(18px) saturate(1.6);
+            border: 1.5px solid rgba(255,255,255,0.55);
+            box-shadow: var(--neo-float);
+            transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
+        }
+        #priceListContent .gl-stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 40%, transparent 70%);
+            pointer-events: none;
+        }
+        #priceListContent .gl-stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 20px; right: 20px;
+            height: 2px;
+            border-radius: 0 0 4px 4px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+        }
+        #priceListContent .gl-stat-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: var(--neo-float-hover);
+        }
+        #priceListContent .gl-stat-card .stat-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            line-height: 1;
+        }
+        #priceListContent .gl-stat-card .stat-body {
+            flex: 1;
+            min-width: 0;
+            position: relative;
+            z-index: 1;
+        }
+        #priceListContent .gl-stat-card .stat-label {
+            font-size: 0.64rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            opacity: 0.72;
+            margin-bottom: 4px;
+        }
+        #priceListContent .gl-stat-card .stat-value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+
+        /* Colour variants */
+        #priceListContent .gl-stat-card.sc-beige  { background: linear-gradient(135deg, #f5ede0 0%, #eee4d5 100%); border-color: #e8dac8; }
+        #priceListContent .gl-stat-card.sc-beige  .stat-label, .sc-beige  .stat-value { color: #5D534A; }
+        #priceListContent .gl-stat-card.sc-green  { background: linear-gradient(135deg, #cbdfbd 0%, #bdd4ae 100%); border-color: #b5cca8; }
+        #priceListContent .gl-stat-card.sc-green  .stat-label { color: #3e5235; }
+        #priceListContent .gl-stat-card.sc-green  .stat-value { color: #32422b; }
+        #priceListContent .gl-stat-card.sc-amber  { background: linear-gradient(135deg, #f6f4d2 0%, #eee9c4 100%); border-color: #e5e0ba; }
+        #priceListContent .gl-stat-card.sc-amber  .stat-label { color: #6b6438; }
+        #priceListContent .gl-stat-card.sc-amber  .stat-value { color: #5a5230; }
+        #priceListContent .gl-stat-card.sc-mint   { background: linear-gradient(135deg, #d4e09b 0%, #c5d68d 100%); border-color: #c0cf88; }
+        #priceListContent .gl-stat-card.sc-mint   .stat-label { color: #4a5a2a; }
+        #priceListContent .gl-stat-card.sc-mint   .stat-value { color: #3d4a23; }
+
+        /* ── Category cards ── */
+        #priceListContent .gl-cat-card {
+            border-radius: 20px;
+            padding: 20px 22px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(16px) saturate(1.5);
+            -webkit-backdrop-filter: blur(16px) saturate(1.5);
+            border: 1.5px solid rgba(255,255,255,0.55);
+            box-shadow: var(--neo-float);
+            transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
+            background: linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 100%);
+        }
+        #priceListContent .gl-cat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 50%, transparent 75%);
+            pointer-events: none;
+        }
+        #priceListContent .gl-cat-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 20px; right: 20px;
+            height: 2px;
+            border-radius: 0 0 4px 4px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+        }
+        #priceListContent .gl-cat-card:hover {
+            transform: translateY(-7px) scale(1.01);
+            box-shadow: var(--neo-float-hover);
+        }
+        #priceListContent .gl-cat-card:active { transform: translateY(-3px) scale(1.005); }
+
+        #priceListContent .gl-cat-inner {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        #priceListContent .gl-cat-icon-box {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18), 0 -1px 0 rgba(255,255,255,0.5) inset;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        #priceListContent .gl-cat-text { flex: 1; }
+        #priceListContent .gl-cat-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: #2d3a2d;
+            margin-bottom: 3px;
+        }
+        #priceListContent .gl-cat-sub {
+            font-size: 12px;
+            color: #7a9070;
+            font-weight: 600;
+        }
+        #priceListContent .gl-cat-arrow {
+            font-size: 18px;
+            color: rgba(80,120,75,0.4);
+            transition: all .3s ease;
+            flex-shrink: 0;
+        }
+        #priceListContent .gl-cat-card:hover .gl-cat-arrow {
+            color: rgba(80,120,75,0.9);
+            transform: translateX(5px);
+        }
+
+        /* ── Mini stat pills in category view ── */
+        #priceListContent .gl-mini-stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 14px;
+            padding: 14px 18px;
+            flex: 1;
+            min-width: 140px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(14px) saturate(1.5);
+            -webkit-backdrop-filter: blur(14px) saturate(1.5);
+            border: 1.5px solid rgba(255,255,255,0.55);
+            box-shadow: var(--neo-float);
+            transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+        }
+        #priceListContent .gl-mini-stat::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        #priceListContent .gl-mini-stat:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--neo-float-hover);
+        }
+        #priceListContent .gl-mini-stat .ms-icon { font-size: 1.4rem; position: relative; z-index:1; }
+        #priceListContent .gl-mini-stat .ms-body  { position: relative; z-index:1; }
+        #priceListContent .gl-mini-stat .ms-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; margin-bottom: 3px; }
+        #priceListContent .gl-mini-stat .ms-value { font-size: 1.2rem; font-weight: 900; }
+
+        #priceListContent .gl-mini-stat.ms-beige  { background: linear-gradient(135deg, #f5ede0, #eee4d5); }
+        #priceListContent .gl-mini-stat.ms-beige  .ms-label, .ms-beige  .ms-value { color: #5D534A; }
+        #priceListContent .gl-mini-stat.ms-green  { background: linear-gradient(135deg, #cbdfbd, #bdd4ae); }
+        #priceListContent .gl-mini-stat.ms-green  .ms-label { color: #3e5235; }
+        #priceListContent .gl-mini-stat.ms-green  .ms-value { color: #32422b; }
+        #priceListContent .gl-mini-stat.ms-amber  { background: linear-gradient(135deg, #f6f4d2, #eee9c4); }
+        #priceListContent .gl-mini-stat.ms-amber  .ms-label { color: #6b6438; }
+        #priceListContent .gl-mini-stat.ms-amber  .ms-value { color: #5a5230; }
+        #priceListContent .gl-mini-stat.ms-mint   { background: linear-gradient(135deg, #d4e09b, #c5d68d); }
+        #priceListContent .gl-mini-stat.ms-mint   .ms-label { color: #4a5a2a; }
+        #priceListContent .gl-mini-stat.ms-mint   .ms-value { color: #3d4a23; }
+
+        /* ── Pro tip banner ── */
+        #priceListContent .gl-tip-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            margin-bottom: 24px;
+            border-radius: 14px;
+            backdrop-filter: blur(14px) saturate(1.4);
+            -webkit-backdrop-filter: blur(14px) saturate(1.4);
+            background: linear-gradient(135deg, rgba(203,223,189,0.35), rgba(168,201,156,0.2));
+            border: 1.5px solid rgba(255,255,255,0.55);
+            border-left: 4px solid #87B382;
+            box-shadow: 0 4px 16px rgba(80,140,75,0.12);
+            font-size: 13px;
+            color: #3e5235;
+        }
+        #priceListContent .gl-tip-banner strong { color: #2d4a22; }
+
+        /* ── Table wrapper ── */
+        #priceListContent .gl-table-wrap {
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(16px) saturate(1.5);
+            -webkit-backdrop-filter: blur(16px) saturate(1.5);
+            border: 1.5px solid rgba(255,255,255,0.55);
+            box-shadow: var(--neo-float);
+            background: rgba(255,255,255,0.55);
+        }
+        #priceListContent .gl-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #priceListContent .gl-table thead th {
+            background: linear-gradient(135deg, rgba(203,223,189,0.7), rgba(168,201,156,0.55));
+            color: #3e5235;
+            padding: 18px 15px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255,255,255,0.6);
+        }
+        #priceListContent .gl-table thead th:first-child { text-align: left; }
+        #priceListContent .gl-table tbody td {
+            padding: 18px 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+            transition: background .2s ease;
+        }
+        #priceListContent .gl-table tbody td:first-child { text-align: left; }
+        #priceListContent .gl-table tbody tr:hover td {
+            background: rgba(203,223,189,0.18);
+        }
+        #priceListContent .gl-table tbody tr:last-child td { border-bottom: none; }
+        #priceListContent .gl-table .low-stock-row td  { background: rgba(246,244,210,0.5); border-left: 4px solid #d4a726; }
+        #priceListContent .gl-table .out-of-stock-row td { background: rgba(241,156,121,0.15); border-left: 4px solid #a44a3f; }
+
+        #priceListContent .product-name { font-size: 15px; font-weight: 700; color: #2d3a2d; }
+
+        /* Inputs */
+        #priceListContent .price-input {
+            width: 110px;
+            padding: 10px 14px;
+            text-align: center;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(6px);
+        }
+        #priceListContent .price-input:focus {
+            outline: none;
+            transform: scale(1.06);
+            box-shadow: 0 0 0 4px rgba(203,223,189,0.35);
+        }
+        #priceListContent .cost-input {
+            background: rgba(241,156,121,0.2);
+            border: 2px solid rgba(241,156,121,0.7);
+            color: #5D534A;
+        }
+        #priceListContent .cost-input:hover { border-color: #e07a5f; }
+        #priceListContent .sell-input {
+            background: rgba(203,223,189,0.3);
+            border: 2px solid rgba(168,201,156,0.8);
+            color: #3e5235;
+        }
+        #priceListContent .sell-input:hover { border-color: #87B382; }
+
+        /* Badges */
+        #priceListContent .profit-badge {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 14px;
+            backdrop-filter: blur(6px);
+        }
+        #priceListContent .profit-positive { background: rgba(203,223,189,0.4); color: #2d5238; border: 1px solid rgba(168,201,156,0.5); }
+        #priceListContent .profit-negative  { background: rgba(241,156,121,0.3); color: #7a2820; border: 1px solid rgba(241,156,121,0.5); }
+
+        #priceListContent .margin-badge {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 14px;
+            min-width: 68px;
+            backdrop-filter: blur(6px);
+        }
+        #priceListContent .margin-low    { background: rgba(232,220,200,0.7); color: #3d3822; border: 1px solid rgba(210,195,170,0.5); }
+        #priceListContent .margin-normal { background: rgba(201,217,154,0.6); color: #2d3a1a; border: 1px solid rgba(180,198,134,0.5); }
+        #priceListContent .margin-high   { background: rgba(184,201,153,0.6); color: #1f3a1f; border: 1px solid rgba(157,179,132,0.5); }
+
+        #priceListContent .stock-text { font-size: 14px; font-weight: 700; color: #5a7a5e; }
+
+        /* Back button */
+        #priceListContent .gl-back-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, rgba(203,223,189,0.6), rgba(168,201,156,0.45));
+            color: #2d5238;
+            border: 1.5px solid rgba(255,255,255,0.65);
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 14px;
+            transition: all .3s cubic-bezier(.22,1,.36,1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 14px rgba(80,140,75,0.18), 0 -1px 0 rgba(255,255,255,0.8) inset;
+        }
+        #priceListContent .gl-back-btn:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 8px 24px rgba(80,140,75,0.28), 0 -1px 0 rgba(255,255,255,0.9) inset;
+        }
+
+        /* Mobile cards */
+        #priceListContent .price-mobile-cards .gl-mobile-card {
+            border-radius: 18px;
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            backdrop-filter: blur(16px) saturate(1.5);
+            -webkit-backdrop-filter: blur(16px) saturate(1.5);
+            border: 1.5px solid rgba(255,255,255,0.55);
+            box-shadow: var(--neo-float);
+            background: rgba(255,255,255,0.45);
+            position: relative;
+            overflow: hidden;
+            transition: transform .3s ease, box-shadow .3s ease;
+        }
+        #priceListContent .price-mobile-cards .gl-mobile-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.38) 0%, transparent 55%);
+            pointer-events: none;
+        }
+        #priceListContent .price-mobile-cards .gl-mobile-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--neo-float-hover);
+        }
+        #priceListContent .gl-mobile-card.out-of-stock { border-left: 4px solid #a44a3f !important; }
+        #priceListContent .gl-mobile-card.low-stock    { border-left: 4px solid #d4a726 !important; }
+        #priceListContent .gl-mobile-name {
+            font-weight: 800;
+            font-size: 15px;
+            color: #2d3a2d;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.7);
+            position: relative;
+            z-index: 1;
+        }
+        #priceListContent .gl-mobile-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        #priceListContent .gl-mobile-input-wrap { text-align: center; }
+        #priceListContent .gl-mobile-input-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #7a9070; margin-bottom: 5px; }
+        #priceListContent .gl-mobile-input-wrap .price-input { width: 100%; box-sizing: border-box; }
+        #priceListContent .gl-mobile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        #priceListContent .gl-mobile-stat-pill {
+            padding: 8px 4px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        #priceListContent .gl-mobile-stat-pill .pill-label { font-size: 9px; font-weight: 700; text-transform: uppercase; opacity: 0.7; margin-bottom: 3px; }
+        #priceListContent .gl-mobile-stat-pill .pill-value { font-weight: 800; font-size: 13px; }
+        #priceListContent .pill-profit-pos { background: rgba(203,223,189,0.4); color: #2d5238; }
+        #priceListContent .pill-profit-neg { background: rgba(241,156,121,0.3); color: #7a2820; }
+        #priceListContent .pill-stock      { background: rgba(158,147,130,0.15); color: #5D534A; }
+
+        /* ── Dark mode ── */
+        body.dark-mode #priceListContent {
+            --neo-float:
+                0 8px 32px rgba(0,0,0,0.5),
+                0 2px 8px  rgba(0,0,0,0.3),
+                0 -1px 0   rgba(255,255,255,0.06) inset,
+                0 1px 0    rgba(0,0,0,0.3) inset;
+            --neo-float-hover:
+                0 16px 48px rgba(0,0,0,0.6),
+                0 4px 16px  rgba(0,0,0,0.35),
+                0 -1px 0    rgba(255,255,255,0.06) inset;
+        }
+        body.dark-mode #priceListContent .gl-stat-card.sc-beige  { background: rgba(52,44,32,0.75) !important; border-color: rgba(200,180,140,0.18) !important; }
+        body.dark-mode #priceListContent .gl-stat-card.sc-green  { background: rgba(35,55,32,0.72) !important; border-color: rgba(135,179,130,0.2) !important; }
+        body.dark-mode #priceListContent .gl-stat-card.sc-amber  { background: rgba(50,42,18,0.72) !important; border-color: rgba(200,170,80,0.18) !important; }
+        body.dark-mode #priceListContent .gl-stat-card.sc-mint   { background: rgba(40,52,25,0.72) !important; border-color: rgba(180,200,100,0.18) !important; }
+        body.dark-mode #priceListContent .gl-stat-card .stat-label,
+        body.dark-mode #priceListContent .gl-stat-card .stat-value { color: #d8ecd4 !important; }
+        body.dark-mode #priceListContent .gl-cat-card {
+            background: rgba(28,40,26,0.72) !important;
+            border-color: rgba(135,179,130,0.18) !important;
+        }
+        body.dark-mode #priceListContent .gl-cat-name  { color: #d8ecd4 !important; }
+        body.dark-mode #priceListContent .gl-cat-sub   { color: #6a8a66 !important; }
+        body.dark-mode #priceListContent .gl-mini-stat { border-color: rgba(135,179,130,0.15) !important; }
+        body.dark-mode #priceListContent .gl-mini-stat.ms-beige  { background: rgba(52,44,32,0.7) !important; }
+        body.dark-mode #priceListContent .gl-mini-stat.ms-green  { background: rgba(35,55,32,0.7) !important; }
+        body.dark-mode #priceListContent .gl-mini-stat.ms-amber  { background: rgba(50,42,18,0.7) !important; }
+        body.dark-mode #priceListContent .gl-mini-stat.ms-mint   { background: rgba(40,52,25,0.7) !important; }
+        body.dark-mode #priceListContent .gl-mini-stat .ms-label,
+        body.dark-mode #priceListContent .gl-mini-stat .ms-value { color: #d8ecd4 !important; }
+        body.dark-mode #priceListContent .gl-table-wrap { background: rgba(22,34,20,0.7) !important; border-color: rgba(135,179,130,0.15) !important; }
+        body.dark-mode #priceListContent .gl-table thead th { background: rgba(40,60,35,0.8) !important; color: #a8c99c !important; border-color: rgba(135,179,130,0.15) !important; }
+        body.dark-mode #priceListContent .gl-table tbody td { border-color: rgba(135,179,130,0.1) !important; }
+        body.dark-mode #priceListContent .gl-table tbody tr:hover td { background: rgba(80,120,75,0.15) !important; }
+        body.dark-mode #priceListContent .product-name { color: #d8ecd4 !important; }
+        body.dark-mode #priceListContent .cost-input { background: rgba(241,156,121,0.12) !important; border-color: rgba(180,80,70,0.5) !important; color: #ffb399 !important; }
+        body.dark-mode #priceListContent .sell-input { background: rgba(203,223,189,0.1)  !important; border-color: rgba(90,158,111,0.5)  !important; color: #b8e6aa !important; }
+        body.dark-mode #priceListContent .profit-positive { background: rgba(80,140,90,0.25) !important; color: #7bc47f !important; }
+        body.dark-mode #priceListContent .profit-negative  { background: rgba(164,74,63,0.25) !important; color: #ff8a7a !important; }
+        body.dark-mode #priceListContent .margin-low    { background: rgba(80,70,40,0.5) !important; color: #e6c86e !important; }
+        body.dark-mode #priceListContent .margin-normal { background: rgba(50,70,35,0.5) !important; color: #a8c99c !important; }
+        body.dark-mode #priceListContent .margin-high   { background: rgba(35,60,30,0.5) !important; color: #7bc47f  !important; }
+        body.dark-mode #priceListContent .stock-text    { color: #a0c4a4 !important; }
+        body.dark-mode #priceListContent .gl-back-btn   { background: rgba(35,55,32,0.7) !important; color: #87B382 !important; border-color: rgba(135,179,130,0.2) !important; }
+        body.dark-mode #priceListContent .gl-tip-banner { background: rgba(28,42,26,0.6) !important; border-color: rgba(135,179,130,0.2) !important; color: #87B382 !important; }
+        body.dark-mode #priceListContent .gl-mobile-card { background: rgba(25,40,23,0.7) !important; border-color: rgba(135,179,130,0.15) !important; }
+        body.dark-mode #priceListContent .gl-mobile-name { color: #d8ecd4 !important; border-color: rgba(135,179,130,0.15) !important; }
+        #priceListContent .price-cat-heading { color: #2d3a2d; }
+        body.dark-mode #priceListContent .price-cat-heading { color: #d8ecd4 !important; }
+        @media (max-width: 768px) {
+            #priceListContent .gl-stat-card { max-width: 100%; }
+        }
+    `;
+    document.head.appendChild(s);
+})();
+
+// =============================================================================
+//  3. INITIALIZATION
 // =============================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -56,12 +536,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // =============================================================================
-//  3. MAIN LOADING FUNCTION
+//  4. MAIN LOADING FUNCTION
 // =============================================================================
 
 async function loadPriceList() {
     console.log('📋 Loading price list...');
-
     const content = document.getElementById('priceListContent');
     if (!content) { console.error('❌ priceListContent element not found!'); return; }
 
@@ -77,10 +556,10 @@ async function loadPriceList() {
         const products = await DB.getProducts();
         if (!products || products.length === 0) {
             content.innerHTML = `
-                <div style="margin:40px auto;max-width:500px;background:#fff;border-radius:16px;padding:32px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-                    <div style="font-size:48px;margin-bottom:16px;">❌</div>
-                    <h3 style="color:#a44a3f;margin-bottom:12px;">No products found</h3>
-                    <p style="color:#a44a3f;">Add products in the Inventory page first.</p>
+                <div style="margin:40px auto;max-width:500px;border-radius:20px;padding:40px;text-align:center;backdrop-filter:blur(16px) saturate(1.5);background:rgba(255,255,255,0.5);border:1.5px solid rgba(255,255,255,0.55);box-shadow:0 8px 32px rgba(80,140,75,0.18);">
+                    <div style="font-size:56px;margin-bottom:16px;">📭</div>
+                    <h3 style="color:#7a2820;margin-bottom:12px;font-size:1.3rem;font-weight:800;">No products found</h3>
+                    <p style="color:#9E9382;">Add products in the Inventory page first.</p>
                 </div>
             `;
             return;
@@ -94,27 +573,24 @@ async function loadPriceList() {
     } catch (error) {
         console.error('❌ Error loading price list:', error);
         content.innerHTML = `
-            <div style="margin:40px auto;max-width:500px;background:#fff;border-radius:16px;padding:32px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-                <div style="font-size:48px;margin-bottom:16px;">❌</div>
-                <h3 style="color:#a44a3f;margin-bottom:12px;">Error loading price list</h3>
-                <p style="color:#a44a3f;">${error.message || error}</p>
-                <button onclick="location.reload()" style="margin-top:20px;padding:12px 24px;background:#cbdfbd;color:#3e5235;border:none;border-radius:8px;cursor:pointer;font-weight:700;">Reload Page</button>
+            <div style="margin:40px auto;max-width:500px;border-radius:20px;padding:40px;text-align:center;backdrop-filter:blur(16px) saturate(1.5);background:rgba(255,255,255,0.5);border:1.5px solid rgba(255,255,255,0.55);box-shadow:0 8px 32px rgba(80,140,75,0.18);">
+                <div style="font-size:56px;margin-bottom:16px;">⚠️</div>
+                <h3 style="color:#7a2820;margin-bottom:12px;font-size:1.3rem;font-weight:800;">Error loading price list</h3>
+                <p style="color:#9E9382;margin-bottom:20px;">${error.message || error}</p>
+                <button onclick="location.reload()" style="padding:12px 28px;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#2d5238;border:none;border-radius:12px;cursor:pointer;font-weight:800;box-shadow:0 4px 14px rgba(80,140,75,0.2);">Reload Page</button>
             </div>
         `;
     }
 }
 
 // =============================================================================
-//  4. RENDER CATEGORY SELECTION GRID
+//  5. RENDER CATEGORY SELECTION GRID
 // =============================================================================
 
 async function renderPriceCategorySelection(content) {
-    console.log('🎨 Building category selection grid...');
-
-    const categories = await getCategories();
-
+    const categories  = await getCategories();
     if (!categories.length) {
-        content.innerHTML = `<div style="text-align:center;padding:60px;"><h3 style="color:#a44a3f;">No categories defined</h3></div>`;
+        content.innerHTML = `<div style="text-align:center;padding:60px;"><h3 style="color:#7a2820;">No categories defined</h3></div>`;
         return;
     }
 
@@ -123,76 +599,43 @@ async function renderPriceCategorySelection(content) {
 
     if (Array.isArray(allProducts) && allProducts.length > 0) {
         totalProducts = allProducts.length;
-        avgProfit = allProducts.reduce((sum, p) => {
-            return sum + (parseFloat(p.price||p.selling_price||0) - parseFloat(p.cost||p.cost_price||0));
-        }, 0) / allProducts.length;
+        avgProfit = allProducts.reduce((sum, p) =>
+            sum + (parseFloat(p.price||p.selling_price||0) - parseFloat(p.cost||p.cost_price||0)), 0) / allProducts.length;
 
-        lowMargin = allProducts.filter(p => {
-            const cost = parseFloat(p.cost||p.cost_price||0);
-            const price = parseFloat(p.price||p.selling_price||0);
-            return cost > 0 && ((price-cost)/cost*100) < 20;
-        }).length;
-
-        highMargin = allProducts.filter(p => {
-            const cost = parseFloat(p.cost||p.cost_price||0);
-            const price = parseFloat(p.price||p.selling_price||0);
-            return cost > 0 && ((price-cost)/cost*100) > 50;
-        }).length;
+        lowMargin  = allProducts.filter(p => { const c=parseFloat(p.cost||p.cost_price||0),pr=parseFloat(p.price||p.selling_price||0); return c>0 && ((pr-c)/c*100)<20; }).length;
+        highMargin = allProducts.filter(p => { const c=parseFloat(p.cost||p.cost_price||0),pr=parseFloat(p.price||p.selling_price||0); return c>0 && ((pr-c)/c*100)>50; }).length;
     }
 
     let html = `
-        <div style="text-align:center;margin-bottom:30px;">
-            <h2 class="page-title">Select a Category</h2>
-            <p class="page-subtitle">Choose a category to manage prices</p>
-        </div>
-
-        <style>
-            body.dark-mode .summary-stat-card{background:linear-gradient(135deg,#232323,#23282e)!important;box-shadow:0 2px 10px rgba(0,0,0,0.18)!important;}
-            body.dark-mode .summary-stat-card .stat-label{color:#b0b0b0!important;}
-            body.dark-mode .summary-stat-card .stat-value{color:#fff!important;}
-        </style>
         <div style="display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;">
-            <div class="summary-stat-card" style="display:flex;align-items:center;background:linear-gradient(135deg,#f7f4ef,#f3ede3);border-radius:16px;padding:18px 24px;min-width:180px;flex:1;max-width:280px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                <span style="font-size:32px;margin-right:16px;">📦</span>
-                <div><div class="stat-label" style="font-size:11px;font-weight:700;color:#9E9382;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">TOTAL PRODUCTS</div><div class="stat-value" style="font-size:26px;font-weight:900;color:#5D534A;">${totalProducts}</div></div>
-            </div>
-            <div class="summary-stat-card" style="display:flex;align-items:center;background:linear-gradient(135deg,#eaf7ef,#e3f3ed);border-radius:16px;padding:18px 24px;min-width:180px;flex:1;max-width:280px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                <span style="font-size:32px;margin-right:16px;">💰</span>
-                <div><div class="stat-label" style="font-size:11px;font-weight:700;color:#9E9382;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">AVG PROFIT</div><div class="stat-value" style="font-size:26px;font-weight:900;color:#5a7a5e;">₱${avgProfit.toFixed(2)}</div></div>
-            </div>
-            <div class="summary-stat-card" style="display:flex;align-items:center;background:linear-gradient(135deg,#f7f6e3,#f3f1d3);border-radius:16px;padding:18px 24px;min-width:180px;flex:1;max-width:280px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                <span style="font-size:32px;margin-right:16px;">⚠️</span>
-                <div><div class="stat-label" style="font-size:11px;font-weight:700;color:#9E9382;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">LOW MARGIN</div><div class="stat-value" style="font-size:26px;font-weight:900;color:#b8960e;">${lowMargin}</div></div>
-            </div>
-            <div class="summary-stat-card" style="display:flex;align-items:center;background:linear-gradient(135deg,#eaf7ef,#e3f3ed);border-radius:16px;padding:18px 24px;min-width:180px;flex:1;max-width:280px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                <span style="font-size:32px;margin-right:16px;">✨</span>
-                <div><div class="stat-label" style="font-size:11px;font-weight:700;color:#9E9382;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">HIGH MARGIN</div><div class="stat-value" style="font-size:26px;font-weight:900;color:#3e8245;">${highMargin}</div></div>
-            </div>
+            <div class="gl-stat-card sc-beige"><span class="stat-icon">📦</span><div class="stat-body"><div class="stat-label">Total Products</div><div class="stat-value">${totalProducts}</div></div></div>
+            <div class="gl-stat-card sc-green"><span class="stat-icon">💰</span><div class="stat-body"><div class="stat-label">Avg Profit</div><div class="stat-value">₱${avgProfit.toFixed(2)}</div></div></div>
+            <div class="gl-stat-card sc-amber"><span class="stat-icon">⚠️</span><div class="stat-body"><div class="stat-label">Low Margin</div><div class="stat-value">${lowMargin}</div></div></div>
+            <div class="gl-stat-card sc-mint" ><span class="stat-icon">✨</span><div class="stat-body"><div class="stat-label">High Margin</div><div class="stat-value">${highMargin}</div></div></div>
         </div>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:30px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:30px;">
     `;
 
     for (const cat of categories) {
         html += `
-            <div class="category-card-debtor" data-category="${cat.id}" style="border-left-color:${cat.color};">
-                <div class="category-card-header">
-                    <div class="category-icon-box" style="background:${cat.color};"><span class="category-icon">${cat.icon}</span></div>
-                    <div class="category-details">
-                        <span class="category-name">${cat.name}</span>
-                        <span class="category-count">Click to view prices</span>
+            <div class="gl-cat-card" data-category="${cat.id}">
+                <div class="gl-cat-inner">
+                    <div class="gl-cat-icon-box" style="background:${cat.color};">${cat.icon}</div>
+                    <div class="gl-cat-text">
+                        <div class="gl-cat-name">${cat.name}</div>
+                        <div class="gl-cat-sub">Click to view prices</div>
                     </div>
-                    <span class="category-arrow">→</span>
+                    <div class="gl-cat-arrow">→</div>
                 </div>
             </div>
         `;
     }
 
     html += '</div>';
-    html += getSharedStyles();
     content.innerHTML = html;
 
-    document.querySelectorAll('.category-card-debtor').forEach(card => {
+    content.querySelectorAll('.gl-cat-card').forEach(card => {
         card.addEventListener('click', function() {
             selectedPriceCategory = this.getAttribute('data-category');
             loadPriceList();
@@ -201,78 +644,54 @@ async function renderPriceCategorySelection(content) {
 }
 
 // =============================================================================
-//  5. RENDER CATEGORY PRICE LIST
+//  6. RENDER CATEGORY PRICE LIST
 // =============================================================================
 
 async function renderCategoryPriceList(content, categoryId) {
-    console.log('📊 Rendering price list for:', categoryId);
-
     const categories = await getCategories();
     const category   = categories.find(c => c.id === categoryId);
-
-    if (!category) {
-        console.error('❌ Category not found:', categoryId);
-        selectedPriceCategory = null;
-        await loadPriceList();
-        return;
-    }
+    if (!category) { selectedPriceCategory = null; await loadPriceList(); return; }
 
     const allProducts = await DB.getProducts();
     if (!Array.isArray(allProducts)) throw new Error('Products data is not available');
 
     const products = allProducts.filter(p => (p.category||p.category_id) === categoryId);
-    console.log(`✅ Found ${products.length} products for '${categoryId}'`);
 
     const totalItems = products.length;
-    const avgProfit  = products.length ? products.reduce((s, p) => {
-        return s + (parseFloat(p.price||p.selling_price||0) - parseFloat(p.cost||p.cost_price||0));
-    }, 0) / products.length : 0;
-
-    const lowMargin  = products.filter(p => { const cost=parseFloat(p.cost||p.cost_price||0),price=parseFloat(p.price||p.selling_price||0); return cost>0 && ((price-cost)/cost*100)<20; }).length;
-    const highMargin = products.filter(p => { const cost=parseFloat(p.cost||p.cost_price||0),price=parseFloat(p.price||p.selling_price||0); return cost>0 && ((price-cost)/cost*100)>50; }).length;
+    const avgProfit  = products.length ? products.reduce((s, p) =>
+        s + (parseFloat(p.price||p.selling_price||0) - parseFloat(p.cost||p.cost_price||0)), 0) / products.length : 0;
+    const lowMargin  = products.filter(p => { const c=parseFloat(p.cost||p.cost_price||0),pr=parseFloat(p.price||p.selling_price||0); return c>0&&((pr-c)/c*100)<20; }).length;
+    const highMargin = products.filter(p => { const c=parseFloat(p.cost||p.cost_price||0),pr=parseFloat(p.price||p.selling_price||0); return c>0&&((pr-c)/c*100)>50; }).length;
 
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     let html = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:15px;">
             <div>
-                <h2 class="page-title">${category.icon} ${category.name}</h2>
-                <p class="page-subtitle">Manage prices in this category</p>
+<h2 class="price-cat-heading" style="margin-bottom:6px;font-size:2rem;font-weight:900;">${category.icon} ${category.name}</h2>                <p style="color:#7a9070;font-size:15px;font-weight:600;">Manage prices in this category</p>
             </div>
-            <button id="btnBackToPriceCategories" class="back-btn">← Back to Categories</button>
+            <button id="btnBackToPriceCategories" class="gl-back-btn">← Back to Categories</button>
         </div>
 
         <div style="display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(212,163,115,0.18),rgba(188,140,91,0.08));border-radius:12px;padding:12px 20px;border-left:3px solid #d4a373;flex:1;min-width:150px;">
-                <span style="font-size:22px;">📦</span>
-                <div><div style="font-size:10px;font-weight:700;color:#9E9382;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Products</div><div style="font-size:20px;font-weight:800;color:#5D534A;">${totalItems}</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(90,158,111,0.14),rgba(74,140,95,0.06));border-radius:12px;padding:12px 20px;border-left:3px solid #5a9e6f;flex:1;min-width:150px;">
-                <span style="font-size:22px;">💰</span>
-                <div><div style="font-size:10px;font-weight:700;color:#9E9382;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Avg Profit</div><div style="font-size:20px;font-weight:800;color:#5a7a5e;">₱${avgProfit.toFixed(2)}</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(230,200,110,0.18),rgba(212,184,92,0.08));border-radius:12px;padding:12px 20px;border-left:3px solid #e6c86e;flex:1;min-width:150px;">
-                <span style="font-size:22px;">⚠️</span>
-                <div><div style="font-size:10px;font-weight:700;color:#9E9382;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Low Margin</div><div style="font-size:20px;font-weight:800;color:#b8960e;">${lowMargin}</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(123,196,127,0.14),rgba(90,158,111,0.06));border-radius:12px;padding:12px 20px;border-left:3px solid #7bc47f;flex:1;min-width:150px;">
-                <span style="font-size:22px;">✨</span>
-                <div><div style="font-size:10px;font-weight:700;color:#9E9382;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">High Margin</div><div style="font-size:20px;font-weight:800;color:#3e8245;">${highMargin}</div></div>
-            </div>
+            <div class="gl-mini-stat ms-beige"><span class="ms-icon">📦</span><div class="ms-body"><div class="ms-label">Products</div><div class="ms-value">${totalItems}</div></div></div>
+            <div class="gl-mini-stat ms-green"><span class="ms-icon">💰</span><div class="ms-body"><div class="ms-label">Avg Profit</div><div class="ms-value">₱${avgProfit.toFixed(2)}</div></div></div>
+            <div class="gl-mini-stat ms-amber"><span class="ms-icon">⚠️</span><div class="ms-body"><div class="ms-label">Low Margin</div><div class="ms-value">${lowMargin}</div></div></div>
+            <div class="gl-mini-stat ms-mint" ><span class="ms-icon">✨</span><div class="ms-body"><div class="ms-label">High Margin</div><div class="ms-value">${highMargin}</div></div></div>
         </div>
 
-        <div style="background:linear-gradient(135deg,rgba(203,223,189,0.15),rgba(203,223,189,0.08));border-left:3px solid #cbdfbd;padding:14px 18px;margin-bottom:24px;border-radius:10px;display:flex;align-items:center;gap:10px;">
-            <span style="font-size:24px;">💡</span>
-            <p style="margin:0;font-size:13px;color:#9E9382;"><strong style="color:#5D534A;">Pro Tip:</strong> Click on any price field to edit. Changes save automatically!</p>
+        <div class="gl-tip-banner">
+            <span style="font-size:22px;">💡</span>
+            <span><strong>Pro Tip:</strong> Click on any price field to edit. Changes save automatically!</span>
         </div>
     `;
 
     if (products.length === 0) {
         html += `
-            <div style="background:white;border-radius:16px;padding:60px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
-                <div style="font-size:80px;margin-bottom:20px;opacity:0.3;">${category.icon}</div>
-                <h3 style="color:#9E9382;margin-bottom:10px;font-size:1.5rem;">No products in this category</h3>
-                <p style="color:#BDC3C7;font-size:15px;">Add products in the Inventory page first!</p>
+            <div style="border-radius:20px;padding:60px;text-align:center;backdrop-filter:blur(16px) saturate(1.5);background:rgba(255,255,255,0.45);border:1.5px solid rgba(255,255,255,0.55);box-shadow:0 8px 32px rgba(80,140,75,0.14);">
+                <div style="font-size:72px;margin-bottom:18px;opacity:0.3;">${category.icon}</div>
+                <h3 style="color:#7a9070;margin-bottom:10px;font-size:1.4rem;font-weight:800;">No products in this category</h3>
+                <p style="color:#9E9382;">Add products in the Inventory page first!</p>
             </div>
         `;
     } else {
@@ -286,35 +705,35 @@ async function renderCategoryPriceList(content, categoryId) {
                 const qty    = parseFloat(product.quantity||product.stock||0);
                 const profit = price - cost;
                 const margin = cost > 0 ? ((profit/cost)*100) : 0;
-                const isOut  = qty===0, isLow = !isOut && qty<10;
-                const borderL = isOut ? 'border-left:4px solid #a44a3f;' : isLow ? 'border-left:4px solid #d4a726;' : '';
-                const cardBg  = isOut ? 'background:rgba(241,156,121,0.08);' : isLow ? 'background:rgba(246,244,210,0.3);' : 'background:white;';
-                const marginBg = margin<20 ? 'background:linear-gradient(135deg,#e8dcc8,#d9cdb8);color:#3d3822;'
-                               : margin>50 ? 'background:linear-gradient(135deg,#b8c999,#9db384);color:#1f3a1f;'
-                               : 'background:linear-gradient(135deg,#c9d99a,#b8c686);color:#2d3a1a;';
+                const isOut  = qty === 0, isLow = !isOut && qty < 10;
+                const cardCls  = isOut ? 'out-of-stock' : isLow ? 'low-stock' : '';
+                const marginCls = margin < 20 ? 'margin-low' : margin > 50 ? 'margin-high' : 'margin-normal';
+
                 html += `
-                    <div class="price-card" style="${cardBg}${borderL}border-radius:12px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,0.06);border:1px solid #e8e8e8;">
-                        <div style="font-weight:700;font-size:15px;color:#3e5235;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #f0f0f0;">${product.name}</div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                            <div style="text-align:center;"><div style="font-size:11px;color:#9E9382;font-weight:600;margin-bottom:4px;">COST PRICE</div>
-                                <input type="number" value="${cost.toFixed(2)}" class="price-input cost-input" data-product-id="${product.id}" step="0.01" min="0" style="width:100%;padding:8px;text-align:center;border-radius:8px;font-weight:700;font-size:14px;background:rgba(241,156,121,0.15);border:2px solid #f19c79;color:#5D534A;box-sizing:border-box;"/>
+                    <div class="gl-mobile-card ${cardCls}">
+                        <div class="gl-mobile-name">${product.name}</div>
+                        <div class="gl-mobile-inputs">
+                            <div class="gl-mobile-input-wrap">
+                                <div class="gl-mobile-input-label">Cost Price</div>
+                                <input type="number" value="${cost.toFixed(2)}" class="price-input cost-input" data-product-id="${product.id}" step="0.01" min="0"/>
                             </div>
-                            <div style="text-align:center;"><div style="font-size:11px;color:#9E9382;font-weight:600;margin-bottom:4px;">SELL PRICE</div>
-                                <input type="number" value="${price.toFixed(2)}" class="price-input sell-input" data-product-id="${product.id}" step="0.01" min="0" style="width:100%;padding:8px;text-align:center;border-radius:8px;font-weight:700;font-size:14px;background:rgba(203,223,189,0.2);border:2px solid #cbdfbd;color:#5D534A;box-sizing:border-box;"/>
+                            <div class="gl-mobile-input-wrap">
+                                <div class="gl-mobile-input-label">Sell Price</div>
+                                <input type="number" value="${price.toFixed(2)}" class="price-input sell-input" data-product-id="${product.id}" step="0.01" min="0"/>
                             </div>
                         </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;">
-                            <div style="padding:6px 4px;border-radius:6px;${profit>0?'background:rgba(203,223,189,0.2);color:#5a7a5e;':'background:rgba(241,156,121,0.15);color:#a44a3f;'}">
-                                <div style="font-size:10px;font-weight:600;opacity:0.7;margin-bottom:2px;">PROFIT</div>
-                                <div style="font-weight:700;font-size:14px;">₱${profit.toFixed(2)}</div>
+                        <div class="gl-mobile-stats">
+                            <div class="gl-mobile-stat-pill ${profit >= 0 ? 'pill-profit-pos' : 'pill-profit-neg'}">
+                                <div class="pill-label">Profit</div>
+                                <div class="pill-value">₱${profit.toFixed(2)}</div>
                             </div>
-                            <div style="padding:6px 4px;border-radius:6px;${marginBg}">
-                                <div style="font-size:10px;font-weight:600;opacity:0.7;margin-bottom:2px;">MARGIN</div>
-                                <div style="font-weight:700;font-size:14px;">${margin.toFixed(1)}%</div>
+                            <div class="gl-mobile-stat-pill ${marginCls}" style="background:none;">
+                                <div class="pill-label">Margin</div>
+                                <div class="pill-value">${margin.toFixed(1)}%</div>
                             </div>
-                            <div style="padding:6px 4px;border-radius:6px;background:rgba(158,147,130,0.1);">
-                                <div style="font-size:10px;font-weight:600;color:#9E9382;margin-bottom:2px;">STOCK</div>
-                                <div style="font-weight:700;font-size:14px;color:#5D534A;">${qty}</div>
+                            <div class="gl-mobile-stat-pill pill-stock">
+                                <div class="pill-label">Stock</div>
+                                <div class="pill-value">${qty}</div>
                             </div>
                         </div>
                     </div>
@@ -322,61 +741,52 @@ async function renderCategoryPriceList(content, categoryId) {
             });
             html += '</div>';
         } else {
-            html += `
-                <div class="table-container">
-                    <table class="price-table-modern">
-                        <thead><tr>
-                            <th style="text-align:left;">PRODUCT NAME</th>
-                            <th>COST PRICE</th><th>SELLING PRICE</th>
-                            <th>PROFIT/UNIT</th><th>MARGIN %</th><th>STOCK</th>
-                        </tr></thead>
-                        <tbody>
-            `;
+            html += `<div class="gl-table-wrap"><table class="gl-table"><thead><tr>
+                <th>PRODUCT NAME</th><th>COST PRICE</th><th>SELLING PRICE</th>
+                <th>PROFIT/UNIT</th><th>MARGIN %</th><th>STOCK</th>
+            </tr></thead><tbody>`;
+
             sorted.forEach(product => {
                 const cost   = parseFloat(product.cost||product.cost_price||0);
                 const price  = parseFloat(product.price||product.selling_price||0);
                 const qty    = parseFloat(product.quantity||product.stock||0);
                 const profit = price - cost;
                 const margin = cost > 0 ? ((profit/cost)*100) : 0;
-                const stockClass  = qty===0 ? 'out-of-stock-row' : qty<10 ? 'low-stock-row' : '';
-                const marginClass = margin<20 ? 'margin-low' : margin>50 ? 'margin-high' : 'margin-normal';
+                const rowCls  = qty === 0 ? 'out-of-stock-row' : qty < 10 ? 'low-stock-row' : '';
+                const mrgCls  = margin < 20 ? 'margin-low' : margin > 50 ? 'margin-high' : 'margin-normal';
+
                 html += `
-                    <tr class="${stockClass}">
-                        <td style="text-align:left;"><strong class="product-name">${product.name}</strong></td>
+                    <tr class="${rowCls}">
+                        <td><strong class="product-name">${product.name}</strong></td>
                         <td><input type="number" value="${cost.toFixed(2)}" class="price-input cost-input" data-product-id="${product.id}" step="0.01" min="0"/></td>
                         <td><input type="number" value="${price.toFixed(2)}" class="price-input sell-input" data-product-id="${product.id}" step="0.01" min="0"/></td>
-                        <td><div class="profit-badge ${profit>0?'profit-positive':'profit-negative'}">₱${profit.toFixed(2)}</div></td>
-                        <td><div class="margin-badge ${marginClass}">${margin.toFixed(1)}%</div></td>
+                        <td><div class="profit-badge ${profit >= 0 ? 'profit-positive' : 'profit-negative'}">₱${profit.toFixed(2)}</div></td>
+                        <td><div class="margin-badge ${mrgCls}">${margin.toFixed(1)}%</div></td>
                         <td><span class="stock-text">${qty} units</span></td>
                     </tr>
                 `;
             });
-            html += `</tbody></table></div>`;
+            html += '</tbody></table></div>';
         }
     }
 
-    html += getSharedStyles();
-    html += getPriceListStyles();
     content.innerHTML = html;
 
-    document.getElementById('btnBackToPriceCategories')?.addEventListener('click', () => {
-        selectedPriceCategory = null;
-        loadPriceList();
-    });
+    content.getElementById?.('btnBackToPriceCategories')?.addEventListener('click', () => { selectedPriceCategory = null; loadPriceList(); });
+    document.getElementById('btnBackToPriceCategories')?.addEventListener('click', () => { selectedPriceCategory = null; loadPriceList(); });
 
-    document.querySelectorAll('.cost-input').forEach(input => {
-        input.addEventListener('change', function() { updatePrice(parseInt(this.getAttribute('data-product-id')), 'cost', this.value); });
+    content.querySelectorAll('.cost-input').forEach(input => {
+        input.addEventListener('change', function() { updatePrice(parseInt(this.dataset.productId), 'cost', this.value); });
         input.addEventListener('focus', function() { this.select(); });
     });
-
-    document.querySelectorAll('.sell-input').forEach(input => {
-        input.addEventListener('change', function() { updatePrice(parseInt(this.getAttribute('data-product-id')), 'price', this.value); });
+    content.querySelectorAll('.sell-input').forEach(input => {
+        input.addEventListener('change', function() { updatePrice(parseInt(this.dataset.productId), 'price', this.value); });
         input.addEventListener('focus', function() { this.select(); });
     });
 }
 
 // =============================================================================
-//  6. UPDATE PRICE
+//  7. UPDATE PRICE
 // =============================================================================
 
 async function updatePrice(id, field, newValue) {
@@ -384,8 +794,7 @@ async function updatePrice(id, field, newValue) {
     if (isNaN(value) || value < 0) {
         if (typeof window.showModernAlert === 'function') window.showModernAlert('Price must be 0 or greater.', '⚠️');
         else alert('Price must be 0 or greater.');
-        await loadPriceList();
-        return;
+        await loadPriceList(); return;
     }
 
     try {
@@ -395,10 +804,9 @@ async function updatePrice(id, field, newValue) {
 
         const cost     = parseFloat(product.cost||product.cost_price||0);
         const price    = parseFloat(product.price||product.selling_price||0);
-        const newCost  = field==='cost'  ? value : cost;
-        const newPrice = field==='price' ? value : price;
+        const newCost  = field === 'cost'  ? value : cost;
+        const newPrice = field === 'price' ? value : price;
 
-        // Selling below cost?
         if (newPrice < newCost) {
             const lossPerUnit = (newCost - newPrice).toFixed(2);
             const isDark = document.body.classList.contains('dark-mode');
@@ -431,7 +839,7 @@ async function updatePrice(id, field, newValue) {
                             </div>
                             <p style="text-align:center;font-size:15px;font-weight:600;color:${isDark?'#f0f0f0':'#5D534A'};margin:0 0 22px;">Are you sure you want to proceed?</p>
                             <div style="display:flex;gap:12px;">
-                                <button id="lossCancel" style="flex:1;padding:14px;border-radius:12px;font-weight:700;background:linear-gradient(135deg,${isDark?'#2d5a3d':'#7bc47f'},${isDark?'#1f3e2a':'#5a9e6f'});color:${isDark?'#a8e6aa':'white'};border:none;cursor:pointer;">✓ Cancel</button>
+                                <button id="lossCancel"  style="flex:1;padding:14px;border-radius:12px;font-weight:700;background:linear-gradient(135deg,${isDark?'#2d5a3d':'#7bc47f'},${isDark?'#1f3e2a':'#5a9e6f'});color:${isDark?'#a8e6aa':'white'};border:none;cursor:pointer;">✓ Cancel</button>
                                 <button id="lossConfirm" style="flex:1;padding:14px;border-radius:12px;font-weight:700;background:linear-gradient(135deg,#a44a3f,#8b3a31);color:white;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(164,74,63,0.4);">⚠️ Proceed</button>
                             </div>
                         </div>
@@ -442,15 +850,15 @@ async function updatePrice(id, field, newValue) {
                 const cleanup = r => { overlay.remove(); resolve(r); };
                 document.getElementById('lossConfirm').onclick = () => cleanup(true);
                 document.getElementById('lossCancel').onclick  = () => cleanup(false);
-                overlay.onclick = e => { if (e.target===overlay) cleanup(false); };
+                overlay.onclick = e => { if (e.target === overlay) cleanup(false); };
             });
 
             if (!confirmed) { await loadPriceList(); return; }
 
         } else {
-            // Check margin — warn but allow proceeding
             const margin    = ((newPrice - newCost) / newCost) * 100;
             const minMargin = window.storeSettings?.profitMargin || 20;
+
             if (newCost > 0 && margin < minMargin) {
                 const recommended   = (newCost * (1 + minMargin / 100)).toFixed(2);
                 const profitPerUnit = (newPrice - newCost).toFixed(2);
@@ -487,7 +895,7 @@ async function updatePrice(id, field, newValue) {
                                     <div style="font-size:11px;color:${isDark?'#7bc47f':'#5a7a5e'};margin-top:3px;">achieves exactly ${minMargin}% margin</div>
                                 </div>
                                 <div style="display:flex;gap:8px;">
-                                    <button id="margAdjust" style="flex:1.3;padding:13px 8px;border-radius:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;box-shadow:0 4px 12px rgba(239,68,68,0.4);">✓ Use ₱${recommended}</button>
+                                    <button id="margAdjust"  style="flex:1.3;padding:13px 8px;border-radius:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;box-shadow:0 4px 12px rgba(239,68,68,0.4);">✓ Use ₱${recommended}</button>
                                     <button id="margProceed" style="flex:1;padding:13px 8px;border-radius:11px;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#2d5a3b;border:none;box-shadow:0 4px 12px rgba(203,223,189,0.4);">Keep ₱${newPrice.toFixed(2)}</button>
                                 </div>
                             </div>
@@ -506,15 +914,12 @@ async function updatePrice(id, field, newValue) {
                     if (typeof renderProfit === 'function') await renderProfit();
                     return;
                 } else if (choice === 'cancel') {
-                    await loadPriceList();
-                    return;
+                    await loadPriceList(); return;
                 }
-                // 'proceed' — falls through to the normal save below
             }
         }
 
         await DB.updateProduct(id, { [field]: value });
-        console.log(`✅ Price updated for product ${id}: ${field}=₱${value.toFixed(2)}`);
         await loadPriceList();
         if (typeof renderProfit === 'function') await renderProfit();
 
@@ -524,86 +929,6 @@ async function updatePrice(id, field, newValue) {
         if (typeof window.showModernAlert === 'function') window.showModernAlert(msg, '❌');
         else alert(msg);
     }
-}
-
-// =============================================================================
-//  7. SHARED STYLES
-// =============================================================================
-
-function getSharedStyles() {
-    return `
-        <style>
-            .page-title{color:#5D534A;margin-bottom:8px;font-size:2rem;font-weight:800;}
-            .page-subtitle{color:#9E9382;font-size:16px;}
-            .category-card-debtor{background:rgba(255,255,255,0.8);border-radius:16px;padding:20px;cursor:pointer;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);border-left:4px solid;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-            .category-card-debtor:hover{transform:translateX(8px);box-shadow:0 8px 25px rgba(0,0,0,0.12);}
-            .category-card-debtor:active{transform:translateX(4px);}
-            .category-card-header{display:flex;align-items:center;gap:16px;}
-            .category-icon-box{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.15);flex-shrink:0;}
-            .category-icon{font-size:26px;}
-            .category-details{flex:1;display:flex;flex-direction:column;gap:4px;}
-            .category-name{font-size:16px;font-weight:700;color:#5D534A;}
-            .category-count{font-size:13px;color:#9E9382;}
-            .category-arrow{color:#9E9382;opacity:0.5;transition:all 0.3s ease;font-size:20px;}
-            .category-card-debtor:hover .category-arrow{opacity:1;transform:translateX(4px);}
-            .back-btn{padding:12px 24px;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#3e5235;border:none;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px;transition:all 0.3s ease;box-shadow:0 4px 15px rgba(203,223,189,0.4);}
-            .back-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(203,223,189,0.5);}
-            body.dark-mode .page-title{color:#f0f0f0!important;}
-            body.dark-mode .page-subtitle{color:#a0a0a0!important;}
-            body.dark-mode .category-card-debtor{background:linear-gradient(135deg,rgba(40,50,60,0.9),rgba(30,40,50,0.8))!important;}
-            body.dark-mode .category-card-debtor:hover{background:linear-gradient(135deg,rgba(50,60,70,0.95),rgba(40,50,60,0.85))!important;box-shadow:0 8px 30px rgba(0,0,0,0.4)!important;}
-            body.dark-mode .category-name{color:#f0f0f0!important;}
-            body.dark-mode .category-count{color:#a0a0a0!important;}
-            body.dark-mode .back-btn{background:linear-gradient(135deg,#1e2e22,#162019)!important;color:#7aab8a!important;box-shadow:0 4px 12px rgba(0,0,0,0.4)!important;border:1px solid #2d4a33!important;}
-            body.dark-mode .back-btn:hover{background:linear-gradient(135deg,#253828,#1c2a20)!important;box-shadow:0 6px 16px rgba(0,0,0,0.5)!important;}
-        </style>
-    `;
-}
-
-function getPriceListStyles() {
-    return `
-        <style>
-            .table-container{background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
-            .price-table-modern{width:100%;border-collapse:collapse;}
-            .price-table-modern th{background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#3e5235;padding:20px 15px;text-align:center;font-weight:700;font-size:12px;letter-spacing:1.2px;}
-            .price-table-modern td{padding:20px 15px;text-align:center;border-bottom:1px solid #F0F0F0;}
-            .price-table-modern tr:hover{background:rgba(203,223,189,0.1);}
-            .product-name{font-size:15px;color:#5D534A;}
-            .price-input{width:110px;padding:12px 16px;text-align:center;border-radius:10px;font-weight:700;font-size:16px;transition:all 0.3s ease;}
-            .price-input:focus{outline:none;transform:scale(1.05);box-shadow:0 0 0 4px rgba(203,223,189,0.2);}
-            .cost-input{background:rgba(241,156,121,0.15);border:2px solid #f19c79;color:#5D534A;}
-            .cost-input:hover{border-color:#ed8d68;}
-            .sell-input{background:rgba(203,223,189,0.2);border:2px solid #cbdfbd;color:#5D534A;}
-            .sell-input:hover{border-color:#a8c99c;}
-            .profit-badge{display:inline-block;padding:8px 16px;border-radius:8px;font-weight:700;font-size:15px;}
-            .profit-positive{background:rgba(203,223,189,0.2);color:#5a7a5e;}
-            .profit-negative{background:rgba(241,156,121,0.15);color:#a44a3f;}
-            .margin-badge{display:inline-block;padding:8px 16px;border-radius:8px;font-weight:700;font-size:15px;min-width:70px;}
-            .margin-low{background:linear-gradient(135deg,#e8dcc8,#d9cdb8);color:#3d3822;}
-            .margin-normal{background:linear-gradient(135deg,#c9d99a,#b8c686);color:#2d3a1a;}
-            .margin-high{background:linear-gradient(135deg,#b8c999,#9db384);color:#1f3a1f;}
-            .stock-text{font-size:16px;font-weight:600;color:#9E9382;}
-            .low-stock-row{background:rgba(246,244,210,0.5)!important;border-left:5px solid #d4a726!important;}
-            .out-of-stock-row{background:rgba(241,156,121,0.15)!important;border-left:5px solid #a44a3f!important;}
-            body.dark-mode .table-container{background:#1a1a1a!important;}
-            body.dark-mode .price-table-modern th{background:linear-gradient(135deg,#2d3e36,#1f2e28)!important;color:#a8c99c!important;}
-            body.dark-mode .price-table-modern td{border-bottom-color:#333!important;}
-            body.dark-mode .price-table-modern tr:hover{background:rgba(90,122,94,0.15)!important;}
-            body.dark-mode .product-name{color:#f0f0f0!important;}
-            body.dark-mode .cost-input{background:rgba(241,156,121,0.1)!important;color:#ffb399!important;border-color:#a44a3f!important;}
-            body.dark-mode .sell-input{background:rgba(203,223,189,0.1)!important;color:#b8e6aa!important;border-color:#5a9e6f!important;}
-            body.dark-mode .profit-positive{background:rgba(90,158,111,0.2)!important;color:#7bc47f!important;}
-            body.dark-mode .profit-negative{background:rgba(164,74,63,0.2)!important;color:#ff8a7a!important;}
-            body.dark-mode .margin-low{background:#2a2520!important;color:#e6c86e!important;}
-            body.dark-mode .margin-normal{background:#1f2a1f!important;color:#a8c99c!important;}
-            body.dark-mode .margin-high{background:#1a2a1a!important;color:#7bc47f!important;}
-            body.dark-mode .stock-text{color:#a0a0a0!important;}
-            body.dark-mode .low-stock-row{background:rgba(180,150,90,0.15)!important;}
-            body.dark-mode .out-of-stock-row{background:rgba(164,74,63,0.15)!important;}
-            body.dark-mode .price-card{background:#1e1e1e!important;border-color:#333!important;}
-            @media(max-width:768px){.page-title{font-size:1.5rem;}}
-        </style>
-    `;
 }
 
 // =============================================================================

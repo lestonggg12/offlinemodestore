@@ -1,3 +1,59 @@
+// ================= MOBILE NAVIGATION =====================
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('mobileSidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+    let sidebarOpen = false;
+    function openSidebar() {
+        sidebar.classList.add('active');
+        sidebarOverlay.classList.add('active');
+        sidebarOpen = true;
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+        sidebarOpen = false;
+        document.body.style.overflow = '';
+    }
+    if (hamburger && sidebar && sidebarOverlay && closeSidebarBtn) {
+        hamburger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openSidebar();
+        });
+        closeSidebarBtn.addEventListener('click', function() {
+            closeSidebar();
+        });
+        sidebarOverlay.addEventListener('click', function() {
+            closeSidebar();
+        });
+        // Hide sidebar if window is resized to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 900) {
+                closeSidebar();
+            }
+        });
+    }
+    // Mobile sidebar nav page switching
+    const pageMap = {
+        btnProfitMobile: 'profitPage',
+        btnCalendarMobile: 'calendarPage',
+        btnPriceMobile: 'pricePage',
+        btnInventoryMobile: 'inventoryPage',
+        btnDebtMobile: 'debtPage',
+        btnSettingsMobile: 'settingsPage',
+    };
+    Object.keys(pageMap).forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            btn.addEventListener('click', function() {
+                showPage(pageMap[btnId]);
+                closeSidebar();
+            });
+        }
+    });
+});
 /**
  * dashboard.js — SPA page switching, navigation, and bootstrap logic.
  *

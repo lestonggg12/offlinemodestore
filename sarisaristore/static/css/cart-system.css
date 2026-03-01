@@ -308,13 +308,13 @@ body.dark-mode .search-section { border-bottom: 1px solid rgba(255, 255, 255, 0.
 .search-input {
     width: 100%;
     padding: 16px 45px 16px 20px;
-    border: 1px solid #d6d3d1;
-    border-radius: 12px;
+    border: none;
+    border-radius: 16px;
     font-size: 15px;
     font-weight: 500;
-    background: #ffffff;
+    background: #f7f8fa;
     color: #27212c;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    box-shadow: 6px 6px 16px #e3e6ed, -6px -6px 16px #ffffff, inset 1px 1px 4px #e3e6ed, inset -1px -1px 4px #ffffff;
     transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -859,4 +859,130 @@ body.dark-mode .neo-debt-amount > div:last-child { color: #fb923c; }
     .neo-success-info { padding: 20px !important; }
     .neo-success-value { font-size: 18px !important; }
     .neo-success-btn, #closeSuccess { padding: 16px !important; font-size: 16px !important; }
+}
+/* ══════════════════════════════════════════════════════════════════
+   CART ITEM DARK MODE OVERRIDE
+   Add this block to the BOTTOM of cart-system.css
+   It forces the dark card look and keeps Checkout button green.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Cart item card — dark background, not green ── */
+body.dark-mode .neo-cart-item {
+    background: #1e2422 !important;
+    border: 1.5px solid #2d4535 !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.45) !important;
+    color: #e8f5e4 !important;
+}
+body.dark-mode .neo-cart-item:hover {
+    background: #232b27 !important;
+    border-color: #4ade80 !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
+}
+
+/* ── Item name ── */
+body.dark-mode .nci-name,
+body.dark-mode .neo-cart-item-name {
+    color: #f0fdf4 !important;
+}
+
+/* ── Unit price ── */
+body.dark-mode .nci-unit-price,
+body.dark-mode .neo-cart-item-price {
+    color: #9ca3af !important;
+}
+
+/* ── Subtotal ── */
+body.dark-mode .nci-subtotal,
+body.dark-mode .neo-subtotal-amount {
+    color: #4ade80 !important;
+}
+
+/* ── Remove button ── */
+body.dark-mode .nci-remove,
+body.dark-mode .neo-btn-cart-remove,
+body.dark-mode .neo-btn-remove {
+    background: #3a2020 !important;
+    color: #fca5a5 !important;
+    border: none !important;
+}
+body.dark-mode .nci-remove:hover,
+body.dark-mode .neo-btn-cart-remove:hover {
+    background: #4a2828 !important;
+    color: #fff !important;
+}
+
+/* ── Qty buttons (− and +) — dark with green accent ── */
+body.dark-mode .nci-btn-qty,
+body.dark-mode .neo-btn-qty-minus,
+body.dark-mode .neo-btn-qty-plus,
+body.dark-mode .neo-btn-qty {
+    background: #1a2e1f !important;
+    border: 1.5px solid #2d5a35 !important;
+    color: #4ade80 !important;
+}
+body.dark-mode .nci-btn-qty:hover,
+body.dark-mode .neo-btn-qty-minus:hover,
+body.dark-mode .neo-btn-qty-plus:hover {
+    background: #22372a !important;
+    border-color: #4ade80 !important;
+    color: #fff !important;
+}
+
+/* ── Qty input ── */
+body.dark-mode .nci-qty-input,
+body.dark-mode .neo-qty-input {
+    background: #141c17 !important;
+    border: 1.5px solid #2d5a35 !important;
+    color: #e8f5e4 !important;
+}
+body.dark-mode .nci-qty-input:focus,
+body.dark-mode .neo-qty-input:focus {
+    border-color: #4ade80 !important;
+    box-shadow: 0 0 0 3px rgba(74,222,128,0.12) !important;
+}
+
+/* ── CLEAR ALL button — stays red ── */
+body.dark-mode .nci-btn-clear,
+body.dark-mode .neo-btn-clear-cart {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%) !important;
+    color: #fff !important;
+    border: none !important;
+}
+body.dark-mode .nci-btn-clear:hover,
+body.dark-mode .neo-btn-clear-cart:hover {
+    background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%) !important;
+}
+
+/* ── CHECKOUT button — stays green ── */
+body.dark-mode .nci-btn-checkout,
+body.dark-mode .neo-btn-checkout {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: #052e16 !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(34,197,94,0.3) !important;
+}
+body.dark-mode .nci-btn-checkout:hover,
+body.dark-mode .neo-btn-checkout:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 6px 22px rgba(34,197,94,0.45) !important;
+}
+
+/* ── Cart footer / total panel ── */
+body.dark-mode .cart-footer {
+    background: #181f1b !important;
+    border-top: 1px solid #2d4535 !important;
+}
+body.dark-mode .cart-total {
+    background: linear-gradient(135deg, #1a3020 0%, #1e2e22 100%) !important;
+    border: 1px solid #2d5a35 !important;
+    color: #e8f5e4 !important;
+}
+body.dark-mode .cart-total span { color: #4ade80 !important; }
+
+/* ── Empty cart ── */
+body.dark-mode .empty-cart {
+    background: #1a2320 !important;
+    border-color: #2d4535 !important;
+    color: #6b7280 !important;
 }

@@ -1,480 +1,957 @@
-console.log('💰 Loading profit module (FIXED VERSION)...');
+console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
 
+// ─── Inject styles ────────────────────────────────────────────────────────────
+(function injectProfitStyles() {
+  if (document.getElementById('profit-neo-styles')) return;
+  const s = document.createElement('style');
+  s.id = 'profit-neo-styles';
+  s.textContent = `
 
+    /* ════════════════════════════════════════════════════
+       PROFIT PAGE CSS VARIABLES
+    ════════════════════════════════════════════════════ */
+    #profitContent {
+      --ptext:   #1e2d1e;
+      --pbody:   #3a4a3a;
+      --pmuted:  #7a9070;
+      --pprofit: #059669;
 
+      --neo-float:
+        0 8px 32px rgba(80,140,75,0.22),
+        0 2px 8px  rgba(80,140,75,0.12),
+        0 -2px 0   rgba(255,255,255,0.9) inset,
+        0 1px 0    rgba(80,140,75,0.15)  inset;
+
+      --neo-float-gold:
+        0 8px 32px rgba(180,150,30,0.25),
+        0 2px 8px  rgba(180,150,30,0.12),
+        0 -2px 0   rgba(255,255,255,0.85) inset,
+        0 1px 0    rgba(180,150,30,0.15)  inset;
+
+      --neo-float-hover:
+        0 18px 50px rgba(80,140,75,0.3),
+        0 4px 16px  rgba(80,140,75,0.18),
+        0 -2px 0    rgba(255,255,255,0.95) inset;
+
+      --btn-neo:
+        5px 5px 14px rgba(80,140,75,0.22),
+       -5px -5px 14px rgba(255,255,255,0.85);
+
+      --btn-neo-inset:
+        inset 4px 4px 10px rgba(80,140,75,0.18),
+        inset -4px -4px 10px rgba(255,255,255,0.7);
+    }
+
+    /* ════════════════════════════════════════════════════
+       GLASSMORPHISM PAGE BACKGROUND
+    ════════════════════════════════════════════════════ */
+    #profitPage {
+      position: relative;
+      background: linear-gradient(145deg, #dff0da 0%, #eaf5e8 40%, #f0f8ee 70%, #e4f0e0 100%);
+    }
+    #profitPage::before {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      width: 520px; height: 520px;
+      top: -120px; left: -140px;
+      background: radial-gradient(circle, rgba(135,179,130,0.48) 0%, rgba(93,148,86,0.26) 55%, transparent 80%);
+      animation: profit-blob-a 18s ease-in-out infinite alternate;
+    }
+    #profitPage::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      width: 480px; height: 480px;
+      bottom: -80px; right: -100px;
+      background: radial-gradient(circle, rgba(245,222,130,0.42) 0%, rgba(200,165,60,0.22) 55%, transparent 80%);
+      animation: profit-blob-b 22s ease-in-out infinite alternate;
+    }
+    .profit-blob {
+      position: fixed; border-radius: 50%;
+      filter: blur(90px); pointer-events: none; z-index: 0; will-change: transform;
+    }
+    .profit-blob-1 {
+      width: 360px; height: 360px; top: 35%; left: 48%;
+      background: radial-gradient(circle, rgba(152,214,148,0.36) 0%, transparent 70%);
+      animation: profit-blob-c 25s ease-in-out infinite alternate;
+    }
+    .profit-blob-2 {
+      width: 280px; height: 280px; top: 8%; right: 18%;
+      background: radial-gradient(circle, rgba(100,190,170,0.3) 0%, transparent 70%);
+      animation: profit-blob-d 20s ease-in-out infinite alternate;
+    }
+    .profit-blob-3 {
+      width: 220px; height: 220px; bottom: 22%; left: 12%;
+      background: radial-gradient(circle, rgba(220,200,120,0.32) 0%, transparent 70%);
+      animation: profit-blob-a 28s ease-in-out infinite alternate-reverse;
+    }
+    #profitContent { position: relative; z-index: 1; }
+
+    @keyframes profit-blob-a {
+      0%   { transform: translate(0px,   0px)   scale(1);    }
+      33%  { transform: translate(30px, -40px)  scale(1.06); }
+      66%  { transform: translate(-20px, 25px)  scale(0.96); }
+      100% { transform: translate(15px, -15px)  scale(1.03); }
+    }
+    @keyframes profit-blob-b {
+      0%   { transform: translate(0px,   0px)    scale(1);    }
+      33%  { transform: translate(-35px, 30px)   scale(1.08); }
+      66%  { transform: translate(20px, -20px)   scale(0.94); }
+      100% { transform: translate(-10px, 18px)   scale(1.04); }
+    }
+    @keyframes profit-blob-c {
+      0%   { transform: translate(0px,   0px)    scale(1);    }
+      50%  { transform: translate(-40px, -30px)  scale(1.10); }
+      100% { transform: translate(25px,  20px)   scale(0.95); }
+    }
+    @keyframes profit-blob-d {
+      0%   { transform: translate(0px,   0px)    scale(1);    }
+      50%  { transform: translate(30px,  35px)   scale(1.07); }
+      100% { transform: translate(-15px, -25px)  scale(0.97); }
+    }
+
+    /* ════════════════════════════════════════════════════
+       DARK MODE — page background
+    ════════════════════════════════════════════════════ */
+    body.dark-mode #profitPage {
+      background: linear-gradient(145deg, #0d1f0d 0%, #0f2310 40%, #0a1a0a 70%, #111e10 100%);
+    }
+    body.dark-mode #profitPage::before {
+      background: radial-gradient(circle, rgba(55,110,50,0.52) 0%, rgba(35,75,32,0.3) 55%, transparent 80%);
+    }
+    body.dark-mode #profitPage::after {
+      background: radial-gradient(circle, rgba(120,90,10,0.42) 0%, rgba(80,60,5,0.22) 55%, transparent 80%);
+    }
+    body.dark-mode .profit-blob-1 {
+      background: radial-gradient(circle, rgba(40,100,38,0.38) 0%, transparent 70%);
+    }
+    body.dark-mode .profit-blob-2 {
+      background: radial-gradient(circle, rgba(20,90,80,0.3) 0%, transparent 70%);
+    }
+    body.dark-mode .profit-blob-3 {
+      background: radial-gradient(circle, rgba(100,75,10,0.32) 0%, transparent 70%);
+    }
+
+    /* ── Section title ── */
+    #profitContent .p-section-title {
+      font-size: 17px; font-weight: 800; color: var(--ptext);
+      margin: 36px 0 20px; display: flex; align-items: center; gap: 10px;
+    }
+    #profitContent .p-section-title::before {
+      content: ''; width: 4px; height: 22px;
+      background: linear-gradient(180deg, #87B382, #5D9456);
+      border-radius: 4px; flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(93,148,86,0.4);
+    }
+    #profitContent .p-page-sub {
+      text-align: center; color: var(--pmuted);
+      font-size: 13px; margin: -8px 0 32px;
+    }
+
+    /* ── Grid ── */
+    #profitContent .p-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px; margin-bottom: 8px;
+    }
+
+    /* ════════════════════════════════════════════════════
+       GLASS-NEO CARD
+    ════════════════════════════════════════════════════ */
+    #profitContent .p-card {
+      border-radius: 22px; padding: 26px 24px;
+      position: relative; overflow: hidden; cursor: default;
+      transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
+      backdrop-filter: blur(18px) saturate(1.6);
+      -webkit-backdrop-filter: blur(18px) saturate(1.6);
+      border: 1.5px solid rgba(255,255,255,0.55);
+      box-shadow: var(--neo-float);
+    }
+    #profitContent .p-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: 22px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 40%, transparent 70%);
+      pointer-events: none;
+    }
+    #profitContent .p-card::after {
+      content: ''; position: absolute;
+      top: 0; left: 20px; right: 20px; height: 2px;
+      border-radius: 0 0 4px 4px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+    }
+    #profitContent .p-card:hover {
+      transform: translateY(-7px) scale(1.01);
+      box-shadow: var(--neo-float-hover);
+    }
+    #profitContent .p-card:active { transform: translateY(-3px); }
+
+    /* ── Color variants (light mode) ── */
+    #profitContent .p-card.c-today    { background: linear-gradient(135deg,#d4e09b,#c5d68d); border-color:#c0cf88; }
+    #profitContent .p-card.c-yesterday{ background: linear-gradient(135deg,#f6f4d2,#eee9c4); border-color:#e5e0ba; }
+    #profitContent .p-card.c-week     { background: linear-gradient(135deg,#cbdfbd,#bdd4ae); border-color:#b5cca8; }
+    #profitContent .p-card.c-neutral  { background: linear-gradient(135deg,#f6e4d8,#f0d9cc); border-color:#e8d0c0; }
+    #profitContent .p-card.c-gold     { background: linear-gradient(135deg,#f5e8d4,#efdcc0); border-color:#e8dcc8; box-shadow:var(--neo-float-gold); }
+    #profitContent .p-card.c-gold:hover {
+      box-shadow: 0 20px 54px rgba(180,150,30,0.35), 0 4px 16px rgba(180,150,30,0.2), 0 -2px 0 rgba(255,255,255,0.95) inset;
+    }
+
+    /* Light mode text per variant */
+    #profitContent .p-card.c-today .p-card-eyebrow,
+    #profitContent .p-card.c-today .p-card-section-label { color: #4a5a2a; }
+    #profitContent .p-card.c-today .p-card-value         { color: #3d4a23; }
+    #profitContent .p-card.c-yesterday .p-card-eyebrow,
+    #profitContent .p-card.c-yesterday .p-card-section-label { color: #6b6438; }
+    #profitContent .p-card.c-yesterday .p-card-value     { color: #5a5230; }
+    #profitContent .p-card.c-week .p-card-eyebrow,
+    #profitContent .p-card.c-week .p-card-section-label  { color: #3e5235; }
+    #profitContent .p-card.c-week .p-card-value          { color: #32422b; }
+    #profitContent .p-card.c-neutral .p-card-eyebrow,
+    #profitContent .p-card.c-neutral .p-card-section-label { color: #8a6a55; }
+    #profitContent .p-card.c-neutral .p-card-value       { color: #6b5245; }
+    #profitContent .p-card.c-gold .p-card-eyebrow,
+    #profitContent .p-card.c-gold .p-card-section-label  { color: #8a7050; }
+    #profitContent .p-card.c-gold .p-card-value          { color: #6a5840; }
+
+    /* ── Card typography ── */
+    #profitContent .p-card-eyebrow {
+      font-size: 10px; font-weight: 800; letter-spacing: 1.6px;
+      text-transform: uppercase; color: var(--pbody);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 6px; opacity: 0.75;
+    }
+    #profitContent .p-card-section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.3px;
+      text-transform: uppercase; color: var(--pbody);
+      margin-bottom: 2px; opacity: 0.65; text-align: center;
+    }
+    #profitContent .p-card-value {
+      font-size: 30px; font-weight: 900; color: var(--ptext);
+      letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 4px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.08); text-align: center;
+    }
+    #profitContent .p-card-value.profit-color {
+      color: #1a6b3c; text-shadow: 0 1px 3px rgba(26,107,60,0.15);
+    }
+    #profitContent .p-card-value.gold-color {
+      color: #7a5500; text-shadow: 0 1px 3px rgba(122,85,0,0.15);
+    }
+    #profitContent .p-card-value.muted-val {
+      font-size: 18px; color: var(--pmuted); font-weight: 700; text-shadow: none;
+    }
+    #profitContent .p-card-sub {
+      font-size: 12px; color: var(--pmuted); margin-bottom: 14px; text-align: center;
+    }
+    #profitContent .p-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7) 30%, rgba(140,180,135,0.4) 60%, transparent);
+      margin: 14px 0;
+    }
+    #profitContent .p-empty-msg {
+      font-size: 15px; color: var(--pbody); text-align: center;
+      padding: 16px 0 6px; font-weight: 700; opacity: 0.7;
+    }
+
+    /* ── Timing strip ── */
+    #profitContent .p-timing {
+      margin-top: 14px; padding: 10px 14px;
+      background: rgba(255,255,255,0.35); border: 1px solid rgba(255,255,255,0.5);
+      border-radius: 12px; backdrop-filter: blur(8px);
+      font-size: 11px; color: var(--pbody); font-weight: 600; line-height: 1;
+      display: flex; flex-direction: column; gap: 7px;
+      width: 100%; box-sizing: border-box;
+    }
+    #profitContent .p-timing-row {
+      display: flex; align-items: center; gap: 5px;
+      flex-wrap: nowrap; white-space: nowrap;
+    }
+
+    /* ── Timer badge ── */
+    #profitContent .p-timer-badge {
+      display: flex; flex-direction: column; gap: 5px;
+      margin-top: 14px; padding: 10px 14px; border-radius: 12px;
+      font-size: 11px; font-weight: 700;
+      background: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.6);
+      backdrop-filter: blur(8px); color: #5D9456;
+      box-shadow: 0 2px 8px rgba(93,148,86,0.12);
+      width: 100%; box-sizing: border-box;
+    }
+    #profitContent .p-timer-row {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700; color: #5D9456;
+    }
+    #profitContent .p-timer-row strong { color: #3a7032; }
+
+    /* ════════════════════════════════════════════════════
+       RECENT SALES
+    ════════════════════════════════════════════════════ */
+    #profitContent .p-recent-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 18px; flex-wrap: wrap; gap: 12px;
+    }
+    #profitContent .p-recent-actions {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    #profitContent #btnToggleRecent {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px; border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; color: #5D9456; letter-spacing: 0.3px;
+      transition: all .25s ease;
+      background: linear-gradient(145deg,#eaf5e8,#d2e9ce);
+      box-shadow: var(--btn-neo);
+    }
+    #profitContent #btnToggleRecent:hover {
+      box-shadow: var(--btn-neo-inset); transform: translateY(2px);
+    }
+    #profitContent .toggle-arrow {
+      display: inline-block; transition: transform .35s cubic-bezier(.4,0,.2,1);
+      font-size: 10px; margin-right: 6px;
+    }
+    #profitContent .btn-label { display: inline-block; }
+    #profitContent #btnClearHistory {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px; border: 1px solid rgba(255,255,255,0.7);
+      border-radius: 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; color: #b91c1c; letter-spacing: 0.3px;
+      transition: all .25s ease;
+      background: linear-gradient(145deg,#fef3f3,#fde2e2);
+      box-shadow: 5px 5px 14px rgba(185,28,28,0.14), -5px -5px 14px rgba(255,255,255,0.85);
+    }
+    #profitContent #btnClearHistory:hover {
+      box-shadow: inset 4px 4px 10px rgba(185,28,28,0.12), inset -4px -4px 10px rgba(255,255,255,0.7);
+      transform: translateY(2px);
+    }
+    #recentSalesContainer {
+      overflow: hidden;
+      transition: max-height .5s cubic-bezier(.4,0,.2,1), opacity .4s ease;
+      max-height: 99999px; opacity: 1;
+    }
+    #recentSalesContainer.rs-collapsed { max-height: 0 !important; opacity: 0; }
+
+    /* ── Sale card ── */
+    #profitContent .p-sale-card {
+      border-radius: 18px; padding: 20px 18px;
+      backdrop-filter: blur(16px) saturate(1.5);
+      -webkit-backdrop-filter: blur(16px) saturate(1.5);
+      background: rgba(210,235,207,0.5); border: 1.5px solid rgba(255,255,255,0.55);
+      box-shadow: 0 6px 24px rgba(80,140,75,0.16), 0 2px 6px rgba(80,140,75,0.08), 0 -1px 0 rgba(255,255,255,0.8) inset;
+      transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease;
+      position: relative; overflow: hidden;
+    }
+    #profitContent .p-sale-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.32) 0%, transparent 55%);
+      pointer-events: none;
+    }
+    #profitContent .p-sale-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 14px 40px rgba(80,140,75,0.24), 0 4px 12px rgba(80,140,75,0.12), 0 -1px 0 rgba(255,255,255,0.9) inset;
+    }
+    #profitContent .p-sale-header {
+      display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;
+    }
+    #profitContent .p-sale-date   { font-size: 13px; font-weight: 700; color: var(--ptext); }
+    #profitContent .p-sale-time   { font-size: 11px; color: var(--pmuted); margin-top: 2px; }
+    #profitContent .p-sale-customer { font-size: 11px; color: var(--pmuted); margin-top: 4px; }
+    #profitContent .p-sale-items-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--pmuted); margin-bottom: 4px; opacity: 0.7;
+    }
+    #profitContent .p-sale-items { font-size: 12px; color: var(--pbody); line-height: 1.6; margin-bottom: 12px; }
+    #profitContent .p-sale-footer {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-top: 1px solid rgba(255,255,255,0.55); padding-top: 10px;
+    }
+    #profitContent .p-sale-stat-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.1px;
+      text-transform: uppercase; color: var(--pmuted); margin-bottom: 3px; opacity: 0.7;
+    }
+    #profitContent .p-sale-total  { font-size: 18px; font-weight: 900; color: var(--ptext); }
+    #profitContent .p-sale-profit { font-size: 18px; font-weight: 900; color: #1a6b3c; text-align: right; }
+
+    /* ── Payment badge contrast ── */
+    #profitContent .p-sale-card .payment-badge {
+      box-shadow: 0 3px 10px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+    #profitContent .p-sale-card .payment-badge.cash {
+      background: linear-gradient(135deg,#3a7d35,#2d6128) !important;
+      color: #fff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+      border-color: rgba(255,255,255,0.35) !important;
+    }
+    #profitContent .p-sale-card .payment-badge.gcash {
+      background: linear-gradient(135deg,#1565c0,#0d47a1) !important;
+      color: #fff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    #profitContent .p-sale-card .payment-badge.credit,
+    #profitContent .p-sale-card .payment-badge.credit-paid {
+      background: linear-gradient(135deg,#5c35b5,#3d1f8c) !important;
+      color: #fff !important; text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* ── Empty state ── */
+    #profitContent .p-empty-state {
+      text-align: center; padding: 56px 24px; border-radius: 22px;
+      backdrop-filter: blur(16px) saturate(1.4);
+      background: rgba(210,235,207,0.45); border: 1.5px solid rgba(255,255,255,0.55);
+      box-shadow: 0 6px 24px rgba(80,140,75,0.12);
+    }
+    #profitContent .p-empty-icon { font-size: 44px; margin-bottom: 12px; display: block; opacity: .5; }
+
+    /* ════════════════════════════════════════════════════
+       DARK MODE — variables
+    ════════════════════════════════════════════════════ */
+    body.dark-mode #profitContent {
+      --ptext:  #d8ecd4;
+      --pbody:  #a8c4a4;
+      --pmuted: #6a8a66;
+      --neo-float:
+        0 8px 32px rgba(0,0,0,0.5),
+        0 2px 8px  rgba(0,0,0,0.3),
+        0 -1px 0   rgba(255,255,255,0.06) inset,
+        0 1px 0    rgba(0,0,0,0.3) inset;
+      --neo-float-gold:
+        0 8px 32px rgba(0,0,0,0.5),
+        0 2px 8px  rgba(140,100,0,0.3),
+        0 -1px 0   rgba(255,255,255,0.06) inset;
+      --neo-float-hover:
+        0 16px 48px rgba(0,0,0,0.6),
+        0 4px 16px  rgba(0,0,0,0.35),
+        0 -1px 0    rgba(255,255,255,0.06) inset;
+      --btn-neo:
+        5px 5px 14px rgba(0,0,0,0.4),
+       -5px -5px 14px rgba(60,80,55,0.2);
+      --btn-neo-inset:
+        inset 4px 4px 10px rgba(0,0,0,0.35),
+        inset -4px -4px 10px rgba(60,80,55,0.15);
+    }
+
+    /* ── Dark card backgrounds (lighter than before so text pops) ── */
+    body.dark-mode #profitContent .p-card.c-today,
+    body.dark-mode #profitContent .p-card.c-week {
+      background: rgba(38,62,35,0.88) !important;
+      border-color: rgba(135,179,130,0.32) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-yesterday {
+      background: rgba(58,50,22,0.88) !important;
+      border-color: rgba(210,180,80,0.28) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-neutral {
+      background: rgba(42,52,40,0.88) !important;
+      border-color: rgba(140,160,130,0.28) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-gold {
+      background: rgba(62,48,10,0.90) !important;
+      border-color: rgba(210,175,60,0.32) !important;
+    }
+    body.dark-mode #profitContent .p-card::before {
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%);
+    }
+
+    /* ── Dark eyebrow & section labels — fully visible ── */
+    body.dark-mode #profitContent .p-card-eyebrow {
+      color: #c8e6c0 !important;
+      opacity: 1 !important;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+    body.dark-mode #profitContent .p-card-section-label {
+      color: #a0c898 !important;
+      opacity: 1 !important;
+    }
+
+    /* ── Dark main values ── */
+    body.dark-mode #profitContent .p-card-value {
+      color: #eaf6e4 !important;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+    }
+    body.dark-mode #profitContent .p-card-value.profit-color {
+      color: #5edc8a !important;
+      text-shadow: 0 0 14px rgba(74,222,128,0.3), 0 1px 4px rgba(0,0,0,0.4) !important;
+    }
+    body.dark-mode #profitContent .p-card-value.gold-color {
+      color: #f0cc55 !important;
+      text-shadow: 0 0 14px rgba(240,204,85,0.3), 0 1px 4px rgba(0,0,0,0.4) !important;
+    }
+    body.dark-mode #profitContent .p-card-value.muted-val {
+      color: #8aaa84 !important;
+    }
+
+    /* ── Dark sub-text ── */
+    body.dark-mode #profitContent .p-card-sub {
+      color: #8aaa84 !important; opacity: 1 !important;
+    }
+    body.dark-mode #profitContent .p-empty-msg {
+      color: #8aaa84 !important; opacity: 1 !important;
+    }
+
+    /* ── Dark section title & page sub ── */
+    body.dark-mode #profitContent .p-section-title { color: #d0eac8 !important; }
+    body.dark-mode #profitContent .p-page-sub      { color: #7a9a74 !important; }
+
+    /* ── Dark divider ── */
+    body.dark-mode #profitContent .p-divider {
+      background: linear-gradient(90deg, transparent, rgba(135,179,130,0.3), transparent) !important;
+    }
+
+    /* ── Dark timing strip ── */
+    body.dark-mode #profitContent .p-timing {
+      background: rgba(255,255,255,0.07) !important;
+      border-color: rgba(255,255,255,0.12) !important;
+      color: #90b88a !important;
+    }
+    body.dark-mode #profitContent .p-timing strong { color: #c8e6c0 !important; }
+    body.dark-mode #profitContent .p-timing-row    { color: #90b88a !important; }
+
+    /* ── Dark timer badge ── */
+    body.dark-mode #profitContent .p-timer-badge {
+      background: rgba(30,55,28,0.75) !important;
+      border-color: rgba(135,179,130,0.28) !important;
+      color: #87B382 !important;
+    }
+    body.dark-mode #profitContent .p-timer-row        { color: #87B382 !important; }
+    body.dark-mode #profitContent .p-timer-row strong { color: #b8e090 !important; }
+
+    /* ── Dark buttons ── */
+    body.dark-mode #profitContent #btnToggleRecent {
+      background: linear-gradient(145deg,#243020,#1c2819);
+      color: #87B382; border-color: rgba(135,179,130,0.18);
+    }
+    body.dark-mode #profitContent #btnClearHistory {
+      background: linear-gradient(145deg,#2e1a1a,#231212);
+      color: #f87171; border-color: rgba(248,113,113,0.15);
+      box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -4px -4px 12px rgba(60,25,25,0.2);
+    }
+
+    /* ── Dark sale cards ── */
+    body.dark-mode #profitContent .p-sale-card {
+      background: rgba(30,50,28,0.70) !important;
+      border-color: rgba(135,179,130,0.2) !important;
+    }
+    body.dark-mode #profitContent .p-sale-card::before {
+      background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%);
+    }
+    body.dark-mode #profitContent .p-sale-footer   { border-top-color: rgba(135,179,130,0.18); }
+    body.dark-mode #profitContent .p-sale-date     { color: #d0eac8 !important; }
+    body.dark-mode #profitContent .p-sale-time,
+    body.dark-mode #profitContent .p-sale-customer { color: #7a9a74 !important; }
+    body.dark-mode #profitContent .p-sale-items-label,
+    body.dark-mode #profitContent .p-sale-stat-label {
+      color: #7a9a74 !important; opacity: 1 !important;
+    }
+    body.dark-mode #profitContent .p-sale-items  { color: #a8c4a0 !important; }
+    body.dark-mode #profitContent .p-sale-total  { color: #d8ecd4 !important; }
+    body.dark-mode #profitContent .p-sale-profit { color: #5edc8a !important; }
+
+    /* ── Dark payment badges ── */
+    body.dark-mode #profitContent .p-sale-card .payment-badge.cash {
+      background: linear-gradient(135deg,#4a9e44,#3a7d35) !important;
+    }
+    body.dark-mode #profitContent .p-sale-card .payment-badge.gcash {
+      background: linear-gradient(135deg,#1e88e5,#1565c0) !important;
+    }
+    body.dark-mode #profitContent .p-sale-card .payment-badge.credit,
+    body.dark-mode #profitContent .p-sale-card .payment-badge.credit-paid {
+      background: linear-gradient(135deg,#7c55d4,#5c35b5) !important;
+    }
+
+    /* ── Dark empty state ── */
+    body.dark-mode #profitContent .p-empty-state {
+      background: rgba(30,50,28,0.6) !important;
+      border-color: rgba(135,179,130,0.18) !important;
+    }
+
+    /* ════════════════════════════════════════════════════
+       MOBILE
+    ════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      #profitContent .p-grid { grid-template-columns: 1fr; gap: 14px; }
+      #profitContent .p-section-title { font-size: 15px; margin: 26px 0 14px; }
+      #profitContent .p-card { padding: 20px 18px; border-radius: 18px; }
+      #profitContent .p-card-value { font-size: 26px; }
+      #profitContent .p-recent-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      #profitContent .p-recent-actions { width: 100%; }
+      #profitContent #btnToggleRecent,
+      #profitContent #btnClearHistory { flex:1; justify-content:center; padding:13px 14px; min-height:46px; font-size:13px; }
+      #profitContent .p-sale-card { padding: 18px 16px; }
+      #profitContent .p-sale-total,
+      #profitContent .p-sale-profit { font-size: 16px; }
+    }
+    @media (max-width: 480px) {
+      #profitContent .p-grid { gap: 12px; }
+      #profitContent .p-card { padding: 18px 15px; border-radius: 16px; }
+      #profitContent .p-card-value { font-size: 24px; }
+    }
+  `;
+  document.head.appendChild(s);
+})();
+
+// ─── Inject background blob divs ─────────────────────────────────────────────
+function _injectProfitBlobs() {
+  const page = document.getElementById('profitPage');
+  if (!page || page.querySelector('.profit-blob')) return;
+  ['profit-blob profit-blob-1','profit-blob profit-blob-2','profit-blob profit-blob-3'].forEach(cls => {
+    const div = document.createElement('div');
+    div.className = cls;
+    page.insertBefore(div, page.firstChild);
+  });
+}
+
+// ─── renderProfit ─────────────────────────────────────────────────────────────
 async function renderProfit() {
+  _injectProfitBlobs();
+
   const content = document.getElementById('profitContent');
-  
   content.innerHTML = `
-    <div style="text-align: center; padding: 40px;">
-      <div style="font-size: 48px; animation: spin 1s linear infinite;">⏳</div>
-      <p style="color: #666; margin-top: 10px;">Loading sales data...</p>
+    <div class="p-grid" id="profit-grid-main"></div>
+    <div class="p-grid" id="profit-grid-sub" style="margin-top:20px;"></div>
+    <h3 class="p-section-title">🕑 Recent Sales</h3>
+    <div class="p-recent-header">
+      <div class="p-recent-actions">
+        <button id="btnToggleRecent">
+          <span class="toggle-arrow">▼</span><span class="btn-label">Hide Sales</span>
+        </button>
+        <button id="btnClearHistory">🗑️ Clear Transaction History</button>
+      </div>
     </div>
-    <style>
-      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    </style>
+    <div id="recentSalesContainer"></div>
   `;
 
+  _wireToggle();
+
   try {
-    const periods = await DB.getPeriodTotals();
-    const products = await DB.getProducts();
-    const sales = await DB.getSales();
+    const [periods, products, sales] = await Promise.all([
+      DB.getPeriodTotals(),
+      DB.getProducts(),
+      DB.getSales(),
+    ]);
 
-    console.log('📊 Period data:', periods);
+    document.getElementById('profit-grid-main').innerHTML =
+      renderPeriodCard('today',     periods.today)     +
+      renderPeriodCard('yesterday', periods.yesterday) +
+      renderPeriodCard('week',      periods.last_week) +
+      renderPeriodCard('month',     periods.last_month);
 
-    let potentialProfit = 0;
-    products.forEach(product => {
-      const price    = parseFloat(product.price    || product.selling_price) || 0;
-      const cost     = parseFloat(product.cost     || product.cost_price)    || 0;
-      const quantity = parseFloat(product.quantity || product.stock)         || 0;
-      potentialProfit += (price - cost) * quantity;
-    });
+    document.getElementById('profit-grid-sub').innerHTML =
+      renderPeriodCard('year', periods.last_year) +
+      renderPotentialProfitCard(products);
 
-    let html = `
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h2 style="color: var(--text-primary, #5D534A); margin-bottom: 8px; font-size: 1.8rem;">📊 Sales Performance</h2>
-        <p style="color: var(--text-secondary, #9E9382); font-size: 14px;">Period totals update automatically at midnight</p>
-      </div>
-
-      <div class="period-section">
-        <h3 style="color: var(--text-primary, #5D534A); margin-bottom: 20px; font-size: 1.2rem; font-weight: 700;">💰 Today's Sales</h3>
-        <div class="profit-summary">
-          ${renderPeriodCard('🍃 TODAY\'S PERFORMANCE','today',periods.today.revenue,periods.today.profit,periods.today.sales_count,periods.today.has_data)}
-        </div>
-      </div>
-
-      <div class="period-section">
-        <h3 style="color: var(--text-primary, #5D534A); margin: 30px 0 20px 0; font-size: 1.2rem; font-weight: 700;">📅 Yesterday's Sales</h3>
-        <div class="profit-summary">
-          ${renderPeriodCard('🍂 YESTERDAY\'S PERFORMANCE','yesterday',periods.yesterday.revenue,periods.yesterday.profit,periods.yesterday.sales_count,periods.yesterday.has_data,periods.yesterday.period_start,periods.yesterday.period_end)}
-        </div>
-      </div>
-
-      <div class="period-section">
-        <h3 style="color: var(--text-primary, #5D534A); margin: 30px 0 20px 0; font-size: 1.2rem; font-weight: 700;">📊 Last Week's Sales</h3>
-        <div class="profit-summary">
-          ${renderPeriodCard('🌿 LAST WEEK\'S PERFORMANCE','week',periods.last_week.revenue,periods.last_week.profit,periods.last_week.sales_count,periods.last_week.has_data,periods.last_week.period_start,periods.last_week.period_end,periods.last_week.visibility_start,periods.last_week.visibility_end)}
-        </div>
-      </div>
-
-      <div class="period-section">
-        <h3 style="color: var(--text-primary, #5D534A); margin: 30px 0 20px 0; font-size: 1.2rem; font-weight: 700;">📆 Last Month's Sales</h3>
-        <div class="profit-summary">
-          ${renderPeriodCard('🍁 LAST MONTH\'S PERFORMANCE','month',periods.last_month.revenue,periods.last_month.profit,periods.last_month.sales_count,periods.last_month.has_data,periods.last_month.period_start,periods.last_month.period_end,periods.last_month.visibility_start,periods.last_month.visibility_end)}
-        </div>
-      </div>
-
-      <div class="period-section">
-        <h3 style="color: var(--text-primary, #5D534A); margin: 30px 0 20px 0; font-size: 1.2rem; font-weight: 700;">📈 Last Year's Sales</h3>
-        <div class="profit-summary">
-          ${renderPeriodCard('🍂 LAST YEAR\'S PERFORMANCE','year',periods.last_year.revenue,periods.last_year.profit,periods.last_year.sales_count,periods.last_year.has_data,periods.last_year.period_start,periods.last_year.period_end,periods.last_year.visibility_start,periods.last_year.visibility_end)}
-        </div>
-      </div>
-
-      <div class="period-section">
-        <h3 style="color: var(--text-primary, rgb(148, 111, 80)); margin: 30px 0 20px 0; font-size: 1.2rem; font-weight: 700;">💎 Potential Profit</h3>
-        <div class="profit-summary">
-          <div class="profit-card potential">
-            <h3>💎 INVENTORY VALUE</h3>
-            <div class="profit-card-revenue">
-              <div class="profit-card-label" style="color: white !important;">Potential Profit from Current Stock</div>
-              <div class="profit-amount">₱${potentialProfit.toFixed(2)}</div>
-              <small style="color: white !important;">if all inventory sells at current prices</small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="recent-sales-section" style="margin-top: 50px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <h3 style="margin: 0; color: var(--text-primary, #6e4a2a); font-size: 1.2rem; font-weight: 700;">📝 Recent Sales</h3>
-            <button id="btnToggleSales" onclick="toggleRecentSales()" style="
-              display: inline-flex; align-items: center; gap: 6px;
-              padding: 7px 16px;
-              background: linear-gradient(135deg, #a8c99c, #87B382);
-              color: white;
-              border: none;
-              border-radius: 20px;
-              cursor: pointer;
-              font-size: 13px;
-              font-weight: 700;
-              box-shadow: 0 3px 10px rgba(135,179,130,0.4);
-              transition: all 0.2s ease;
-            " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-              <span id="toggleSalesIcon">🙈</span>
-              <span id="toggleSalesLabel">Hide</span>
-            </button>
-          </div>
-        ${sales.length > 0 ? `
-  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-    <p style="font-size:12px;color:#9E9382;margin:0;text-align:right;">
-      🗑️ Transactions older than 2 days can be deleted.<br>Do this regularly to free up space.
-    </p>
-    <button class="btn-clear-history" id="btnClearHistory" style="background: linear-gradient(135deg, #EF4444, #DC2626) !important; color: white !important;">🗑️ Clear Transaction History</button>
-  </div>` : ''}
-    `;
-
-    content.innerHTML = html;
+    document.getElementById('recentSalesContainer').innerHTML = renderRecentSales(sales);
     document.getElementById('btnClearHistory')?.addEventListener('click', clearTransactionHistory);
+
     setupMidnightRefresh();
-    
+
   } catch (error) {
-    console.error('❌ Error rendering profit page:', error);
-    content.innerHTML = `
-      <div style="text-align: center; padding: 40px; color: #DC2626;">
-        <h2>⚠️ Error Loading Data</h2>
-        <p>${error.message}</p>
-        <button onclick="renderProfit()" style="padding: 12px 24px; background: #87B382; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; margin-top: 15px;">Retry</button>
-      </div>
-    `;
+    const g = document.getElementById('profit-grid-main');
+    if (g) g.innerHTML = `
+      <div class="p-card c-neutral" style="text-align:center;padding:40px 24px;grid-column:1/-1;">
+        <div style="font-size:38px;margin-bottom:10px;">⚠️</div>
+        <h3 style="color:#dc2626;margin-bottom:8px;font-size:1.1rem;">Error Loading Data</h3>
+        <p style="color:var(--pmuted);font-size:13px;margin-bottom:18px;">${error.message}</p>
+        <button onclick="renderProfit()"
+          style="padding:11px 24px;background:linear-gradient(135deg,#87B382,#5D9456);
+                 color:#fff;border:none;border-radius:12px;cursor:pointer;
+                 font-weight:700;font-size:13px;box-shadow:0 4px 14px rgba(93,148,86,.35);">
+          ↺ Retry
+        </button>
+      </div>`;
   }
 }
 
-
-
-function toggleRecentSales() {
+// ─── Toggle wiring ────────────────────────────────────────────────────────────
+function _wireToggle() {
+  const btn       = document.getElementById('btnToggleRecent');
   const container = document.getElementById('recentSalesContainer');
-  const icon      = document.getElementById('toggleSalesIcon');
-  const label     = document.getElementById('toggleSalesLabel');
-  if (!container) return;
-
-  const isVisible = container.style.maxHeight !== '0px';
-
-  if (isVisible) {
-    // Collapse
-    container.style.maxHeight = container.scrollHeight + 'px'; // set explicit height first
-    requestAnimationFrame(() => {
-      container.style.maxHeight  = '0px';
-      container.style.opacity    = '0';
-      container.style.marginTop  = '0px';
-    });
-    icon.textContent  = '👁️';
-    label.textContent = 'Show';
-  } else {
-    // Expand
-    container.style.maxHeight  = container.scrollHeight + 'px';
-    container.style.opacity    = '1';
-    container.style.marginTop  = '';
-    icon.textContent  = '🙈';
-    label.textContent = 'Hide';
-    // After animation, remove fixed maxHeight so content can resize freely
-    setTimeout(() => { container.style.maxHeight = 'none'; }, 380);
-  }
+  if (!btn || !container) return;
+  btn.addEventListener('click', () => {
+    const hidden = container.classList.toggle('rs-collapsed');
+    const arrow  = btn.querySelector('.toggle-arrow');
+    if (arrow) arrow.style.transform = hidden ? 'rotate(-90deg)' : 'rotate(0)';
+    const label = btn.querySelector('.btn-label');
+    if (label) label.textContent = hidden ? 'Show Sales' : 'Hide Sales';
+  });
 }
 
+// ─── Number formatter ─────────────────────────────────────────────────────────
+function fmt(n) {
+  return Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
+// ─── renderPeriodCard ─────────────────────────────────────────────────────────
+function renderPeriodCard(type, data = {}) {
+  const meta = {
+    today:     { label:"TODAY'S PERFORMANCE",      icon:'📅', cls:'c-today'     },
+    yesterday: { label:"YESTERDAY'S PERFORMANCE",  icon:'📆', cls:'c-yesterday' },
+    week:      { label:"LAST WEEK'S PERFORMANCE",  icon:'🌿', cls:'c-week'      },
+    month:     { label:"LAST MONTH'S PERFORMANCE", icon:'📋', cls:'c-neutral'   },
+    year:      { label:"LAST YEAR'S PERFORMANCE",  icon:'📈', cls:'c-neutral'   },
+  }[type] || { label:'', icon:'', cls:'c-neutral' };
 
-function renderPeriodCard(title, cardClass, revenue, profit, salesCount, hasData, periodStart=null, periodEnd=null, visibilityStart=null, visibilityEnd=null) {
-
-  function buildPeriodInfo(start, end) {
-    if (!start || !end) return '';
-    try {
-      const s = new Date(start), e = new Date(end);
-      if (isNaN(s) || isNaN(e)) return '';
-      return `<small style="display: block; margin-bottom: 12px; color: var(--text-secondary); font-weight: 600;">
-        📅 ${s.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })} - 
-        ${e.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
-      </small>`;
-    } catch(e) { return ''; }
-  }
-
-
-  if (cardClass === 'today' || cardClass === 'yesterday') {
-    if (!hasData) {
-      return `
-        <div class="profit-card ${cardClass}">
-          <h3>${title}</h3>
-          <div class="profit-card-revenue">
-            <div class="profit-card-label">No sales recorded</div>
-            <div class="profit-amount" style="font-size: 1.2rem; opacity: 0.6;">—</div>
-            <small style="opacity: 0.7;">Check back later for data</small>
+  if (!data || !data.has_data) {
+    let timingHtml = '';
+    if (data?.visibility_start && data?.visibility_end) {
+      timingHtml = `
+        <div class="p-timing">
+          <div class="p-timing-row">📅 <span style="font-weight:500">Visible from:</span>&nbsp;
+            <strong>${new Date(data.visibility_start).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})} at 12am</strong>
+          </div>
+          <div class="p-timing-row">🔚 <span style="font-weight:500">Until:</span>&nbsp;
+            <strong>${new Date(data.visibility_end).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})} at 12am</strong>
           </div>
         </div>`;
     }
     return `
-      <div class="profit-card ${cardClass}">
-        <h3>${title}</h3>
-        ${buildPeriodInfo(periodStart, periodEnd)}
-        <div class="profit-card-revenue">
-          <div class="profit-card-label">Revenue</div>
-          <div class="profit-amount">₱${revenue.toFixed(2)}</div>
-          <small>${salesCount} ${salesCount === 1 ? 'sale' : 'sales'}</small>
+      <div class="p-card ${meta.cls}">
+        <div class="p-card-eyebrow">${meta.icon}&nbsp;${meta.label}</div>
+        <div class="p-empty-msg">No sales recorded${type==='month'||type==='year'?' for this period':''}</div>
+        <div class="p-divider"></div>
+        <div class="p-card-sub" style="padding-top:4px;">
+          ${type==='month'||type==='year'?'Check back during visibility window':'Check back later for data'}
         </div>
-        <div class="profit-card-profit">
-          <div class="profit-card-profit-label">Profit Earned</div>
-          <div class="profit-card-profit-amount">₱${profit.toFixed(2)}</div>
-        </div>
+        ${timingHtml}
       </div>`;
   }
 
-
-  if (hasData) {
-    let visibilityBadge = '';
-    if (visibilityEnd) {
-      const visEnd = new Date(visibilityEnd);
-      if (!isNaN(visEnd)) {
-        const days = Math.ceil((visEnd - new Date()) / 86400000);
-        visibilityBadge = `
-          <div style="margin-top: 12px; padding: 10px 14px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.3); border-radius: 10px; font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; text-align: center;">
-            ⏰ Visible for ${days} more day${days === 1 ? '' : 's'}<br>
-            <small style="opacity: 0.8;">Until ${visEnd.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}</small>
-          </div>`;
-      }
-    }
-    return `
-      <div class="profit-card ${cardClass}">
-        <h3>${title}</h3>
-        ${buildPeriodInfo(periodStart, periodEnd)}
-        <div class="profit-card-revenue">
-          <div class="profit-card-label">Revenue</div>
-          <div class="profit-amount">₱${revenue.toFixed(2)}</div>
-          <small>${salesCount} ${salesCount === 1 ? 'sale' : 'sales'}</small>
-        </div>
-        <div class="profit-card-profit">
-          <div class="profit-card-profit-label">Profit Earned</div>
-          <div class="profit-card-profit-amount">₱${profit.toFixed(2)}</div>
-        </div>
-        ${visibilityBadge}
+  let rangeHtml = '';
+  if (data.period_start && data.period_end) {
+    rangeHtml = `
+      <div class="p-card-sub" style="margin-bottom:14px;">
+        📅 ${new Date(data.period_start).toLocaleDateString('en-PH',{month:'short',day:'numeric'})} –
+        ${new Date(data.period_end).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'})}
       </div>`;
   }
 
-
-  let availabilityHtml = '';
-  if (visibilityStart && visibilityEnd) {
-    try {
-      const s = new Date(visibilityStart), e = new Date(visibilityEnd);
-      if (!isNaN(s) && !isNaN(e)) {
-        availabilityHtml = `
-          <div style="margin-top: 12px; padding: 12px 16px; background: rgba(66,133,244,0.08); border: 1px solid rgba(66,133,244,0.2); border-radius: 12px; font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">
-            <div style="margin-bottom: 8px;">📅 Visible from: ${s.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })} at 12am</div>
-            <div>⏰ Until: ${e.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })} at 12am</div>
-          </div>`;
-      }
-    } catch(e) {}
+  let timerHtml = '';
+  if (data.visibility_end) {
+    const days     = Math.ceil((new Date(data.visibility_end) - new Date()) / 86400000);
+    const untilDate = new Date(data.visibility_end).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+    timerHtml = `
+      <div class="p-timer-badge">
+        <div class="p-timer-row">⏰ Visible for&nbsp;<strong>${days} more day${days===1?'':'s'}</strong></div>
+        <div class="p-timer-row">📅 Until&nbsp;<strong>${untilDate}</strong></div>
+      </div>`;
   }
+
   return `
-    <div class="profit-card ${cardClass}">
-      <h3>${title}</h3>
-      <div class="profit-card-revenue">
-        <div class="profit-card-label">No sales recorded for this period</div>
-        <div class="profit-amount" style="font-size: 1.2rem; opacity: 0.6;">—</div>
-        <small style="opacity: 0.7;">Check back during visibility window</small>
-        ${availabilityHtml}
-      </div>
+    <div class="p-card ${meta.cls}">
+      <div class="p-card-eyebrow">${meta.icon}&nbsp;${meta.label}</div>
+      ${rangeHtml}
+      <div class="p-card-section-label">REVENUE</div>
+      <div class="p-card-value">₱${fmt(data.revenue)}</div>
+      <div class="p-card-sub">${data.sales_count} ${data.sales_count===1?'sale':'sales'}</div>
+      <div class="p-divider"></div>
+      <div class="p-card-section-label">PROFIT EARNED</div>
+      <div class="p-card-value profit-color">₱${fmt(data.profit)}</div>
+      ${timerHtml}
     </div>`;
 }
 
+// ─── renderPotentialProfitCard ────────────────────────────────────────────────
+function renderPotentialProfitCard(products = []) {
+  let potential = 0;
+  products.forEach(p => {
+    const price = parseFloat(p.price || p.selling_price) || 0;
+    const cost  = parseFloat(p.cost  || p.cost_price)   || 0;
+    const qty   = parseFloat(p.quantity || p.stock)     || 0;
+    potential  += (price - cost) * qty;
+  });
+  return `
+    <div class="p-card c-gold">
+      <div class="p-card-eyebrow">💎&nbsp;INVENTORY VALUE</div>
+      <div class="p-card-section-label">Potential Profit from Current Stock</div>
+      <div class="p-card-value gold-color">₱${fmt(potential)}</div>
+      <div class="p-divider"></div>
+      <div style="font-size:12px;color:var(--pmuted);opacity:0.85;text-align:center;">if all inventory sells at current prices</div>
+    </div>`;
+}
 
-
+// ─── renderRecentSales ────────────────────────────────────────────────────────
 function renderRecentSales(recentSales) {
   if (!Array.isArray(recentSales) || recentSales.length === 0) {
     return `
-      <div style="text-align: center; padding: 60px 20px; background: #F8F7F4; border-radius: 20px;">
-        <h3 style="font-size: 24px; margin-bottom: 10px; color: #5D534A;">📭 No Sales Yet</h3>
-        <p style="font-size: 16px; margin: 0; color: #9E9382;">Start making sales to see them here!</p>
+      <div class="p-empty-state">
+        <span class="p-empty-icon">📭</span>
+        <p style="font-size:16px;font-weight:700;color:var(--ptext);margin-bottom:6px;">No Sales Yet</p>
+        <p style="color:var(--pmuted);">Start making sales to see them here!</p>
       </div>`;
   }
 
-  let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">';
-
+  let html = '<div class="p-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-bottom:24px;">';
   recentSales.forEach(sale => {
-    const date = new Date(sale.date || sale.created_at);
-    const formattedDate = date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
-    const formattedTime = date.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
-    
+    const date  = new Date(sale.date || sale.created_at);
+    const fDate = date.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+    const fTime = date.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+
     let itemsList = 'N/A';
     try {
-      const items = Array.isArray(sale.items) ? sale.items :
-                    typeof sale.items === 'string' ? JSON.parse(sale.items) : [];
-      itemsList = items.map(i => `${i.product_name || i.name || 'Item'} (×${i.quantity})`).join(', ');
+      const items = Array.isArray(sale.items)
+        ? sale.items
+        : typeof sale.items === 'string' ? JSON.parse(sale.items) : [];
+      itemsList = items.map(i => `${i.product_name||i.name||'Item'} (×${i.quantity})`).join(', ');
     } catch(e) {}
 
-    const total         = parseFloat(sale.total) || 0;
-    const profit        = parseFloat(sale.profit || sale.total_profit) || 0;
-    const paymentMethod = sale.paymentType || sale.payment_method || 'cash';
-
-    let badgeStyle = 'background: linear-gradient(135deg, #10B981, #34D399);';
-    if (paymentMethod.toLowerCase() === 'gcash')  badgeStyle = 'background: linear-gradient(135deg, #3B82F6, #60A5FA);';
-    if (paymentMethod.toLowerCase() === 'credit') badgeStyle = 'background: linear-gradient(135deg, #F59E0B, #FBBF24);';
+    const total        = parseFloat(sale.total) || 0;
+    const profit       = parseFloat(sale.profit || sale.total_profit) || 0;
+    const customerName = sale.customer_name || sale.customerName || '';
+    const pmRaw        = (sale.paymentType || sale.payment_method || 'cash').toLowerCase().trim();
+    const pmClass      = pmRaw.replace(/\s+/g,'-');
+    const pmLabel      = pmRaw.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 
     html += `
-      <div class="sale-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid #F0EAE0;">
+      <div class="p-sale-card">
+        <div class="p-sale-header">
           <div>
-            <div style="font-size: 16px; font-weight: 700; color: #5D534A;">${formattedDate}</div>
-            <div style="font-size: 13px; color: #9E9382; margin-top: 2px;">${formattedTime}</div>
+            <div class="p-sale-date">${fDate}</div>
+            <div class="p-sale-time">${fTime}</div>
+            <div class="p-sale-customer">👤 ${customerName||'N/A'}</div>
           </div>
-          <span style="padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: white; ${badgeStyle}">${paymentMethod}</span>
+          <span class="payment-badge ${pmClass}">${pmLabel}</span>
         </div>
-        <div style="margin-bottom: 15px;">
-          <div style="font-size: 12px; color: #9E9382; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; letter-spacing: 0.5px;">Items Purchased</div>
-          <div style="font-size: 14px; color: #5D534A; line-height: 1.6;">${itemsList}</div>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px solid #F0EAE0;">
+        <div class="p-sale-items-label">ITEMS PURCHASED</div>
+        <div class="p-sale-items">${itemsList}</div>
+        <div class="p-sale-footer">
           <div>
-            <div style="font-size: 11px; color: #9E9382; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px;">Total</div>
-            <div style="font-size: 20px; font-weight: 700; color: #5D534A;">₱${total.toFixed(2)}</div>
+            <div class="p-sale-stat-label">TOTAL</div>
+            <div class="p-sale-total">₱${fmt(total)}</div>
           </div>
           <div>
-            <div style="font-size: 11px; color: #9E9382; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px;">Profit</div>
-            <div style="font-size: 20px; font-weight: 700; color: #059669;">₱${profit.toFixed(2)}</div>
+            <div class="p-sale-stat-label" style="text-align:right;">PROFIT</div>
+            <div class="p-sale-profit">₱${fmt(profit)}</div>
           </div>
         </div>
       </div>`;
   });
-
   html += '</div>';
   return html;
 }
 
-
-
+// ─── clearTransactionHistory ──────────────────────────────────────────────────
 async function clearTransactionHistory() {
   try {
     const sales = await DB.getSales();
     if (!Array.isArray(sales) || sales.length === 0) {
-      showModernAlert('No transactions to clear.', 'ℹ️');
-      return;
+      showModernAlert('No transactions to clear.','ℹ️'); return;
     }
-
     const now        = new Date();
-    const twoDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2);
-    const oldSales   = sales.filter(s => new Date(s.date || s.created_at) < twoDaysAgo);
-
+    const twoDaysAgo = new Date(now.getFullYear(),now.getMonth(),now.getDate()-2);
+    const oldSales   = sales.filter(s => new Date(s.date||s.created_at) < twoDaysAgo);
     if (oldSales.length === 0) {
-      showModernAlert('No old transactions to delete.<br><br>✅ Today and Yesterday are always protected!<br><br>Only transactions older than 2 days can be deleted.', 'ℹ️');
+      showModernAlert('No old transactions to delete.<br><br>✅ Today and Yesterday are always protected!<br><br>Only transactions older than 2 days can be deleted.','ℹ️');
       return;
     }
-
     const ok1 = await showModernConfirm(
-      `Delete ${oldSales.length} transaction record${oldSales.length === 1 ? '' : 's'}?<br><br>✅ <strong>PROTECTED:</strong><br>• Today's transactions will NOT be deleted<br>• Yesterday's transactions will NOT be deleted<br><br>⚠️ <strong>WILL BE DELETED:</strong><br>• ${oldSales.length} transaction(s) older than 2 days<br><br>Historical totals will be preserved in summaries.`,
+      `Delete ${oldSales.length} transaction record${oldSales.length===1?'':'s'}?<br><br>✅ <strong>PROTECTED:</strong><br>• Today's transactions<br>• Yesterday's transactions<br><br>⚠️ <strong>WILL BE DELETED:</strong><br>• ${oldSales.length} transaction(s) older than 2 days<br><br>Historical totals preserved in summaries.`,
       '🛡️'
     );
     if (!ok1) return;
-
     const ok2 = await showModernConfirm(
-      `<strong>FINAL CONFIRMATION</strong><br><br>Delete old transaction records?<br><br>🛡️ <strong>PROTECTED (NEVER DELETED):</strong><br>• Today's transactions<br>• Yesterday's transactions<br><br>🗑️ <strong>WILL BE DELETED:</strong><br>• ${oldSales.length} old transaction record(s)<br><br>✅ <strong>PRESERVED:</strong><br>• All period totals<br>• Daily summaries<br><br>This action cannot be undone!`,
+      `<strong>FINAL CONFIRMATION</strong><br><br>🛡️ <strong>PROTECTED:</strong><br>• Today's &amp; Yesterday's transactions<br><br>🗑️ <strong>WILL BE DELETED:</strong><br>• ${oldSales.length} old record(s)<br><br>✅ <strong>PRESERVED:</strong><br>• All period totals &amp; summaries<br><br>This cannot be undone!`,
       '🚨'
     );
     if (!ok2) return;
-
     await DB.cleanupOldTransactions(2);
-    showModernAlert(`✅ Old transaction records deleted!<br><br>• ${oldSales.length} old transaction(s) removed<br>• Today's transactions preserved<br>• Yesterday's transactions preserved<br>• All sales totals preserved`, '✅');
+    showModernAlert(`✅ Done!<br><br>• ${oldSales.length} old transaction(s) removed<br>• Today &amp; Yesterday preserved<br>• All sales totals preserved`,'✅');
     await renderProfit();
-
   } catch (error) {
     console.error('Error clearing transaction history:', error);
-    showModernAlert('An error occurred while clearing transaction history.', '❌');
+    showModernAlert('An error occurred while clearing transaction history.','❌');
   }
 }
 
-
-
+// ─── setupMidnightRefresh ─────────────────────────────────────────────────────
 function setupMidnightRefresh() {
   const now      = new Date();
-  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const tomorrow = new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
   const msLeft   = tomorrow - now;
-
   if (window.midnightTimeout) clearTimeout(window.midnightTimeout);
-
   window.midnightTimeout = setTimeout(async () => {
-    console.log('🕛 Midnight! Updating periods and refreshing...');
     try {
       await DB.updatePeriods();
-      const profitPage = document.getElementById('profitPage');
-      if (profitPage && profitPage.classList.contains('active-page')) await renderProfit();
-    } catch (error) {
-      console.error('❌ Error updating periods at midnight:', error);
-    }
+      const pg = document.getElementById('profitPage');
+      if (pg && pg.classList.contains('active-page')) await renderProfit();
+    } catch(e) { console.error('❌ Midnight refresh:', e); }
     setupMidnightRefresh();
   }, msLeft);
-
-  console.log(`⏰ Midnight refresh scheduled in ${Math.round(msLeft / 60000)} minutes`);
+  console.log(`⏰ Midnight refresh in ${Math.round(msLeft/60000)} min`);
 }
 
-
-
+// ─── showModernAlert ──────────────────────────────────────────────────────────
 function showModernAlert(message, icon = '✅') {
   document.getElementById('modernAlertOverlay')?.remove();
   const overlay = document.createElement('div');
   overlay.id = 'modernAlertOverlay';
   overlay.innerHTML = `
-    <div class="modern-alert-box">
-      <div class="modern-alert-shimmer"></div>
-      <div class="modern-alert-icon-wrapper">
-        <div class="modern-alert-icon-ring"></div>
-        <span class="modern-alert-icon">${icon}</span>
-      </div>
-      <h3 class="modern-alert-title">Notice</h3>
-      <div class="modern-alert-message">${message.replace(/\n/g, '<br>')}</div>
-      <button class="modern-alert-btn" onclick="document.getElementById('modernAlertOverlay').remove()">Got it!</button>
+    <div class="mda-box">
+      <div class="mda-stripe"></div>
+      <div class="mda-icon-wrap"><span>${icon}</span></div>
+      <h3 class="mda-title">Notice</h3>
+      <div class="mda-msg">${message.replace(/\n/g,'<br>')}</div>
+      <button class="mda-btn" onclick="document.getElementById('modernAlertOverlay').remove()">Got it!</button>
     </div>
     <style>
-      #modernAlertOverlay { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);display:flex;justify-content:center;align-items:center;z-index:99999;animation:ma_fadeIn 0.3s ease; }
-      .modern-alert-box { background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.9));border-radius:28px;padding:45px 40px 40px;width:90%;max-width:450px;box-shadow:0 30px 80px rgba(0,0,0,0.25);animation:ma_slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1);text-align:center;position:relative;overflow:hidden; }
-      body.dark-mode .modern-alert-box { background:linear-gradient(135deg,rgba(45,55,72,0.95),rgba(45,55,72,0.9)); }
-      .modern-alert-shimmer { position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#cbdfbd,#a8c99c,#d4e09b,#f3c291,#cbdfbd);animation:ma_shimmer 3s linear infinite; }
-      .modern-alert-icon-wrapper { width:90px;height:90px;margin:0 auto 28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,#cbdfbd,#a8c99c);box-shadow:0 12px 35px rgba(203,223,189,0.5);position:relative; }
-      .modern-alert-icon-ring { position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(203,223,189,0.5);animation:ma_rotate 3s linear infinite; }
-      .modern-alert-icon { font-size:52px; }
-      .modern-alert-title { font-size:26px;font-weight:900;background:linear-gradient(135deg,#2d3748,#5D534A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 14px; }
-      body.dark-mode .modern-alert-title { background:linear-gradient(135deg,#f7fafc,#cbd5e0);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
-      .modern-alert-message { font-size:16px;line-height:1.7;color:#718096;font-weight:500;margin-bottom:35px; }
-      body.dark-mode .modern-alert-message { color:#cbd5e0; }
-      .modern-alert-btn { width:100%;padding:18px 28px;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#2d5a3b;border:none;border-radius:16px;font-weight:800;font-size:16px;cursor:pointer;transition:all 0.3s ease; }
-      .modern-alert-btn:hover { transform:translateY(-3px); }
-      @keyframes ma_fadeIn { from{opacity:0}to{opacity:1} }
-      @keyframes ma_slideIn { from{transform:scale(0.8) translateY(30px);opacity:0}to{transform:scale(1) translateY(0);opacity:1} }
-      @keyframes ma_shimmer { 0%{transform:translateX(-100%)}100%{transform:translateX(100%)} }
-      @keyframes ma_rotate { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+      #modernAlertOverlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(14px);display:flex;justify-content:center;align-items:center;z-index:99999;animation:mda_in .3s ease}
+      .mda-box{background:rgba(220,240,215,0.78);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1.5px solid rgba(255,255,255,0.62);border-radius:28px;padding:44px 38px;width:90%;max-width:420px;box-shadow:0 24px 60px rgba(80,140,75,.25),0 8px 24px rgba(0,0,0,.1);animation:mda_pop .4s cubic-bezier(.34,1.56,.64,1);text-align:center;position:relative;overflow:hidden}
+      .mda-box::before{content:'';position:absolute;inset:0;border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.4) 0%,transparent 55%);pointer-events:none}
+      body.dark-mode .mda-box{background:rgba(28,42,26,0.82);border-color:rgba(135,179,130,.22)}
+      .mda-stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#87B382,#5D9456,#87B382);animation:mda_sl 3s linear infinite}
+      .mda-icon-wrap{width:80px;height:80px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,0.55);border:1.5px solid rgba(255,255,255,0.7);backdrop-filter:blur(8px);box-shadow:0 6px 20px rgba(80,140,75,.2);font-size:44px}
+      .mda-title{font-size:20px;font-weight:900;color:#1e2d1e;margin:0 0 10px}
+      body.dark-mode .mda-title{color:#d8ecd4}
+      .mda-msg{font-size:13px;line-height:1.8;color:#3a4a3a;font-weight:500;margin-bottom:26px}
+      body.dark-mode .mda-msg{color:#a8c4a4}
+      .mda-btn{width:100%;padding:14px;background:linear-gradient(135deg,#87B382,#5D9456);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:14px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:0 5px 16px rgba(93,148,86,.4);transition:all .25s}
+      .mda-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(93,148,86,.5)}
+      @keyframes mda_in{from{opacity:0}to{opacity:1}}
+      @keyframes mda_pop{from{transform:scale(.82) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+      @keyframes mda_sl{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
     </style>`;
   document.body.appendChild(overlay);
-  setTimeout(() => document.getElementById('modernAlertOverlay')?.remove(), 3000);
+  setTimeout(() => document.getElementById('modernAlertOverlay')?.remove(), 3500);
 }
 
+// ─── showModernConfirm ────────────────────────────────────────────────────────
 function showModernConfirm(message, icon = '⚠️') {
   return new Promise(resolve => {
     document.getElementById('modernConfirmOverlay')?.remove();
     const overlay = document.createElement('div');
     overlay.id = 'modernConfirmOverlay';
     overlay.innerHTML = `
-      <div class="modern-confirm-box">
-        <div class="modern-confirm-shimmer"></div>
-        <div class="modern-confirm-icon-wrapper">
-          <div class="modern-confirm-icon-ring"></div>
-          <span class="modern-confirm-icon">${icon}</span>
-        </div>
-        <h3 class="modern-confirm-title">Confirm Action</h3>
-        <div class="modern-confirm-message">${message.replace(/\n/g, '<br>')}</div>
-        <div class="modern-confirm-buttons">
-          <button class="modern-confirm-btn modern-confirm-btn-danger" id="confirmYesBtn">Yes, Delete</button>
-          <button class="modern-confirm-btn modern-confirm-btn-cancel"  id="confirmNoBtn">Cancel</button>
+      <div class="mdc-box">
+        <div class="mdc-stripe"></div>
+        <div class="mdc-icon-wrap"><span>${icon}</span></div>
+        <h3 class="mdc-title">Confirm Action</h3>
+        <div class="mdc-msg">${message.replace(/\n/g,'<br>')}</div>
+        <div class="mdc-btns">
+          <button class="mdc-btn mdc-yes mdc-yes-green" id="confirmYesBtn">Confirm</button>
+          <button class="mdc-btn mdc-no"  id="confirmNoBtn">Cancel</button>
         </div>
       </div>
       <style>
-        #modernConfirmOverlay { position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);display:flex;justify-content:center;align-items:center;z-index:99999;animation:mc_fadeIn 0.3s ease; }
-        .modern-confirm-box { background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.9));border-radius:28px;padding:45px 40px 40px;width:90%;max-width:450px;box-shadow:0 30px 80px rgba(0,0,0,0.25);animation:mc_slideIn 0.4s cubic-bezier(0.34,1.56,0.64,1);text-align:center;position:relative;overflow:hidden; }
-        body.dark-mode .modern-confirm-box { background:linear-gradient(135deg,rgba(45,55,72,0.95),rgba(45,55,72,0.9)); }
-        .modern-confirm-shimmer { position:absolute;top:0;left:0;right:0;height:8px;background:linear-gradient(90deg,#EF4444,#DC2626,#B91C1C,#DC2626,#EF4444);animation:mc_shimmer 3s linear infinite; }
-        .modern-confirm-icon-wrapper { width:90px;height:90px;margin:0 auto 28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,#FEE2E2,#FECACA);box-shadow:0 12px 35px rgba(239,68,68,0.3);position:relative; }
-        .modern-confirm-icon-ring { position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(239,68,68,0.5);animation:mc_rotate 3s linear infinite; }
-        .modern-confirm-icon { font-size:52px; }
-        .modern-confirm-title { font-size:26px;font-weight:900;background:linear-gradient(135deg,#2d3748,#5D534A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 14px; }
-        body.dark-mode .modern-confirm-title { background:linear-gradient(135deg,#f7fafc,#cbd5e0);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
-        .modern-confirm-message { font-size:16px;line-height:1.7;color:#718096;font-weight:500;margin-bottom:35px; }
-        body.dark-mode .modern-confirm-message { color:#cbd5e0; }
-        .modern-confirm-buttons { display:flex;flex-direction:column;gap:14px; }
-        .modern-confirm-btn { width:100%;padding:18px 28px;border:none;border-radius:16px;font-weight:800;font-size:16px;cursor:pointer;transition:all 0.3s ease; }
-        .modern-confirm-btn-danger { background:linear-gradient(135deg,#EF4444,#DC2626);color:white;box-shadow:0 6px 20px rgba(239,68,68,0.4); }
-        .modern-confirm-btn-danger:hover { transform:translateY(-3px); }
-        .modern-confirm-btn-cancel { background:linear-gradient(135deg,#FEE2E2,#FECACA);color:#DC2626;border:2px solid #fca5a5; }
-        .modern-confirm-btn-cancel:hover { background:linear-gradient(135deg,#FECACA,#FCA5A5);color:#B91C1C;transform:translateY(-2px); }
-        body.dark-mode .modern-confirm-btn-cancel { background:rgba(127,29,29,0.4);color:#f87171;border-color:rgba(248,113,113,0.3); }
-        @keyframes mc_fadeIn  { from{opacity:0}to{opacity:1} }
-        @keyframes mc_slideIn { from{transform:scale(0.8) translateY(30px);opacity:0}to{transform:scale(1) translateY(0);opacity:1} }
-        @keyframes mc_shimmer { 0%{transform:translateX(-100%)}100%{transform:translateX(100%)} }
-        @keyframes mc_rotate  { from{transform:rotate(0deg)}to{transform:rotate(360deg)} }
+        #modernConfirmOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(14px);display:flex;justify-content:center;align-items:center;z-index:99999;animation:mdc_in .3s ease}
+        .mdc-box{background:rgba(220,240,215,0.78);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:1.5px solid rgba(255,255,255,0.62);border-radius:28px;padding:44px 38px;width:90%;max-width:420px;box-shadow:0 24px 60px rgba(80,140,75,.2),0 8px 24px rgba(0,0,0,.1);animation:mdc_pop .4s cubic-bezier(.34,1.56,.64,1);text-align:center;position:relative;overflow:hidden}
+        .mdc-box::before{content:'';position:absolute;inset:0;border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.38) 0%,transparent 55%);pointer-events:none}
+        body.dark-mode .mdc-box{background:rgba(28,42,26,0.82);border-color:rgba(135,179,130,.2)}
+        .mdc-stripe{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#EF4444,#DC2626,#EF4444);animation:mdc_sl 3s linear infinite}
+        .mdc-icon-wrap{width:80px;height:80px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(254,226,226,0.62);border:1.5px solid rgba(255,255,255,.65);backdrop-filter:blur(8px);box-shadow:0 6px 20px rgba(239,68,68,.2);font-size:44px}
+        .mdc-title{font-size:20px;font-weight:900;color:#1e2d1e;margin:0 0 10px}
+        body.dark-mode .mdc-title{color:#d8ecd4}
+        .mdc-msg{font-size:13px;line-height:1.8;color:#3a4a3a;font-weight:500;margin-bottom:26px}
+        body.dark-mode .mdc-msg{color:#a8c4a4}
+        .mdc-btns{display:flex;flex-direction:column;gap:10px}
+        .mdc-btn{width:100%;padding:14px;border:none;border-radius:14px;font-weight:800;font-size:14px;cursor:pointer;transition:all .25s}
+        .mdc-yes-green{background:linear-gradient(135deg,#e4f9d6,#b8e994) !important;color:#1e3a1e !important;border:1.5px solid #c6e6b3 !important;box-shadow:0 6px 24px 0 rgba(184,233,148,0.35);font-weight:900}
+        .mdc-yes-green:hover{background:linear-gradient(135deg,#b8e994,#87b382) !important;color:#fff !important;transform:translateY(-2px) scale(1.03);}
+        body.dark-mode .mdc-yes-green{background:linear-gradient(135deg,#203420,#2e4d2e) !important;color:#eaffea !important;border:1.5px solid #4a7a45 !important;}
+        body.dark-mode .mdc-yes-green:hover{background:linear-gradient(135deg,#2e4d2e,#3a6b3a) !important;color:#fff !important;transform:translateY(-2px) scale(1.03);}
+        .mdc-no{background:rgba(255,255,255,0.55);backdrop-filter:blur(8px);color:#3a4a3a;border:1.5px solid rgba(255,255,255,.65);box-shadow:0 3px 10px rgba(0,0,0,.08)}
+        .mdc-no:hover{background:rgba(255,255,255,0.72);transform:translateY(-1px)}
+        body.dark-mode .mdc-no{background:rgba(40,55,38,0.6);color:#a8c4a4;border-color:rgba(135,179,130,.2)}
+        @keyframes mdc_in{from{opacity:0}to{opacity:1}}
+        @keyframes mdc_pop{from{transform:scale(.82) translateY(20px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+        @keyframes mdc_sl{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
       </style>`;
     document.body.appendChild(overlay);
     document.getElementById('confirmYesBtn').onclick = () => { overlay.remove(); resolve(true);  };
@@ -482,71 +959,4 @@ function showModernConfirm(message, icon = '⚠️') {
   });
 }
 
-
-
-(function applyProfitStyles() {
-    const styleId = 'profit-dark-mode-styles';
-    if (document.getElementById(styleId)) return;
-
-    const style = document.createElement('style');
-    style.id = styleId;
-    style.textContent = `
-        
-        .profit-card::before,
-        .profit-card::after,
-        .sale-card::before,
-        .sale-card::after,
-        .period-section::before,
-        .period-section::after {
-            content: none !important;
-            display: none !important;
-        }
-
-        /* ── Dark mode text ── */
-        body.dark-mode .period-label,
-        body.dark-mode [style*="color: #8E7C5E"],
-        body.dark-mode [style*="color:#8E7C5E"],
-        body.dark-mode .performance-label,
-        body.dark-mode .today-label,
-        body.dark-mode .yesterday-label,
-        body.dark-mode .week-label,
-        body.dark-mode .month-label { color: #f0f9f0 !important; }
-
-        body.dark-mode .profit-card { background: #2a2a2a !important; color: #e0e0e0 !important; border-color: #444 !important; }
-        body.dark-mode .profit-card h3 { color: #f0f9f0 !important; }
-        body.dark-mode .profit-card-label,
-        body.dark-mode .profit-label { color: #b0b0b0 !important; }
-        body.dark-mode .profit-amount,
-        body.dark-mode .profit-value { color: #ffd966 !important; }
-
-        body.dark-mode .period-card-today,
-        body.dark-mode .period-card-week,
-        body.dark-mode .period-card-month { background: #2a2a2a !important; }
-        body.dark-mode .period-card-today h3,
-        body.dark-mode .period-card-week h3,
-        body.dark-mode .period-card-month h3 { color: #f0f9f0 !important; }
-
-        body.dark-mode .card-section { border-bottom-color: #444 !important; }
-        body.dark-mode .card-label { color: #888 !important; }
-        body.dark-mode .card-value { color: #e0e0e0 !important; }
-
-        body.dark-mode .sale-card { background: #2a2a2a !important; }
-        body.dark-mode .sale-card h4 { color: #f0f9f0 !important; }
-        body.dark-mode .sale-details { color: #b0b0b0 !important; }
-
-        body.dark-mode .empty-state-message,
-        body.dark-mode .no-data-message { color: #888 !important; }
-        body.dark-mode .info-text { color: #b0b0b0 !important; }
-        body.dark-mode .available-text { color: #d0d0d0 !important; }
-
-        /* ── Recent Sales toggle container ── */
-        #recentSalesContainer {
-            max-height: none;
-            opacity: 1;
-            transition: max-height 0.35s ease, opacity 0.3s ease;
-        }
-    `;
-    document.head.appendChild(style);
-})();
-
-console.log('✅ profit.js loaded successfully (FIXED VERSION)!');
+console.log('💰 Profit module loaded!');

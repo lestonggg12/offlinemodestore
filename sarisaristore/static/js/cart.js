@@ -9,21 +9,17 @@
  *  3. Checkout Flow      — handleCheckout (payment picker), showChangeCalculator
  *                          (cash flow), processDebtCheckout → completeDebtSale,
  *                          completeSale (records sale + decrements stock)
- *  4. Search             — handleSearch, clearSearch, setupSearchClearButton
+ *  4. Search             — injectSearchBar, handleSearch, clearSearch,
+ *                          setupSearchClearButton
  *  5. Initialisation     — initializeCart, DOMContentLoaded wiring
  *  6. Style Injectors    — injectCartNeomorphismStyles, injectCheckoutNeomorphismStyles,
  *                          injectDebtNeomorphismStyles (CSS-in-JS for modal overlays)
  *
  * State: `cart` — a module-level array of { id, name, price, cost, quantity }.
  * Dependencies: database.js (DB), dialog-system.js (DialogSystem)
- *
- * FIX (2026-02-20):
- *   - completeDebtSale() success dialog shows surcharge breakdown.
- *   - neo-btn-qty-minus now matches neo-btn-qty-plus (green, both modes).
  */
 
-
-console.log('🔄 Cart.js loaded - Version 8');
+console.log('🔄 Cart.js loaded - Version 10');
 
 /** In-memory cart item array — synced to window.cart for global access. */
 let cart = [];
@@ -31,7 +27,6 @@ let cart = [];
 // =============================================================================
 //  1. CART OPERATIONS
 // =============================================================================
-
 
 window.addToCart = async function(productId) {
     const products = await DB.getProducts();
@@ -162,10 +157,10 @@ window.clearCart = async function() {
     const confirmDialog = document.createElement('div');
     confirmDialog.innerHTML = `
         <div class="neo-modal-overlay" style="animation: fadeIn 0.3s ease;">
-            <div class="neo-modal neo-clear-confirm" style="animation: slideUp 0.3s ease; background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%) !important;">
+            <div class="neo-modal neo-clear-confirm" style="animation: slideUp 0.3s ease; background: var(--clear-modal-bg, #fff) !important;">
                 <div class="neo-clear-icon">🗑️</div>
-                <h2 class="neo-clear-title" style="color: #ffffff !important;">Clear All Items?</h2>
-                <p class="neo-clear-desc" style="color: #cccccc !important;">This will remove all <strong>${cart.length}</strong> item${cart.length > 1 ? 's' : ''} from your cart. This action cannot be undone.</p>
+                <h2 class="neo-clear-title">Clear All Items?</h2>
+                <p class="neo-clear-desc">This will remove all <strong>${cart.length}</strong> item${cart.length > 1 ? 's' : ''} from your cart. This action cannot be undone.</p>
                 <div class="neo-clear-buttons">
                     <button id="confirmClear" class="neo-btn-primary neo-btn-danger">Yes, Clear All</button>
                     <button id="cancelClear" class="neo-btn-secondary">Cancel</button>
@@ -173,24 +168,84 @@ window.clearCart = async function() {
             </div>
         </div>
         <style>
-            .neo-clear-confirm { max-width: 420px; text-align: center; background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%) !important; border: 1px solid #333 !important; }
-            .neo-clear-icon { width: 80px; height: 80px; background: linear-gradient(135deg, var(--danger-400) 0%, var(--danger-600) 100%); filter: brightness(0.85) saturate(0.7); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; font-size: 40px; animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: var(--neo-shadow-medium); }
-            .neo-clear-title { margin: 0 0 15px 0; color: #ffffff !important; font-size: var(--font-size-xl); font-weight: 800; letter-spacing: -0.5px; }
-            .neo-clear-desc { color: #cccccc !important; margin: 0 0 30px 0; font-size: var(--font-size-sm); line-height: 1.6; }
+            .neo-clear-confirm {
+                max-width: 420px;
+                text-align: center;
+                background: var(--clear-modal-bg, #fff) !important;
+                border: 1px solid var(--clear-modal-border, #e0e0e0) !important;
+                color: var(--clear-modal-text, #222);
+                box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            }
+            .neo-clear-icon {
+                width: 80px; height: 80px;
+                background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                margin: 0 auto 25px; font-size: 40px;
+                animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                box-shadow: 0 4px 18px rgba(220,38,38,0.18);
+            }
+            .neo-clear-title {
+                margin: 0 0 15px 0;
+                color: var(--clear-modal-title, #222);
+                font-size: 1.5rem;
+                font-weight: 800; letter-spacing: -0.5px;
+            }
+            .neo-clear-desc {
+                color: var(--clear-modal-desc, #444);
+                margin: 0 0 30px 0;
+                font-size: 1rem;
+                line-height: 1.6;
+            }
             .neo-clear-buttons { display: grid; gap: 12px; }
-            .neo-btn-danger { background: var(--danger-500); border: 1px solid var(--danger-600); filter: brightness(0.85) saturate(0.7); }
-            .neo-btn-danger:hover { background: var(--danger-600); border-color: var(--danger-700); filter: brightness(0.8) saturate(0.6); }
+            .neo-btn-danger {
+                background: #ef4444;
+                border: 1px solid #dc2626;
+                color: #fff;
+            }
+            .neo-btn-danger:hover { background: #dc2626; border-color: #b91c1c; }
+            .neo-btn-secondary {
+                background: #ffeaea;
+                color: #c41a1a;
+                border: 1px solid #ffd6d6;
+            }
             @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-            @media (max-width: 480px) {
-                .neo-clear-icon { width: 70px; height: 70px; font-size: 36px; margin-bottom: 20px; }
-                .neo-clear-title { font-size: var(--font-size-lg); }
-                .neo-clear-desc { font-size: 13px; }
+            body.dark-mode .neo-clear-confirm {
+                background: #181818 !important;
+                border-color: #333 !important;
+                color: #f3f3f3;
+            }
+            body.dark-mode .neo-clear-title { color: #fff; }
+            body.dark-mode .neo-clear-desc { color: #cccccc; }
+            body.dark-mode .neo-btn-secondary {
+                background: #2d2323;
+                color: #ffbdbd;
+                border-color: #3a2323;
             }
         </style>
     `;
 
     document.body.appendChild(confirmDialog);
     injectCheckoutNeomorphismStyles();
+
+    if (document.body.classList.contains('dark-mode')) {
+        const modal = confirmDialog.querySelector('.neo-clear-confirm');
+        if (modal) {
+            modal.style.background = '#181818';
+            modal.style.borderColor = '#333';
+            modal.style.color = '#f3f3f3';
+        }
+        const title = confirmDialog.querySelector('.neo-clear-title');
+        if (title) title.style.color = '#fff';
+        const desc = confirmDialog.querySelector('.neo-clear-desc');
+        if (desc) desc.style.color = '#cccccc';
+        const cancelBtn = confirmDialog.querySelector('.neo-btn-secondary');
+        if (cancelBtn) {
+            cancelBtn.style.background = '#2d2323';
+            cancelBtn.style.color = '#ffbdbd';
+            cancelBtn.style.borderColor = '#3a2323';
+        }
+    }
 
     document.getElementById('confirmClear').onclick = () => {
         document.body.removeChild(confirmDialog);
@@ -206,6 +261,8 @@ window.clearCart = async function() {
 // =============================================================================
 
 window.updateCartDisplay = function() {
+    injectCartItemStyles();
+
     const cartItems = document.getElementById('cartItems');
     const cartTotal = document.getElementById('cartTotal');
     const cartCount = document.getElementById('cartCount');
@@ -219,59 +276,332 @@ window.updateCartDisplay = function() {
     if (!cartItems || !cartTotal) return;
 
     if (cart.length === 0) {
-        cartItems.innerHTML = '<p class="empty-cart">🛒 Cart is empty<br><small>Search and click products to add</small></p>';
+        cartItems.innerHTML = `
+            <div class="empty-cart">
+                <div style="font-size:48px; margin-bottom:16px;">🛒</div>
+                <div style="font-weight:700; font-size:16px; margin-bottom:8px;">Cart is empty</div>
+                <small style="opacity:0.7;">Search and add products above</small>
+            </div>`;
         cartTotal.textContent = '0.00';
         return;
     }
 
     let total = 0;
-    let html = '<div class="neo-cart-header" style="background: transparent !important;"><strong>Items in Cart:</strong></div><div class="neo-cart-list" style="background: transparent !important;">';
-
     const reversedCart = [...cart].reverse();
 
+    let html = '';
     reversedCart.forEach((item, index) => {
         const subtotal = item.price * item.quantity;
         total += subtotal;
 
         html += `
-            <div class="neo-cart-item" style="animation-delay: ${index * 0.05}s;">
-                <div class="neo-cart-item-header">
-                    <strong class="neo-cart-item-name">${item.name}</strong>
-                    <button class="neo-btn-remove neo-btn-cart-remove" data-product-id="${item.id}" title="Remove">✕</button>
+            <div class="neo-cart-item" style="animation-delay:${index * 0.05}s;">
+
+                <!-- Row 1: Name + Remove -->
+                <div class="nci-row nci-header">
+                    <span class="nci-name">${item.name}</span>
+                    <button class="nci-remove neo-btn-cart-remove" data-product-id="${item.id}" title="Remove item">✕</button>
                 </div>
-                <div class="neo-cart-item-details">
-                    <span class="neo-cart-item-price">₱${item.price.toFixed(2)} each</span>
-                </div>
-                <div class="neo-cart-controls">
-                    <div class="neo-qty-controls">
-                        <button class="neo-btn-qty neo-btn-qty-minus" data-product-id="${item.id}" title="Decrease">−</button>
-                        <input type="number" value="${item.quantity}" min="1" class="neo-qty-input" data-cart-id="${item.id}">
-                        <button class="neo-btn-qty neo-btn-qty-plus" data-product-id="${item.id}" title="Increase">+</button>
+
+                <!-- Row 2: Unit price -->
+                <div class="nci-unit-price">₱${item.price.toFixed(2)} each</div>
+
+                <!-- Row 3: Qty controls + subtotal -->
+                <div class="nci-row nci-controls">
+                    <div class="nci-qty">
+                        <button class="nci-btn-qty neo-btn-qty-minus" data-product-id="${item.id}">−</button>
+                        <input type="number" value="${item.quantity}" min="1"
+                               class="nci-qty-input neo-qty-input"
+                               data-cart-id="${item.id}">
+                        <button class="nci-btn-qty neo-btn-qty-plus" data-product-id="${item.id}">+</button>
                     </div>
-                    <div class="neo-cart-subtotal">
-                        <span class="neo-subtotal-amount">₱${subtotal.toFixed(2)}</span>
-                    </div>
+                    <span class="nci-subtotal neo-subtotal-amount">₱${subtotal.toFixed(2)}</span>
                 </div>
+
             </div>`;
     });
 
-    html += `</div>
-        <button class="neo-btn-clear-cart" onclick="clearCart()">🗑️ Clear All</button>
-        <button class="neo-btn-checkout" onclick="handleCheckout()">💳 CHECKOUT</button>
-        <style>
-            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-            @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
-            @keyframes successPop { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
-            @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-20px); } 60% { transform: translateY(-10px); } }
-        </style>
-    `;
-    
+    // Footer buttons
+    html += `
+        <div class="nci-footer-btns">
+            <button class="nci-btn-clear neo-btn-clear-cart" onclick="clearCart()">🗑️ Clear All</button>
+            <button class="nci-btn-checkout neo-btn-checkout" onclick="handleCheckout()">💳 Checkout</button>
+        </div>`;
+
     cartItems.innerHTML = html;
     cartTotal.textContent = total.toFixed(2);
 
     setupCartEventListeners();
     injectCartNeomorphismStyles();
 };
+
+/** Inject clean cart item CSS once */
+function injectCartItemStyles() {
+    if (document.getElementById('nci-styles')) return;
+    const s = document.createElement('style');
+    s.id = 'nci-styles';
+    s.textContent = `
+
+/* ── Cart item card ── */
+.neo-cart-item {
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+    animation: slideInRight 0.3s cubic-bezier(0.34,1.56,0.64,1) backwards;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.neo-cart-item:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    border-color: #27AE60;
+    transform: translateY(-2px);
+}
+body.dark-mode .neo-cart-item {
+    background: #252b27;
+    border: 1.5px solid #344d38;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+}
+body.dark-mode .neo-cart-item:hover {
+    border-color: #4ade80;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+
+/* ── Shared row layout ── */
+.nci-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* ── Name + remove row ── */
+.nci-header { align-items: flex-start; }
+
+.nci-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1f2937;
+    flex: 1;
+    word-break: break-word;
+    line-height: 1.4;
+}
+body.dark-mode .nci-name { color: #f0fdf4; }
+
+.nci-remove {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+    line-height: 1;
+}
+.nci-remove:hover { background: #fca5a5; transform: rotate(90deg) scale(1.1); }
+body.dark-mode .nci-remove { background: #3a2020; color: #fca5a5; }
+body.dark-mode .nci-remove:hover { background: #4a2828; color: #fff; }
+
+/* ── Unit price ── */
+.nci-unit-price {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+}
+body.dark-mode .nci-unit-price { color: #9ca3af; }
+
+/* ── Qty controls row ── */
+.nci-controls {
+    margin-top: 4px;
+}
+
+.nci-qty {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.nci-btn-qty {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1.5px solid #d1fae5;
+    background: #f0fdf4;
+    color: #16a34a;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.12s;
+    line-height: 1;
+    padding: 0;
+}
+.nci-btn-qty:hover {
+    background: #dcfce7;
+    border-color: #86efac;
+    transform: scale(1.08);
+}
+.nci-btn-qty:active { transform: scale(0.94); }
+body.dark-mode .nci-btn-qty {
+    background: #1a2e1f;
+    border-color: #2d5a35;
+    color: #4ade80;
+}
+body.dark-mode .nci-btn-qty:hover {
+    background: #22372a;
+    border-color: #4ade80;
+}
+
+.nci-qty-input {
+    width: 54px;
+    height: 34px;
+    text-align: center;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    background: #f9fafb;
+    padding: 0 4px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+}
+.nci-qty-input::-webkit-inner-spin-button,
+.nci-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.nci-qty-input:focus {
+    outline: none;
+    border-color: #27AE60;
+    box-shadow: 0 0 0 3px rgba(39,174,96,0.12);
+}
+body.dark-mode .nci-qty-input {
+    background: #1a2320;
+    border-color: #344d38;
+    color: #e8f5e4;
+}
+body.dark-mode .nci-qty-input:focus {
+    border-color: #4ade80;
+    box-shadow: 0 0 0 3px rgba(74,222,128,0.12);
+}
+
+/* ── Subtotal ── */
+.nci-subtotal {
+    font-weight: 800;
+    font-size: 17px;
+    color: #16a34a;
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+}
+body.dark-mode .nci-subtotal { color: #4ade80; }
+
+/* ── Footer buttons ── */
+.nci-footer-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 0 2px 4px 2px;
+}
+
+.nci-btn-clear {
+    width: 100%;
+    padding: 13px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(220,38,38,0.25);
+}
+.nci-btn-clear:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(220,38,38,0.35);
+}
+body.dark-mode .nci-btn-clear {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+}
+body.dark-mode .nci-btn-clear:hover {
+    background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+}
+
+.nci-btn-checkout {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #27AE60 0%, #1e8449 100%);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(39,174,96,0.3);
+}
+.nci-btn-checkout:hover {
+    background: linear-gradient(135deg, #229954 0%, #1a6b3a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(39,174,96,0.4);
+}
+body.dark-mode .nci-btn-checkout {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #052e16;
+}
+body.dark-mode .nci-btn-checkout:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    color: #fff;
+}
+
+/* ── Empty cart ── */
+.empty-cart {
+    text-align: center;
+    padding: 50px 20px;
+    color: #9ca3af;
+    background: #f9fafb;
+    border-radius: 16px;
+    margin: 20px 0;
+    border: 2px dashed #e5e7eb;
+}
+body.dark-mode .empty-cart {
+    background: #1a2320;
+    color: #6b7280;
+    border-color: #2d4a35;
+}
+
+/* ── Animations ── */
+@keyframes slideInRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+@keyframes fadeIn       { from { opacity:0; } to { opacity:1; } }
+@keyframes slideUp      { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+    .neo-cart-item { padding: 12px 12px; border-radius: 14px; }
+    .nci-name { font-size: 14px; }
+    .nci-btn-qty { width: 30px; height: 30px; font-size: 16px; }
+    .nci-qty-input { width: 48px; height: 30px; font-size: 13px; }
+    .nci-subtotal { font-size: 15px; }
+}
+    `;
+    document.head.appendChild(s);
+}
 
 function setupCartEventListeners() {
     document.querySelectorAll('.neo-btn-qty-minus').forEach(btn => {
@@ -453,48 +783,321 @@ async function processDebtCheckout(total, profit) {
     const debtDialog = document.createElement('div');
     debtDialog.innerHTML = `
         <div class="neo-modal-overlay" style="animation: fadeIn 0.3s ease;">
-            <div class="neo-modal neo-modal-smaller" style="animation: slideUp 0.3s ease;">
-                <div class="neo-modal-header">
-                    <div style="font-size: 64px; margin-bottom: 15px;">📝</div>
-                    <h2>Add to Debt List</h2>
-                    <p>Enter customer name</p>
+            <div class="neo-modal neo-debt-modal-v2" style="animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);">
+
+                <!-- Icon + Title -->
+                <div class="ndm-header">
+                    <div class="ndm-icon-wrap">📝</div>
+                    <h2 class="ndm-title">Add to Debt List</h2>
+                    <p class="ndm-subtitle">Who is this sale for?</p>
                 </div>
-                <div class="neo-debt-amount">
-                    <div style="font-size: 14px; opacity: 0.8; margin-bottom: 8px;">Debt Amount</div>
-                    <div style="font-size: 36px; font-weight: 800;">₱${total.toFixed(2)}</div>
+
+                <!-- Amount pill -->
+                <div class="ndm-amount-pill">
+                    <span class="ndm-amount-label">DEBT AMOUNT</span>
+                    <span class="ndm-amount-value">₱${total.toFixed(2)}</span>
                 </div>
-                <div class="neo-form-group">
-                    <label>Customer Name:</label>
-                    <input list="debtCustomerNameList" type="text" id="debtCustomerName" placeholder="Enter customer name" class="neo-input-field" autocomplete="off"/>
-                    <datalist id="debtCustomerNameList"></datalist>
+
+                <!-- Customer name field with custom autocomplete -->
+                <div class="ndm-field-group">
+                    <label class="ndm-label">👤 Customer Name</label>
+                    <div class="ndm-input-wrap" id="ndmInputWrap">
+                        <input
+                            type="text"
+                            id="debtCustomerName"
+                            class="ndm-input"
+                            placeholder="Type a name..."
+                            autocomplete="off"
+                            autocorrect="off"
+                            spellcheck="false"
+                        />
+                        <span class="ndm-input-icon">✏️</span>
+                    </div>
+                    <!-- Custom suggestions dropdown -->
+                    <div class="ndm-suggestions" id="ndmSuggestions" style="display:none;"></div>
                 </div>
-                <button id="confirmDebt" class="neo-btn-primary neo-btn-warning" style="margin-bottom: 14px;">Add to Debt List</button>
-                <button id="cancelDebt" class="neo-btn-secondary neo-btn-cancel">Cancel</button>
+
+                <!-- Buttons -->
+                <button id="confirmDebt" class="ndm-btn-confirm">
+                    <span>📋</span> Add to Debt List
+                </button>
+                <button id="cancelDebt" class="ndm-btn-cancel">Cancel</button>
+
             </div>
         </div>
+
+        <style>
+        /* ── Modal shell ── */
+        .neo-debt-modal-v2 {
+            max-width: 420px;
+            padding: 36px 28px 28px;
+            border-radius: 28px;
+            background: #ffffff;
+            border: 1.5px solid #e5e7eb;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.14), 0 8px 24px rgba(0,0,0,0.08);
+        }
+        body.dark-mode .neo-debt-modal-v2 {
+            background: #1c1e22;
+            border-color: #2e3138;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        /* ── Header ── */
+        .ndm-header { text-align: center; margin-bottom: 24px; }
+        .ndm-icon-wrap {
+            width: 72px; height: 72px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 34px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+        }
+        body.dark-mode .ndm-icon-wrap {
+            background: linear-gradient(135deg, #374151, #252830);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        }
+        .ndm-title {
+            margin: 0 0 6px;
+            font-size: 1.45rem; font-weight: 900; letter-spacing: -0.3px;
+            color: #111827;
+        }
+        body.dark-mode .ndm-title { color: #f3f4f6; }
+        .ndm-subtitle {
+            margin: 0; font-size: 13px; color: #6b7280; font-weight: 500;
+        }
+        body.dark-mode .ndm-subtitle { color: #9ca3af; }
+
+        /* ── Amount pill ── */
+        .ndm-amount-pill {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: #f9fafb;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        body.dark-mode .ndm-amount-pill {
+            background: #13151a;
+            border-color: #2e3138;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .ndm-amount-label {
+            font-size: 10px; font-weight: 800;
+            letter-spacing: 1.8px; text-transform: uppercase;
+            color: #9ca3af;
+        }
+        body.dark-mode .ndm-amount-label { color: #6b7280; }
+        .ndm-amount-value {
+            font-size: 2.2rem; font-weight: 900; letter-spacing: -1px;
+            color: #111827; line-height: 1;
+        }
+        body.dark-mode .ndm-amount-value { color: #f9fafb; }
+
+        /* ── Input field ── */
+        .ndm-field-group { margin-bottom: 22px; position: relative; }
+        .ndm-label {
+            display: block; margin-bottom: 8px;
+            font-size: 13px; font-weight: 700; color: #374151;
+            letter-spacing: 0.2px;
+        }
+        body.dark-mode .ndm-label { color: #d1d5db; }
+        .ndm-input-wrap {
+            position: relative; display: flex; align-items: center;
+        }
+        .ndm-input {
+            width: 100%; padding: 14px 44px 14px 16px;
+            font-size: 15px; font-weight: 600;
+            border: 2px solid #e5e7eb;
+            border-radius: 14px;
+            background: #ffffff;
+            color: #111827;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .ndm-input::placeholder { color: #9ca3af; font-weight: 400; }
+        .ndm-input:focus {
+            border-color: #6b7280;
+            box-shadow: 0 0 0 4px rgba(107,114,128,0.12);
+        }
+        body.dark-mode .ndm-input {
+            background: #13151a;
+            border-color: #2e3138;
+            color: #f3f4f6;
+        }
+        body.dark-mode .ndm-input:focus {
+            border-color: #9ca3af;
+            box-shadow: 0 0 0 4px rgba(156,163,175,0.12);
+            background: #1c1e22;
+        }
+        .ndm-input-icon {
+            position: absolute; right: 14px;
+            font-size: 16px; pointer-events: none; opacity: 0.35;
+        }
+
+        /* ── Suggestions dropdown ── */
+        .ndm-suggestions {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+            background: #fff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+            z-index: 99999;
+            overflow: hidden;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        body.dark-mode .ndm-suggestions {
+            background: #1c1e22;
+            border-color: #2e3138;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .ndm-suggestion-item {
+            padding: 12px 16px;
+            font-size: 14px; font-weight: 600;
+            color: #111827;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+            transition: background 0.15s;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .ndm-suggestion-item:last-child { border-bottom: none; }
+        .ndm-suggestion-item:hover, .ndm-suggestion-item.active { background: #f9fafb; }
+        body.dark-mode .ndm-suggestion-item { color: #f3f4f6; border-bottom-color: #2e3138; }
+        body.dark-mode .ndm-suggestion-item:hover,
+        body.dark-mode .ndm-suggestion-item.active { background: #252830; }
+        .ndm-suggestion-avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800; color: #fff;
+            flex-shrink: 0;
+        }
+        body.dark-mode .ndm-suggestion-avatar {
+            background: linear-gradient(135deg, #374151, #252830);
+        }
+
+        /* ── Confirm button — green (primary action) ── */
+        .ndm-btn-confirm {
+            width: 100%; padding: 16px;
+            border: none; border-radius: 14px;
+            background: linear-gradient(135deg, #27AE60 0%, #1e8449 100%);
+            color: #fff; font-size: 15px; font-weight: 800;
+            cursor: pointer; letter-spacing: 0.3px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 6px 20px rgba(39,174,96,0.28);
+            transition: transform 0.15s, box-shadow 0.15s;
+            margin-bottom: 10px;
+        }
+        .ndm-btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(39,174,96,0.38);
+        }
+        .ndm-btn-confirm:active { transform: translateY(0); }
+        body.dark-mode .ndm-btn-confirm {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: #052e16;
+        }
+        body.dark-mode .ndm-btn-confirm:hover { color: #fff; }
+
+        /* ── Cancel button — neutral ── */
+        .ndm-btn-cancel {
+            width: 100%; padding: 13px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 14px;
+            background: #f9fafb;
+            color: #6b7280; font-size: 14px; font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.12s;
+        }
+        .ndm-btn-cancel:hover {
+            background: #f3f4f6;
+            transform: translateY(-1px);
+        }
+        body.dark-mode .ndm-btn-cancel {
+            background: #13151a;
+            border-color: #2e3138;
+            color: #9ca3af;
+        }
+        body.dark-mode .ndm-btn-cancel:hover { background: #1c1e22; }
+        </style>
     `;
 
     document.body.appendChild(debtDialog);
-    injectDebtNeomorphismStyles();
+    injectCheckoutNeomorphismStyles();
 
     const customerNameInput = document.getElementById('debtCustomerName');
+    const suggestionsBox    = document.getElementById('ndmSuggestions');
     customerNameInput.focus();
 
+    // ── Load existing debtors for autocomplete ──────────────────────────────
+    let existingNames = [];
     try {
         const debtors = await DB.getDebtors();
-        const unpaidDebtors = debtors.filter(d => !d.paid);
-        const datalist = document.getElementById('debtCustomerNameList');
-        if (datalist) datalist.innerHTML = unpaidDebtors.map(d => `<option value="${d.name}"></option>`).join('');
+        existingNames = [...new Set(debtors.filter(d => !d.paid).map(d => d.name))];
     } catch (e) { /* fail silently */ }
 
+    function showSuggestions(query) {
+        if (!query) { suggestionsBox.style.display = 'none'; return; }
+        const matches = existingNames.filter(n =>
+            n.toLowerCase().includes(query.toLowerCase())
+        );
+        if (matches.length === 0) { suggestionsBox.style.display = 'none'; return; }
+
+        suggestionsBox.innerHTML = matches.map(name => `
+            <div class="ndm-suggestion-item" data-name="${name}">
+                <div class="ndm-suggestion-avatar">${name.charAt(0).toUpperCase()}</div>
+                ${name}
+            </div>
+        `).join('');
+        suggestionsBox.style.display = 'block';
+
+        suggestionsBox.querySelectorAll('.ndm-suggestion-item').forEach(item => {
+            item.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                customerNameInput.value = item.dataset.name;
+                suggestionsBox.style.display = 'none';
+            });
+        });
+    }
+
+    customerNameInput.addEventListener('input',  () => showSuggestions(customerNameInput.value));
+    customerNameInput.addEventListener('blur',   () => setTimeout(() => { suggestionsBox.style.display = 'none'; }, 150));
+    customerNameInput.addEventListener('focus',  () => showSuggestions(customerNameInput.value));
+    customerNameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('confirmDebt')?.click();
+        if (e.key === 'Escape') suggestionsBox.style.display = 'none';
+    });
+
+    // ── Confirm / Cancel ────────────────────────────────────────────────────
     document.getElementById('confirmDebt').onclick = async () => {
         const customerName = customerNameInput.value.trim();
-        if (!customerName) { alert('⚠️ Please enter customer name!'); customerNameInput.focus(); return; }
+        if (!customerName) {
+            customerNameInput.style.borderColor = '#ef4444';
+            customerNameInput.style.boxShadow   = '0 0 0 4px rgba(239,68,68,0.15)';
+            customerNameInput.placeholder        = '⚠️ Please enter a name';
+            customerNameInput.focus();
+            setTimeout(() => {
+                customerNameInput.style.borderColor = '';
+                customerNameInput.style.boxShadow   = '';
+                customerNameInput.placeholder        = 'Type a name...';
+            }, 1800);
+            return;
+        }
         document.body.removeChild(debtDialog);
         await completeDebtSale(customerName, total, profit);
     };
-    document.getElementById('cancelDebt').onclick = () => { document.body.removeChild(debtDialog); };
+
+    document.getElementById('cancelDebt').onclick = () => {
+        document.body.removeChild(debtDialog);
+    };
 }
+
 
 async function completeDebtSale(customerName, total, profit) {
     try {
@@ -547,52 +1150,45 @@ async function completeDebtSale(customerName, total, profit) {
                 <div class="neo-modal neo-modal-success" style="animation: successPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
                     <div class="neo-success-icon">✅</div>
                     <h2 class="neo-success-title">Debt Recorded!</h2>
-
                     <div class="neo-success-info">
                         <div class="neo-success-item">
                             <span>👤 Customer:</span>
                             <span class="neo-success-value">${customerName}</span>
                         </div>
-
-                        <div style="border-top: 1px dashed var(--border-light); margin: 10px 0;"></div>
-
+                        <div style="border-top: 1px dashed rgba(0,0,0,0.1); margin: 10px 0;"></div>
                         ${hasSurcharge ? `
                         <div class="neo-success-item">
                             <span>🧾 Original Price:</span>
                             <span class="neo-success-value">₱${total.toFixed(2)}</span>
                         </div>
                         <div class="neo-success-item neo-surcharge-row">
-                            <span>⚡ Added Surcharge&nbsp;<span class="neo-surcharge-badge">${surchargePercent}%</span>:</span>
+                            <span>⚡ Surcharge (${surchargePercent}%):</span>
                             <span class="neo-success-value neo-surcharge-value">+₱${surchargeAmount.toFixed(2)}</span>
                         </div>
-                        <div style="border-top: 2px solid var(--border-light); margin: 10px 0;"></div>
-                        <div class="neo-success-item neo-total-row">
-                            <span>💰 Total Amount of Debt:</span>
+                        <div style="border-top: 2px solid rgba(0,0,0,0.1); margin: 10px 0;"></div>
+                        <div class="neo-success-item">
+                            <span>💰 Total Debt:</span>
                             <span class="neo-success-value neo-grand-total">₱${grandTotal.toFixed(2)}</span>
                         </div>
                         ` : `
-                        <div class="neo-success-item neo-total-row">
-                            <span>💰 Total Amount of Debt:</span>
+                        <div class="neo-success-item">
+                            <span>💰 Total Debt:</span>
                             <span class="neo-success-value neo-grand-total">₱${grandTotal.toFixed(2)}</span>
                         </div>
                         `}
-
-                        <div style="border-top: 1px dashed var(--border-light); margin: 10px 0;"></div>
+                        <div style="border-top: 1px dashed rgba(0,0,0,0.1); margin: 10px 0;"></div>
                         <div class="neo-success-item">
                             <span>📈 Expected Profit:</span>
                             <span class="neo-success-value neo-success-profit">₱${profit.toFixed(2)}</span>
                         </div>
                     </div>
-
                     <div class="neo-success-badge">📝 Added to Debt List</div>
                     <button id="closeSuccess" class="neo-success-btn">Done</button>
                 </div>
             </div>
             <style>
-                .neo-surcharge-badge { display: inline-block; background: linear-gradient(135deg, #F59E0B, #D97706); color: white; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 20px; vertical-align: middle; margin-left: 2px; }
                 .neo-surcharge-value { color: #D97706 !important; font-weight: 800 !important; }
                 body.dark-mode .neo-surcharge-value { color: #FBBF24 !important; }
-                .neo-total-row span:first-child { font-weight: 700; color: var(--text-primary); opacity: 1 !important; }
                 .neo-grand-total { font-size: 20px !important; color: #DC2626 !important; font-weight: 900 !important; }
                 body.dark-mode .neo-grand-total { color: #f87171 !important; }
                 .neo-success-profit { color: #059669 !important; }
@@ -602,7 +1198,6 @@ async function completeDebtSale(customerName, total, profit) {
 
         document.body.appendChild(successDialog);
         injectCheckoutNeomorphismStyles();
-
         document.getElementById('closeSuccess').onclick = () => { document.body.removeChild(successDialog); };
 
         cart = [];
@@ -610,12 +1205,9 @@ async function completeDebtSale(customerName, total, profit) {
         if (document.getElementById('generalSearch')) handleSearch();
         if (typeof renderDebtors === 'function') await renderDebtors();
 
-        console.log('✅ Debt recorded successfully!');
-
     } catch (error) {
         console.error('❌ Debt recording error:', error);
         await DialogSystem.alert('Failed to record debt! Please try again.', '❌');
-
         try {
             const refreshed = await DB.getProducts();
             for (const item of cart) {
@@ -627,6 +1219,20 @@ async function completeDebtSale(customerName, total, profit) {
         }
     }
 }
+
+/**
+ * KEY CHANGES FOR CUSTOMER NAME FEATURE:
+ * 
+ * 1. showChangeCalculator() - Added customer name input field
+ * 2. completeSale() - Now accepts customerName parameter
+ * 3. completeSale() - Passes customer_name to saleData object
+ * 
+ * Replace the following sections in your cart.js:
+ */
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 1: showChangeCalculator() - ADD CUSTOMER NAME FIELD
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function showChangeCalculator(total, profit, products) {
     const changeDialog = document.createElement('div');
@@ -650,6 +1256,10 @@ async function showChangeCalculator(total, profit, products) {
                     <div class="neo-change-label">Change to Return:</div>
                     <div id="changeAmount" class="neo-change-amount-value">₱0.00</div>
                 </div>
+                <div class="neo-form-group">
+                    <label>Customer Name <span style="opacity: 0.6; font-weight: 400;">(Optional)</span>:</label>
+                    <input type="text" id="customerName" placeholder="e.g., John Doe" class="neo-input-field" autocomplete="off"/>
+                </div>
                 <button id="confirmCash" class="neo-btn-primary neo-btn-success" disabled style="opacity: 0.5; margin-bottom: 14px;">Complete Sale</button>
                 <button id="cancelCash" class="neo-btn-red">Cancel</button>
             </div>
@@ -660,6 +1270,7 @@ async function showChangeCalculator(total, profit, products) {
     injectCheckoutNeomorphismStyles();
 
     const cashInput     = document.getElementById('cashReceived');
+    const customerInput = document.getElementById('customerName');
     const confirmBtn    = document.getElementById('confirmCash');
     const changeDisplay = document.getElementById('changeDisplay');
     const changeAmount  = document.getElementById('changeAmount');
@@ -696,24 +1307,44 @@ async function showChangeCalculator(total, profit, products) {
         saleInProgress = true;
         confirmBtn.disabled = true;
         confirmBtn.textContent = 'Processing...';
-        try { document.body.removeChild(changeDialog); await completeSale('cash', total, profit, products); }
-        catch (e) { saleInProgress = false; }
+        const customerName = (customerInput?.value || '').trim();
+        try { 
+            document.body.removeChild(changeDialog); 
+            await completeSale('cash', total, profit, products, customerName); 
+        }
+        catch (e) { 
+            console.error('Sale error:', e);
+            saleInProgress = false; 
+        }
     };
     document.getElementById('cancelCash').onclick = () => { document.body.removeChild(changeDialog); };
 }
 
-async function completeSale(paymentMethod, total, profit, products) {
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SECTION 2: completeSale() - UPDATE TO ACCEPT AND STORE CUSTOMER NAME
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function completeSale(paymentMethod, total, profit, products, customerName = '') {
     try {
         const saleData = {
-    date: new Date().toISOString(),
-    total: parseFloat(total.toFixed(2)),
-    profit: parseFloat(profit.toFixed(2)),
-            payment_method: paymentMethod, paymentType: paymentMethod,
+            date: new Date().toISOString(),
+            total: parseFloat(total.toFixed(2)),
+            profit: parseFloat(profit.toFixed(2)),
+            payment_method: paymentMethod, 
+            paymentType: paymentMethod,
+            customer_name: customerName || '',  // ← NEW: Include customer name
             items: cart.map(item => ({
-                id: item.id, product_id: item.id, productId: item.id,
-                name: item.name, product_name: item.name, quantity: item.quantity,
-                price: item.price || 0, selling_price: item.price || 0,
-                cost: item.cost || 0, cost_price: item.cost || 0
+                id: item.id, 
+                product_id: item.id, 
+                productId: item.id,
+                name: item.name, 
+                product_name: item.name, 
+                quantity: item.quantity,
+                price: item.price || 0, 
+                selling_price: item.price || 0,
+                cost: item.cost || 0, 
+                cost_price: item.cost || 0
             }))
         };
 
@@ -722,8 +1353,12 @@ async function completeSale(paymentMethod, total, profit, products) {
         for (const item of cart) {
             const product = products.find(p => p.id === item.id);
             if (product) {
-                try { await DB.updateProduct(product.id, { ...product, quantity: product.quantity - item.quantity }); }
-                catch (error) { console.error(`Failed to update product ${product.name}:`, error); }
+                try { 
+                    await DB.updateProduct(product.id, { ...product, quantity: product.quantity - item.quantity }); 
+                }
+                catch (error) { 
+                    console.error(`Failed to update product ${product.name}:`, error); 
+                }
             }
         }
 
@@ -742,6 +1377,12 @@ async function completeSale(paymentMethod, total, profit, products) {
                             <span>Profit:</span>
                             <span class="neo-success-value neo-success-profit">₱${profit.toFixed(2)}</span>
                         </div>
+                        ${customerName ? `
+                        <div class="neo-success-item">
+                            <span>Customer:</span>
+                            <span class="neo-success-value">👤 ${customerName}</span>
+                        </div>
+                        ` : ''}
                     </div>
                     <div class="neo-success-badge">💵 Cash Payment</div>
                     <button id="closeSuccess" class="neo-success-btn">Done</button>
@@ -766,15 +1407,117 @@ async function completeSale(paymentMethod, total, profit, products) {
 //  4. PRODUCT SEARCH
 // =============================================================================
 
+function injectSearchBar() {
+    if (document.getElementById('generalSearch')) return;
+
+    const searchPanel = document.getElementById('searchPanel');
+    if (!searchPanel) return;
+
+    const searchResults = document.getElementById('searchResults');
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'cartSearchWrapper';
+    wrapper.innerHTML = `
+        <div class="cart-search-bar">
+            <span class="cart-search-icon">🔍</span>
+            <input
+                type="text"
+                id="generalSearch"
+                class="cart-search-input"
+                placeholder="Search products..."
+                autocomplete="off"
+                autocorrect="off"
+                spellcheck="false"
+            />
+            <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search" style="display:none;">✕</button>
+        </div>
+    `;
+
+    if (searchResults) {
+        searchPanel.insertBefore(wrapper, searchResults);
+    } else {
+        searchPanel.prepend(wrapper);
+    }
+
+    injectSearchBarStyles();
+
+    const input    = document.getElementById('generalSearch');
+    const clearBtn = document.getElementById('clearSearchBtn');
+
+    input.addEventListener('input', () => {
+        clearBtn.style.display = input.value ? 'flex' : 'none';
+        handleSearch();
+    });
+    clearBtn.addEventListener('click', clearSearch);
+}
+
+function injectSearchBarStyles() {
+    if (document.getElementById('cart-search-bar-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'cart-search-bar-styles';
+    style.textContent = `
+        #cartSearchWrapper {
+            padding: 12px 14px 6px 14px;
+            background: var(--bg-surface);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .cart-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-base, #f4f9f2);
+            border: 1.5px solid var(--border-light);
+            border-radius: 14px;
+            padding: 0 12px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .cart-search-bar:focus-within {
+            border-color: var(--primary-400, #4ade80);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.06), 0 0 0 3px rgba(34,197,94,0.12);
+        }
+        body.dark-mode .cart-search-bar {
+            background: #1a281a;
+            border-color: #344d34;
+        }
+        .cart-search-icon { font-size: 16px; flex-shrink: 0; pointer-events: none; user-select: none; }
+        .cart-search-input {
+            flex: 1; height: 46px; border: none; background: transparent;
+            font-size: 15px; font-weight: 500; color: var(--text-primary); outline: none; min-width: 0;
+        }
+        .cart-search-input::placeholder { color: var(--text-tertiary, #aaa); font-weight: 400; }
+        body.dark-mode .cart-search-input { color: #e8f5e4; }
+        #clearSearchBtn {
+            display: none; width: 28px; height: 28px; flex-shrink: 0;
+            align-items: center; justify-content: center;
+            background: var(--neutral-200, #e5e7eb); border: none; border-radius: 50%;
+            font-size: 13px; color: var(--text-secondary); cursor: pointer;
+            transition: background 0.15s, transform 0.12s;
+        }
+        #clearSearchBtn:hover  { background: #fee2e2; color: #dc2626; }
+        #clearSearchBtn:active { transform: scale(0.9); }
+        body.dark-mode #clearSearchBtn { background: #2a3d2a; color: #a0c8a0; }
+        #cartSearchWrapper + #searchResults { padding-top: 8px; }
+        @media (max-width: 480px) {
+            #cartSearchWrapper { padding: 10px 10px 4px 10px; }
+            .cart-search-input { height: 42px; font-size: 14px; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 window.handleSearch = async function() {
     const searchInput   = document.getElementById('generalSearch');
     const searchResults = document.getElementById('searchResults');
-    const clearBtn      = document.querySelector('.clear-search-btn');
+    const clearBtn      = document.getElementById('clearSearchBtn');
     
     if (!searchInput || !searchResults) return;
 
     const query = searchInput.value.toLowerCase().trim();
-    if (clearBtn) clearBtn.classList.toggle('visible', query !== '');
+    if (clearBtn) clearBtn.style.display = query ? 'flex' : 'none';
 
     if (query === '') { searchResults.innerHTML = ''; return; }
 
@@ -816,19 +1559,21 @@ window.handleSearch = async function() {
 
 window.clearSearch = function() {
     const searchInput   = document.getElementById('generalSearch');
-    const clearBtn      = document.querySelector('.clear-search-btn');
+    const clearBtn      = document.getElementById('clearSearchBtn');
     const searchResults = document.getElementById('searchResults');
-    if (searchInput) { searchInput.value = ''; searchInput.focus(); }
-    if (clearBtn)      clearBtn.classList.remove('visible');
-    if (searchResults) searchResults.innerHTML = '';
+    if (searchInput)   { searchInput.value = ''; searchInput.focus(); }
+    if (clearBtn)        clearBtn.style.display = 'none';
+    if (searchResults)   searchResults.innerHTML = '';
 };
 
 function setupSearchClearButton() {
     const searchInput = document.getElementById('generalSearch');
-    const clearBtn    = document.querySelector('.clear-search-btn');
+    const clearBtn    = document.getElementById('clearSearchBtn');
     if (searchInput && clearBtn) {
         clearBtn.onclick = clearSearch;
-        searchInput.addEventListener('input', function() { clearBtn.classList.toggle('visible', this.value !== ''); });
+        searchInput.addEventListener('input', function() {
+            clearBtn.style.display = this.value ? 'flex' : 'none';
+        });
     }
 }
 
@@ -843,6 +1588,7 @@ function initializeCart() {
     cartInitialized = true;
     
     ensureCartPanelClosed();
+    injectSearchBar();
     
     const cartBtn     = document.getElementById('floatingCart');
     const searchPanel = document.getElementById('searchPanel');
@@ -883,111 +1629,7 @@ window.cart = cart;
 // =============================================================================
 
 function injectCartNeomorphismStyles() {
-    if (document.getElementById('neo-cart-styles')) return;
-    
-    const style = document.createElement('style');
-    style.id = 'neo-cart-styles';
-    style.textContent = `
-        .neo-cart-header {
-            font-weight: 700; padding: 12px 16px; color: var(--text-primary);
-            background: var(--bg-surface); border-bottom: 1px solid var(--border-light);
-            margin-bottom: 12px; font-size: var(--font-size-base); border-radius: 12px 12px 0 0;
-        }
-        .neo-cart-list { animation: fadeIn 0.3s ease; }
-        .neo-cart-item {
-            background: var(--bg-surface); border: 1.5px solid var(--border-light);
-            border-radius: 18px; padding: 18px 16px; margin-bottom: 14px;
-            box-shadow: var(--neo-shadow-light); transition: all var(--transition-base);
-            animation: slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-            position: relative;
-        }
-        .neo-cart-item:hover { box-shadow: var(--neo-shadow-medium); transform: translateY(-2px); border-color: var(--primary-500); }
-        body:not(.dark-mode) .neo-cart-item {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5);
-        }
-        body:not(.dark-mode) .neo-cart-item:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6); border-color: #27AE60; }
-        body:not(.dark-mode) .neo-cart-item-name  { color: #2C3E50; }
-        body:not(.dark-mode) .neo-cart-item-price { color: #27AE60; }
-        body:not(.dark-mode) .neo-subtotal-amount  { color: #27AE60; }
-        body.dark-mode .neo-cart-item {
-            background: linear-gradient(135deg, #3a3835 0%, #2f2d2a 100%);
-            border: 1px solid #4a4641;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
-        }
-        body.dark-mode .neo-cart-item:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12); border-color: #4ade80; }
-        body.dark-mode .neo-cart-item-name  { color: #f5f5f4; }
-        body.dark-mode .neo-cart-item-price { color: #4ade80; }
-        body.dark-mode .neo-subtotal-amount  { color: #4ade80; }
-        .neo-cart-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
-        .neo-cart-item-name { font-weight: 700; font-size: var(--font-size-base); flex: 1; word-break: break-word; }
-        .neo-btn-remove { width: 36px; height: 36px; min-width: 36px; min-height: 36px; border-radius: var(--radius-full); border: none; background: var(--danger-500); color: white; font-size: 18px; cursor: pointer; transition: all var(--transition-base); box-shadow: var(--neo-shadow-light); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-        .neo-btn-remove:hover { background: var(--danger-600); transform: rotate(90deg) scale(1.1); }
-        .neo-cart-item-details { color: var(--text-secondary); font-size: var(--font-size-sm); margin-bottom: 12px; }
-        .neo-cart-item-price { font-weight: 600; }
-        .neo-cart-controls { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap; }
-        .neo-qty-controls { display: flex; gap: 8px; align-items: center; flex-shrink: 0; min-height: 44px; }
-
-        /* ── Quantity buttons — both minus and plus are green ── */
-        .neo-btn-qty {
-            width: 44px; height: 44px; min-width: 44px; min-height: 44px;
-            border-radius: var(--radius-full); font-size: 18px; font-weight: 700;
-            cursor: pointer; transition: all var(--transition-fast);
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .neo-btn-qty-minus {
-            background: var(--primary-500);
-            color: white;
-            border: 1px solid var(--primary-600);
-            box-shadow: var(--neo-shadow-light);
-        }
-        .neo-btn-qty-minus:hover {
-            background: var(--primary-600);
-            border-color: var(--primary-700);
-            transform: scale(1.05);
-        }
-        .neo-btn-qty-plus {
-            background: var(--primary-500);
-            color: white;
-            border: 1px solid var(--primary-600);
-            box-shadow: var(--neo-shadow-light);
-        }
-        .neo-btn-qty-plus:hover {
-            background: var(--primary-600);
-            border-color: var(--primary-700);
-            transform: scale(1.05);
-        }
-        .neo-btn-qty:active { transform: scale(0.95); }
-
-        .neo-qty-input { width: 70px; height: 44px; text-align: center; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 8px 4px; font-weight: 700; font-size: var(--font-size-base); background: var(--bg-surface); color: var(--text-primary); box-shadow: var(--neo-inset-light); transition: all var(--transition-base); flex-shrink: 0; }
-        .neo-qty-input:focus { border-color: var(--primary-400); box-shadow: var(--neo-inset-light), 0 0 0 3px rgba(34,197,94,0.1); outline: none; }
-        .neo-cart-subtotal { flex-shrink: 0; text-align: right; min-width: 90px; }
-        .neo-subtotal-amount { font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
-        .neo-btn-clear-cart { width: calc(100% - 32px); padding: 14px 16px; background: var(--danger-500); border: 1px solid var(--danger-600); border-radius: var(--radius-lg); color: white; font-size: var(--font-size-base); font-weight: 700; cursor: pointer; transition: all var(--transition-base); margin: 16px 16px 12px 16px; box-shadow: var(--neo-shadow-medium); min-height: 48px; display: flex; align-items: center; justify-content: center; text-transform: uppercase; letter-spacing: 1px; }
-        .neo-btn-clear-cart:hover { background: var(--danger-600); transform: translateY(-2px); box-shadow: var(--neo-shadow-elevated); }
-        .neo-btn-checkout { width: calc(100% - 32px); padding: 18px 16px; background: linear-gradient(135deg, #27AE60 0%, #229954 100%); color: white; border: none; border-radius: var(--radius-lg); font-size: var(--font-size-base); font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; cursor: pointer; transition: all var(--transition-base); box-shadow: var(--neo-shadow-medium); min-height: 54px; display: flex; align-items: center; justify-content: center; margin: 0 16px 16px 16px; }
-        .neo-btn-checkout:hover { background: linear-gradient(135deg, #229954 0%, #1e8449 100%); transform: translateY(-3px); }
-        .neo-btn-checkout:active { transform: translateY(0); }
-        body.dark-mode .neo-btn-checkout { background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); }
-        body.dark-mode .neo-btn-checkout:hover { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
-        @media (max-width: 768px) {
-            .neo-cart-item { padding: 14px 12px; margin-bottom: 12px; border-radius: 14px; }
-            .neo-qty-controls { gap: 6px; width: 100%; justify-content: flex-start; }
-            .neo-cart-subtotal { width: 100%; margin-top: 8px; text-align: left; }
-            .neo-btn-qty { width: 40px; height: 40px; min-width: 40px; min-height: 40px; font-size: 16px; }
-            .neo-qty-input { width: 65px; height: 40px; }
-        }
-        @media (max-width: 480px) {
-            .neo-cart-item { padding: 12px 10px; border-radius: 12px; }
-            .neo-cart-item-name { font-size: 14px; }
-            .neo-cart-item-details { font-size: 12px; }
-            .neo-btn-qty { width: 38px; height: 38px; min-width: 38px; min-height: 38px; font-size: 14px; }
-            .neo-qty-input { width: 60px; height: 38px; font-size: 14px; }
-            .neo-subtotal-amount { font-size: 16px; }
-        }
-    `;
-    document.head.appendChild(style);
+    // Now handled by injectCartItemStyles() — no-op kept for compatibility
 }
 
 function injectCheckoutNeomorphismStyles() {
@@ -998,66 +1640,66 @@ function injectCheckoutNeomorphismStyles() {
     style.textContent = `
         .neo-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px; overflow-y: auto; }
         body.dark-mode .neo-modal-overlay { background: rgba(0,0,0,0.7); }
-        .neo-modal { background: var(--bg-surface); border-radius: var(--radius-2xl); border: 1px solid var(--border-light); padding: 40px 32px; max-width: 500px; width: 100%; box-shadow: var(--neo-shadow-elevated); max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .neo-modal { background: var(--bg-surface, #fff); border-radius: 24px; border: 1px solid var(--border-light, #e5e7eb); padding: 40px 32px; max-width: 500px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+        body.dark-mode .neo-modal { background: #1a1a1a; border-color: #2d2d2d; }
         .neo-modal-smaller { max-width: 450px; }
         .neo-modal-header { text-align: center; margin-bottom: 30px; }
-        .neo-modal-header h2 { margin: 0 0 10px 0; color: var(--text-primary); font-size: var(--font-size-2xl); font-weight: 800; }
-        .neo-modal-header p  { color: var(--text-secondary); margin: 0; font-size: var(--font-size-sm); }
-        .neo-checkout-amount { background: var(--primary-50); border: 1px solid var(--primary-200); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 30px; box-shadow: var(--neo-shadow-light); }
-        body.dark-mode .neo-checkout-amount { background: var(--primary-900); border-color: var(--primary-800); }
-        .neo-checkout-amount > div { display: flex; justify-content: space-between; font-size: var(--font-size-base); color: var(--text-secondary); font-weight: 600; }
-        .neo-debt-amount { background: var(--warning-50); border: 1px solid var(--warning-200); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 25px; text-align: center; box-shadow: var(--neo-shadow-light); }
-        body.dark-mode .neo-debt-amount { background: var(--warning-900); border-color: var(--warning-800); }
+        .neo-modal-header h2 { margin: 0 0 10px 0; color: var(--text-primary, #1f2937); font-size: 1.5rem; font-weight: 800; }
+        body.dark-mode .neo-modal-header h2 { color: #f3f4f6; }
+        .neo-modal-header p  { color: var(--text-secondary, #6b7280); margin: 0; font-size: 14px; }
+        .neo-checkout-amount { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 20px; margin-bottom: 30px; }
+        body.dark-mode .neo-checkout-amount { background: #1a3a1f; border-color: #2d5a35; color: #dcfce7; }
         .neo-checkout-buttons { display: grid; gap: 12px; margin-bottom: 20px; }
-        .neo-btn-primary { width: 100%; padding: 18px 20px; border: none; border-radius: var(--radius-lg); color: white; font-size: var(--font-size-base); font-weight: 700; cursor: pointer; transition: all var(--transition-base); box-shadow: var(--neo-shadow-medium); display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 48px; }
-        .neo-btn-primary:hover { transform: translateY(-3px); box-shadow: var(--neo-shadow-elevated); }
-        .neo-btn-primary:active { transform: translateY(-1px); }
-        .neo-btn-success { background: var(--primary-500); border: 1px solid var(--primary-600); }
-        .neo-btn-success:hover { background: var(--primary-600); border-color: var(--primary-700); }
-        .neo-btn-warning { background: var(--warning-500); border: 1px solid var(--warning-600); }
-        .neo-btn-warning:hover { background: var(--warning-600); border-color: var(--warning-700); }
-        .neo-btn-secondary { width: 100%; padding: 14px 20px; background: linear-gradient(135deg, #fee2e2, #fecaca); border: 1px solid #f87171; border-radius: var(--radius-lg); color: #dc2626; font-size: var(--font-size-base); font-weight: 600; cursor: pointer; transition: all var(--transition-base); box-shadow: var(--neo-shadow-light); min-height: 44px; display: flex; align-items: center; justify-content: center; }
-        .neo-btn-secondary:hover { background: linear-gradient(135deg, #fecaca, #fca5a5); border-color: #ef4444; }
+        .neo-btn-primary { width: 100%; padding: 18px 20px; border: none; border-radius: 14px; color: white; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 52px; }
+        .neo-btn-primary:hover { transform: translateY(-2px); }
+        .neo-btn-success { background: linear-gradient(135deg, #27AE60 0%, #229954 100%); box-shadow: 0 4px 14px rgba(39,174,96,0.3); }
+        .neo-btn-success:hover { background: linear-gradient(135deg, #229954 0%, #1e8449 100%); }
+        .neo-btn-warning { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); box-shadow: 0 4px 14px rgba(249,115,22,0.3); }
+        .neo-btn-warning:hover { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); }
+        .neo-btn-red { width: 100%; padding: 14px; border: none; border-radius: 14px; background: #ef4444; color: white; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .neo-btn-red:hover { background: #dc2626; transform: translateY(-2px); }
+        .neo-btn-secondary { width: 100%; padding: 14px; border-radius: 14px; background: #fee2e2; border: 1px solid #fca5a5; color: #dc2626; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .neo-btn-secondary:hover { background: #fecaca; }
+        body.dark-mode .neo-btn-secondary { background: #3a2020; border-color: #4a2828; color: #fca5a5; }
         .neo-form-group { margin-bottom: 20px; }
-        .neo-form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-primary); font-size: var(--font-size-sm); }
-        .neo-input-field { width: 100%; padding: 14px 16px; font-size: var(--font-size-base); font-weight: 600; border: 1px solid var(--border-light); border-radius: var(--radius-md); background: var(--bg-surface); color: var(--text-primary); box-shadow: var(--neo-inset-light); transition: all var(--transition-base); box-sizing: border-box; min-height: 44px; }
-        .neo-input-field:focus { border-color: var(--primary-400); box-shadow: var(--neo-inset-light), 0 0 0 3px rgba(34,197,94,0.1); outline: none; }
-        .neo-input-field::placeholder { color: var(--text-tertiary); }
-        .neo-input-cash { font-size: 24px !important; text-align: center; font-weight: 700 !important; border-radius: 18px !important; }
-        .neo-change-modal { max-width: 450px; }
-        .neo-change-amount { background: linear-gradient(135deg, var(--primary-50, #f0fdf4) 80%, #e0f7e9 100%); border: 1.5px solid var(--primary-200, #bbf7d0); border-radius: 22px; padding: 22px 18px 18px 18px; margin-bottom: 25px; text-align: center; box-shadow: 0 4px 18px 0 rgba(39,174,96,0.10), var(--neo-shadow-light); color: var(--primary-700); font-weight: 700; }
-        body.dark-mode .neo-change-amount { background: linear-gradient(135deg, #1f4620 0%, #2a5a30 100%); border-color: #3d6f3d; color: #dcfce7; }
-        .neo-change-display { background: linear-gradient(135deg, var(--warning-50, #fffbeb) 80%, #fef3c7 100%); border: 1.5px solid var(--warning-200, #fde68a); border-radius: 22px; padding: 22px 18px 18px 18px; text-align: center; margin-bottom: 20px; animation: slideDown 0.3s ease; box-shadow: 0 4px 18px 0 rgba(251,191,36,0.10), var(--neo-shadow-light); }
-        body.dark-mode .neo-change-display { background: linear-gradient(135deg, #4a3a00 0%, #5a4a10 100%); border-color: #6a5a20; }
-        .neo-change-label { font-size: 15px; color: var(--warning-800); font-weight: 700; margin-bottom: 10px; }
+        .neo-form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-primary, #1f2937); font-size: 14px; }
+        body.dark-mode .neo-form-group label { color: #d1d5db; }
+        .neo-input-field { width: 100%; padding: 14px 16px; font-size: 15px; font-weight: 600; border: 1.5px solid #e5e7eb; border-radius: 12px; background: #fff; color: #1f2937; transition: all 0.2s; box-sizing: border-box; min-height: 48px; }
+        .neo-input-field:focus { border-color: #27AE60; box-shadow: 0 0 0 3px rgba(39,174,96,0.1); outline: none; }
+        body.dark-mode .neo-input-field { background: #252b27; border-color: #344d38; color: #e8f5e4; }
+        body.dark-mode .neo-input-field:focus { border-color: #4ade80; }
+        .neo-input-cash { font-size: 24px !important; text-align: center; font-weight: 700 !important; border-radius: 16px !important; }
+        .neo-change-amount { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center; color: #16a34a; font-weight: 700; }
+        body.dark-mode .neo-change-amount { background: #1a3a1f; border-color: #2d5a35; color: #4ade80; }
+        .neo-change-display { background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; }
+        body.dark-mode .neo-change-display { background: #3a2f00; border-color: #4a3a00; }
+        .neo-change-label { font-size: 14px; color: #92400e; font-weight: 700; margin-bottom: 8px; }
         body.dark-mode .neo-change-label { color: #fde68a; }
-        .neo-change-amount-value { font-size: 36px; font-weight: 800; color: var(--primary-600); }
+        .neo-change-amount-value { font-size: 32px; font-weight: 800; color: #16a34a; }
         body.dark-mode .neo-change-amount-value { color: #4ade80; }
-        .neo-change-amount-value.insufficient { color: var(--danger-600); font-size: 24px; }
+        .neo-change-amount-value.insufficient { color: #dc2626 !important; font-size: 22px; }
         .neo-modal-success { max-width: 440px; text-align: center; padding: 50px 40px; }
         .neo-success-icon { font-size: 64px; margin-bottom: 15px; display: block; }
-        .neo-success-title { color: var(--warning-600); margin: 0 0 20px 0; font-size: var(--font-size-2xl); font-weight: 800; }
-        .neo-success-info { background: var(--neutral-100); border-radius: var(--radius-lg); padding: 20px; margin: 25px 0; box-shadow: var(--neo-shadow-light); text-align: left; }
-        body.dark-mode .neo-success-info { background: var(--neutral-800); border: 1px solid var(--neutral-700); }
-        .neo-success-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--text-secondary); gap: 12px; flex-wrap: wrap; }
+        .neo-success-title { color: #27AE60; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: 800; }
+        body.dark-mode .neo-success-title { color: #4ade80; }
+        .neo-success-info { background: #f9fafb; border-radius: 16px; padding: 20px; margin: 20px 0; text-align: left; border: 1px solid #e5e7eb; }
+        body.dark-mode .neo-success-info { background: #1f2937; border-color: #374151; }
+        .neo-success-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #6b7280; gap: 12px; flex-wrap: wrap; }
         .neo-success-item:last-child { margin-bottom: 0; }
-        .neo-success-value { color: var(--text-primary); font-weight: 700; font-size: var(--font-size-base); text-align: right; }
-        .neo-success-badge { background: var(--warning-100); color: var(--warning-800); padding: 12px 16px; border-radius: var(--radius-lg); margin-bottom: 25px; font-weight: 600; border: 1px solid var(--warning-300); box-shadow: var(--neo-shadow-light); }
-        body.dark-mode .neo-success-badge { background: var(--warning-900); color: var(--warning-200); border-color: var(--warning-800); }
-        .neo-success-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #27AE60 0%, #229954 100%); color: white; border: none; border-radius: var(--radius-lg); font-size: var(--font-size-base); font-weight: 800; cursor: pointer; transition: all var(--transition-base); box-shadow: var(--neo-shadow-medium); }
+        body.dark-mode .neo-success-item { color: #9ca3af; }
+        .neo-success-value { color: #1f2937; font-weight: 700; text-align: right; }
+        body.dark-mode .neo-success-value { color: #f3f4f6; }
+        .neo-success-badge { background: #dbeafe; color: #1e40af; padding: 12px 16px; border-radius: 20px; margin-bottom: 25px; font-weight: 600; display: inline-block; border: 1px solid #bfdbfe; }
+        body.dark-mode .neo-success-badge { background: #1e3a8a; color: #bfdbfe; border-color: #3b82f6; }
+        .neo-success-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #27AE60 0%, #229954 100%); color: white; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; }
         .neo-success-btn:hover { background: linear-gradient(135deg, #229954 0%, #1e8449 100%); transform: translateY(-2px); }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 768px) {
-            .neo-modal { padding: 28px 24px; }
-            .neo-modal-header { margin-bottom: 24px; }
-            .neo-modal-header h2 { font-size: var(--font-size-xl); }
-            .neo-btn-primary { padding: 16px 18px; font-size: var(--font-size-sm); gap: 10px; }
-        }
+        @keyframes fadeIn    { from{opacity:0}    to{opacity:1} }
+        @keyframes slideUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes successPop { 0%{transform:scale(0.3);opacity:0} 50%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
         @media (max-width: 480px) {
+            .neo-modal { padding: 24px 16px; }
             .neo-modal-overlay { padding: 12px; align-items: flex-end; }
-            .neo-modal { width: 100%; max-height: 80vh; padding: 24px 16px; border-radius: 24px 24px 0 0; }
             .neo-input-cash { font-size: 18px !important; }
-            .neo-change-amount-value { font-size: 28px; }
         }
     `;
     document.head.appendChild(style);

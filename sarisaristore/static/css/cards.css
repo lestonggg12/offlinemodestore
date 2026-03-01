@@ -301,6 +301,24 @@ body.dark-mode .stat-box:hover { border-color: #3a4a3d !important; box-shadow: 0
 body.dark-mode .category-card { background: #1a1a1a !important; border-color: #2a2a2a !important; }
 body.dark-mode .category-card:hover { border-color: #3a4a3d !important; box-shadow: 0 8px 25px rgba(70,90,74,0.3) !important; }
 body.dark-mode .category-name { color: #f0f9f0 !important; }
+body.dark-mode .category-card .category-name {
+    color: #fff !important;
+    text-shadow:
+        0 2px 8px #000,
+        0 0 2px #000,
+        0 0 1px #000;
+    -webkit-text-stroke: 1.2px #222;
+    text-box-edge: 1.2px #222;
+}
+
+body.dark-mode #inventoryContent .category-card .category-name {
+    color: #fff !important;
+    text-shadow:
+        0 2px 8px #000,
+        0 0 2px #000,
+        0 0 1px #000;
+    -webkit-text-stroke: 1.2px #222;
+}
 body.dark-mode .stat-number { color: #87b38c !important; font-size: var(--font-size-3xl) !important; font-weight: 800 !important; }
 body.dark-mode .stat-label { color: #888 !important; }
 

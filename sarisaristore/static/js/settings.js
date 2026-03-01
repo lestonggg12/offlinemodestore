@@ -1,3 +1,34 @@
+// Dark mode: force Save Settings button to dark green if it appears light
+    if (document.body.classList.contains('dark-mode')) {
+        const perfectBtnStyle = 'linear-gradient(135deg,#234d2e 0%,#3a6b3a 100%)';
+        const perfectBtnText = '#eaffea';
+        const perfectBtnBorder = '1.5px solid #4a7a45';
+        const perfectBtnShadow = '0 2px 16px 0 #1a2a1a44';
+        const observer = new MutationObserver(() => {
+            document.querySelectorAll('button').forEach(btn => {
+                if (btn.textContent && btn.textContent.trim().toUpperCase().includes('SAVE SETTINGS')) {
+                    btn.style.background = perfectBtnStyle;
+                    btn.style.color = perfectBtnText;
+                    btn.style.border = perfectBtnBorder;
+                    btn.style.textShadow = 'none';
+                    btn.style.boxShadow = perfectBtnShadow;
+                }
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+        // Also run once immediately
+        setTimeout(() => {
+            document.querySelectorAll('button').forEach(btn => {
+                if (btn.textContent && btn.textContent.trim().toUpperCase().includes('SAVE SETTINGS')) {
+                    btn.style.background = perfectBtnStyle;
+                    btn.style.color = perfectBtnText;
+                    btn.style.border = perfectBtnBorder;
+                    btn.style.textShadow = 'none';
+                    btn.style.boxShadow = perfectBtnShadow;
+                }
+            });
+        }, 100);
+    }
 /**
  * settings.js — Enhanced with Change Notifications
  *
@@ -83,6 +114,38 @@ function showSuccessDialog(message, icon = '✅') {
             </button>
         </div>
         <style>
+            body.dark-mode .success-btn,
+            body.dark-mode button,
+            body.dark-mode .save-settings-btn,
+            body.dark-mode button[style*="background: #e4f9d6"],
+            body.dark-mode button[style*="background: #e6f9d6"],
+            body.dark-mode button[style*="background: #d6f5c6"],
+            body.dark-mode button[style*="background: #d6f5c6;"],
+            body.dark-mode button[style*="background: #e4f9d6;"],
+            body.dark-mode button[style*="background: #e6f9d6;"] {
+                background: linear-gradient(135deg, #234d2e 0%, #3a6b3a 100%) !important;
+                color: #eaffea !important;
+                border: 1.5px solid #4a7a45 !important;
+                text-shadow: none !important;
+                box-shadow: 0 2px 16px 0 #1a2a1a44;
+            }
+            body.dark-mode .success-btn:hover,
+            body.dark-mode button:hover,
+            body.dark-mode .save-settings-btn:hover {
+                background: linear-gradient(135deg, #3a6b3a 0%, #234d2e 100%) !important;
+                color: #fff !important;
+            }
+            body.dark-mode .success-btn {
+                background: linear-gradient(135deg, #234d2e 0%, #3a6b3a 100%) !important;
+                color: #eaffea !important;
+                border: 1.5px solid #4a7a45 !important;
+                text-shadow: none !important;
+                box-shadow: 0 2px 16px 0 #1a2a1a44;
+            }
+            body.dark-mode .success-btn:hover {
+                background: linear-gradient(135deg, #3a6b3a 0%, #234d2e 100%) !important;
+                color: #fff !important;
+            }
             #successDialogOverlay {
                 position: fixed;
                 top: 0; left: 0; right: 0; bottom: 0;
@@ -198,13 +261,28 @@ window.renderSettings = async function() {
                 margin: 0 auto;
                 padding: 20px;
             }
+
+            /* ══════════════════════════════════════════
+               NEO-GLASSMORPHIC CARDS
+            ══════════════════════════════════════════ */
             .stylish-card {
-                background: white;
-                border-radius: 20px;
-                padding: 35px;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-                border: 2px solid rgba(93,83,74,0.1);
-                transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.72) 0%,
+                    rgba(245, 250, 241, 0.55) 50%,
+                    rgba(235, 245, 228, 0.42) 100%
+                );
+                backdrop-filter: blur(28px) saturate(1.8);
+                -webkit-backdrop-filter: blur(28px) saturate(1.8);
+                border-radius: 28px;
+                padding: 38px;
+                border: 1px solid rgba(255, 255, 255, 0.85);
+                box-shadow:
+                    0 8px 32px rgba(93, 83, 74, 0.10),
+                    0 2px 8px rgba(203, 223, 189, 0.18),
+                    inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+                    inset 0 -1px 0 rgba(203, 223, 189, 0.20);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 position: relative;
                 overflow: hidden;
             }
@@ -212,13 +290,51 @@ window.renderSettings = async function() {
                 content: '';
                 position: absolute; top: 0; left: 0; right: 0; height: 6px;
                 background: linear-gradient(90deg, #cbdfbd 0%, #d4e09b 50%, #f19c79 100%);
+                border-radius: 28px 28px 0 0;
+                z-index: 1;
+            }
+            /* Neo-glassmorphic shimmer overlay */
+            .stylish-card::after {
+                content: '';
+                position: absolute; inset: 0;
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.35) 0%,
+                    rgba(255, 255, 255, 0.00) 40%,
+                    rgba(203, 223, 189, 0.08) 100%
+                );
+                pointer-events: none;
+                border-radius: 28px;
             }
             .stylish-card.debtors-card::before {
                 background: linear-gradient(90deg, #F59E0B 0%, #FBBF24 50%, #FDE68A 100%);
             }
-            .stylish-card:hover { transform:translateY(-5px); box-shadow:0 12px 40px rgba(0,0,0,0.12); border-color:rgba(203,223,189,0.4); }
-            .stylish-card.debtors-card:hover { border-color:rgba(245,158,11,0.4); }
-            .card-icon { font-size:56px; margin-bottom:20px; text-align:center; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.1)); }
+            .stylish-card:hover {
+                transform: translateY(-6px) scale(1.012);
+                box-shadow:
+                    0 20px 60px rgba(93, 83, 74, 0.15),
+                    0 4px 16px rgba(203, 223, 189, 0.30),
+                    inset 0 1.5px 0 rgba(255, 255, 255, 1),
+                    inset 0 -1px 0 rgba(203, 223, 189, 0.30);
+                border-color: rgba(255, 255, 255, 1);
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.82) 0%,
+                    rgba(245, 250, 241, 0.68) 50%,
+                    rgba(235, 245, 228, 0.55) 100%
+                );
+            }
+            .stylish-card.debtors-card:hover {
+                box-shadow:
+                    0 20px 60px rgba(245, 158, 11, 0.12),
+                    0 4px 16px rgba(245, 158, 11, 0.20),
+                    inset 0 1.5px 0 rgba(255, 255, 255, 1),
+                    inset 0 -1px 0 rgba(245, 158, 11, 0.20);
+            }
+            /* ══════════════════════════════════════════ */
+
+            .card-icon { font-size:56px; margin-bottom:20px; text-align:center; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.1)); position: relative; z-index: 1; }
+            .card-body { position: relative; z-index: 1; }
             .card-body h3 { color:#5D534A; font-size:1.5rem; font-weight:800; margin-bottom:8px; text-align:center; }
             .card-body > p { color:#9E9382; font-size:14px; text-align:center; margin-bottom:30px; }
             .control-group {
@@ -256,6 +372,8 @@ window.renderSettings = async function() {
             input:checked + .stylish-slider { background:linear-gradient(135deg,#cbdfbd 0%,#a8c99c 100%); box-shadow:0 0 15px rgba(203,223,189,0.4); }
             input:checked + .stylish-slider:before { transform:translateX(34px); box-shadow:0 2px 12px rgba(0,0,0,0.3); }
             .settings-footer { text-align:center; margin-top:40px; padding:20px; }
+
+            /* ── SAVE SETTINGS button ── */
             .btn-save-modern {
                 padding:18px 48px;
                 background:linear-gradient(135deg,#cbdfbd 0%,#a8c99c 100%);
@@ -267,6 +385,26 @@ window.renderSettings = async function() {
             }
             .btn-save-modern:hover { transform:translateY(-4px); box-shadow:0 12px 35px rgba(203,223,189,0.6), inset 0 1px 0 rgba(255,255,255,0.6); background:linear-gradient(135deg,#d4e09b 0%,#b8cc7d 100%); }
             .btn-save-modern:active { transform:translateY(-2px); }
+
+            /* ── SAVE SETTINGS dark mode ── */
+            body.dark-mode .btn-save-modern {
+                background: linear-gradient(135deg, #1a3a20 0%, #2d5a35 100%) !important;
+                color: #b8e6c0 !important;
+                border: 1.5px solid #3a6b42 !important;
+                box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.05) inset !important;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.4) !important;
+            }
+            body.dark-mode .btn-save-modern:hover {
+                background: linear-gradient(135deg, #2d5a35 0%, #3a7040 100%) !important;
+                color: #d4f0d8 !important;
+                box-shadow: 0 10px 28px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.08) inset !important;
+                transform: translateY(-3px);
+            }
+            body.dark-mode .btn-save-modern:active {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+            }
+
             .info-box { background:linear-gradient(135deg,rgba(203,223,189,0.15),rgba(203,223,189,0.08)); border-left:4px solid #cbdfbd; padding:20px; margin-top:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }
             .debtors-card .info-box { background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(251,191,36,0.05)); border-left-color:#F59E0B; }
             .info-box-content { display:flex; align-items:flex-start; gap:12px; }
@@ -290,8 +428,50 @@ window.renderSettings = async function() {
                 border-radius:10px; font-size:13px; color:#92400E; line-height:1.7;
             }
             body.dark-mode .surcharge-preview { background:rgba(245,158,11,0.08); color:#fcd34d; border-color:rgba(245,158,11,0.2); }
-            body.dark-mode .stylish-card { background:rgba(255,255,255,0.05); border-color:rgba(203,223,189,0.2); }
-            body.dark-mode .stylish-card.debtors-card { border-color:rgba(245,158,11,0.2); }
+
+            /* ══════════════════════════════════════════
+               NEO-GLASSMORPHIC DARK MODE CARDS
+            ══════════════════════════════════════════ */
+            body.dark-mode .stylish-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(40, 52, 45, 0.75) 0%,
+                    rgba(30, 42, 35, 0.60) 50%,
+                    rgba(22, 32, 26, 0.55) 100%
+                ) !important;
+                border: 1px solid rgba(203, 223, 189, 0.18) !important;
+                box-shadow:
+                    0 8px 32px rgba(0, 0, 0, 0.35),
+                    0 2px 8px rgba(0, 0, 0, 0.20),
+                    inset 0 1.5px 0 rgba(255, 255, 255, 0.08),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.20) !important;
+            }
+            body.dark-mode .stylish-card::after {
+                background: linear-gradient(
+                    135deg,
+                    rgba(255,255,255,0.06) 0%,
+                    rgba(255,255,255,0.00) 40%,
+                    rgba(203,223,189,0.04) 100%
+                );
+            }
+            body.dark-mode .stylish-card:hover {
+                background: linear-gradient(
+                    135deg,
+                    rgba(48, 62, 52, 0.85) 0%,
+                    rgba(36, 50, 40, 0.72) 50%,
+                    rgba(28, 40, 32, 0.68) 100%
+                ) !important;
+                border-color: rgba(203, 223, 189, 0.30) !important;
+                box-shadow:
+                    0 20px 60px rgba(0, 0, 0, 0.50),
+                    0 4px 16px rgba(0, 0, 0, 0.30),
+                    inset 0 1.5px 0 rgba(255, 255, 255, 0.12),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.20) !important;
+            }
+            body.dark-mode .stylish-card.debtors-card { border-color: rgba(245, 158, 11, 0.20) !important; }
+            body.dark-mode .stylish-card.debtors-card:hover { border-color: rgba(245, 158, 11, 0.35) !important; }
+            /* ══════════════════════════════════════════ */
+
             body.dark-mode .card-body h3 { color:#f9fafb; }
             body.dark-mode .card-body > p { color:#9ca3af; }
             body.dark-mode .label-text { color:#d1d5db; }
@@ -305,6 +485,25 @@ window.renderSettings = async function() {
             body.dark-mode .info-text p { color:#9ca3af; }
             body.dark-mode .sync-badge { background:rgba(203,223,189,0.15); border-color:rgba(203,223,189,0.3); color:#cbdfbd; }
             body.dark-mode .sync-badge.amber { background:rgba(245,158,11,0.12); color:#fbbf24; border-color:rgba(245,158,11,0.25); }
+
+            /* ── Dark mode toggle switch — muted when dark ── */
+            body.dark-mode .stylish-slider {
+                background: linear-gradient(135deg, #2a3a2e 0%, #1e2e22 100%);
+                box-shadow: inset 0 2px 6px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.06);
+            }
+            body.dark-mode input:checked + .stylish-slider {
+                background: linear-gradient(135deg, #3a6b42 0%, #2d5235 100%);
+                box-shadow: 0 0 12px rgba(74,122,66,0.35), inset 0 1px 2px rgba(0,0,0,0.2);
+            }
+            body.dark-mode .stylish-slider:before {
+                background: #c8d8cc;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            }
+            body.dark-mode input:checked + .stylish-slider:before {
+                background: #e8f5ea;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            }
+
             @media (max-width: 768px) {
                 .settings-grid-container { grid-template-columns:1fr; padding:15px; }
                 .stylish-card { padding:25px; }
@@ -495,9 +694,7 @@ window.saveAllSettings = async function() {
         changes
     });
 
-    // ── Build updated history (append new record if anything changed) ────────
-    // We mutate a copy of the current server-sourced history, then send the
-    // whole array back to the server so every device reads the same list.
+    // ── Build updated history ────────────────────────────────────────────────
     let updatedHistory = Array.isArray(window.storeSettings?.changeHistory)
         ? [...window.storeSettings.changeHistory]
         : [];
@@ -508,7 +705,6 @@ window.saveAllSettings = async function() {
             timestamp: new Date().toISOString(),
             changes
         });
-        // Cap at 10 entries (server also enforces this)
         if (updatedHistory.length > 10) updatedHistory = updatedHistory.slice(-10);
     }
 
@@ -517,7 +713,7 @@ window.saveAllSettings = async function() {
         lowStockLimit: lowStockValue,
         theme:         document.body.classList.contains('dark-mode') ? 'dark' : 'light',
         debtSurcharge: surchargeValue,
-        changeHistory: updatedHistory   // ← sent to server, shared across all devices
+        changeHistory: updatedHistory
     };
 
     try {
@@ -538,16 +734,13 @@ window.saveAllSettings = async function() {
         if (response.ok) {
             const saved = await response.json();
 
-            // Update local state from what the server confirmed
             window.storeSettings = {
                 ...updatedData,
                 changeHistory: saved.changeHistory || updatedHistory
             };
             applyThemeFromSettings();
 
-            // Notify the notification system to re-render with the new history
             if (Object.keys(changes).length > 0 && window.NotificationSystem) {
-                // Pass the change record that was just appended
                 const latestRecord = window.storeSettings.changeHistory[
                     window.storeSettings.changeHistory.length - 1
                 ];

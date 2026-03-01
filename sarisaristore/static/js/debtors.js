@@ -1,10 +1,6 @@
 /**
- * debtors.js — Debtors management page.
+ * debtors.js — Complete with GLASSMORPHIC NEOMORPHIC styling + FUNCTIONAL implementations
  */
-
-// =============================================================================
-//  PART 1: MAIN RENDER & DISPLAY
-// =============================================================================
 
 window.renderDebtors = async function() {
   const content = document.getElementById('debtorsContent');
@@ -27,7 +23,6 @@ window.renderDebtors = async function() {
     const unpaidDebtors = debtors.filter(d => !d.paid);
     const paidDebtors   = debtors.filter(d =>  d.paid);
 
-    // ── Metrics ──────────────────────────────────────────────────────────────
     let totalOutstanding = 0; unpaidDebtors.forEach(d => { totalOutstanding += parseFloat(d.total_debt || 0); });
     let totalCollected   = 0; paidDebtors.forEach(d   => { totalCollected   += parseFloat(d.total_debt || 0); });
     let surchargeCollected = 0; paidDebtors.forEach(d  => { surchargeCollected += parseFloat(d.surcharge_amount || 0); });
@@ -37,7 +32,6 @@ window.renderDebtors = async function() {
     const collectionRate  = totalEverLoaned > 0 ? Math.round((totalCollected / totalEverLoaned) * 100) : 0;
 
     let html = `
-      <!-- 6-CARD SUMMARY ROW -->
       <div class="debtors-summary-cards">
         <div class="summary-card debt-card-red">
           <div class="card-icon">💰</div>
@@ -89,7 +83,19 @@ window.renderDebtors = async function() {
         </div>
       </div>
 
-      <!-- Unpaid Debts Section -->
+      <!-- ⚠️ WARNING BANNER -->
+      <div class="debt-warning-banner">
+        <span class="debt-warning-icon">⚠️</span>
+        <div class="debt-warning-body">
+          <div class="debt-warning-title">Stats Will Reset on Deletion</div>
+          <div class="debt-warning-text">
+            Deleting <strong>paid</strong> or <strong>unpaid</strong> debt records will permanently reset the summary cards above
+            (Total Outstanding, Total Collected, Collection Rate, Surcharge totals, and Highest Unpaid Debt).
+            Debt payments are still recorded in the <strong>Calendar</strong>, but these cards will reflect zero until new debts are added.
+          </div>
+        </div>
+      </div>
+
       <div class="debts-section">
         <div class="section-header-row">
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -105,7 +111,6 @@ window.renderDebtors = async function() {
         </div>
       </div>
 
-      <!-- Paid Debts Section -->
       <div class="debts-section">
         <div class="section-header-row">
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
@@ -144,8 +149,6 @@ window.renderDebtors = async function() {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 window.toggleDebtSection = function(section) {
   const container = document.getElementById(section === 'unpaid' ? 'unpaidDebtContainer' : 'paidDebtContainer');
   const icon      = document.getElementById(section === 'unpaid' ? 'unpaidToggleIcon'    : 'paidToggleIcon');
@@ -170,8 +173,6 @@ window.toggleDebtSection = function(section) {
     setTimeout(() => { container.style.maxHeight = 'none'; }, 380);
   }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 function renderDebtorsCards(debtors, isPaid) {
   if (debtors.length === 0) {
@@ -206,55 +207,40 @@ function renderDebtorsCards(debtors, isPaid) {
 
     html += `
       <div class="debtor-card ${isPaid ? 'paid' : 'unpaid'}">
-        <div class="debtor-header">
-          <div class="debtor-name">${customerName}</div>
-          <span class="status-badge ${isPaid ? 'badge-paid' : 'badge-unpaid'}">
-            ${isPaid ? '✓ PAID' : '⚠ UNPAID'}
-          </span>
-        </div>
-        <div class="debtor-details">
-          <div class="detail-row"><span class="detail-label">📅 Date:</span><span class="detail-value">${formattedDate}</span></div>
-          <div class="detail-row"><span class="detail-label">🕐 Time:</span><span class="detail-value">${formattedTime}</span></div>
-          ${contact ? `<div class="detail-row"><span class="detail-label">📱 Contact:</span><span class="detail-value">${contact}</span></div>` : ''}
-        </div>
-        <div class="debtor-items">
-          <div class="items-label">📦 Items Loaned</div>
-          <div class="items-list">${itemsList}</div>
-        </div>
-        ${hasSurcharge ? `
+        <div class="debtor-card-inner">
+          <div class="debtor-header">
+            <div class="debtor-name">${customerName}</div>
+            <span class="status-badge ${isPaid ? 'badge-paid' : 'badge-unpaid'}">
+              ${isPaid ? '✓ PAID' : '⚠ UNPAID'}
+            </span>
+          </div>
+          <div class="debtor-details">
+            <div class="detail-row"><span class="detail-label">📅 Date:</span><span class="detail-value">${formattedDate}</span></div>
+            <div class="detail-row"><span class="detail-label">🕐 Time:</span><span class="detail-value">${formattedTime}</span></div>
+          </div>
+          <div class="debtor-items">
+            <div class="items-label">Items:</div>
+            <div class="items-list">${itemsList}</div>
+          </div>
+          <div class="debtor-amount ${isPaid ? 'amount-paid' : 'amount-unpaid'}">
+            ₱${totalDebt.toFixed(2)}
+          </div>
           <div class="debtor-amount-breakdown ${isPaid ? 'amount-paid' : 'amount-unpaid'}">
-            <div class="breakdown-row subtotal-row">
-              <span class="breakdown-label">Subtotal</span>
-              <span class="breakdown-value">₱${originalTotal.toFixed(2)}</span>
-            </div>
-            <div class="breakdown-row surcharge-row">
-              <span class="breakdown-label">Surcharge (${surchargeP}%)</span>
-              <span class="breakdown-value surcharge-value">+₱${surchargeAmt.toFixed(2)}</span>
-            </div>
+            <div class="breakdown-row"><span class="breakdown-label">Original:</span><span class="breakdown-value">₱${originalTotal.toFixed(2)}</span></div>
+            ${hasSurcharge ? `<div class="breakdown-row surcharge-row"><span class="breakdown-label">Surcharge (${surchargeP}%):</span><span class="breakdown-value surcharge-value">₱${surchargeAmt.toFixed(2)}</span></div>` : ''}
             <div class="breakdown-divider"></div>
-            <div class="breakdown-row total-row">
-              <span class="breakdown-label total-label-text">Total</span>
-              <span class="breakdown-value total-value">₱${totalDebt.toFixed(2)}</span>
-            </div>
+            <div class="breakdown-row total-row"><span class="total-label-text">Total Debt:</span><span class="total-value">₱${totalDebt.toFixed(2)}</span></div>
           </div>
-          ${!isPaid ? `<div class="surcharge-note">⚠️ <strong>+₱${surchargeAmt.toFixed(2)}</strong> surcharge was added to the original ₱${originalTotal.toFixed(2)}</div>` : ''}
-        ` : `
-          <div class="debtor-amount ${isPaid ? 'amount-paid' : 'amount-unpaid'}">₱${totalDebt.toFixed(2)}</div>
-        `}
-        ${isPaid ? `
-          <div class="paid-info">✓ Paid on ${debtor.date_paid ? new Date(debtor.date_paid).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</div>
-          ${debtor.date_paid ? (() => {
-            const paidDate   = new Date(debtor.date_paid);
-            const deleteDate = new Date(paidDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-            const daysLeft   = Math.max(0, Math.ceil((deleteDate - new Date()) / (1000 * 60 * 60 * 24)));
-            return `<div class="auto-delete-countdown">${daysLeft > 0 ? `🗑️ Auto-deletes in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}` : '🗑️ Will be deleted soon'}</div>`;
-          })() : ''}
-        ` : `
+          ${hasSurcharge ? `<div class="surcharge-note"><strong>⚡ Surcharge:</strong> This debt includes a ${surchargeP}% surcharge.</div>` : ''}
           <div class="debtor-actions">
-            <button class="action-btn btn-mark-paid" data-debtor-id="${debtor.id}"><span>💰</span> Mark as Paid</button>
-            <button class="action-btn btn-delete-debtor" data-debtor-id="${debtor.id}"><span>🗑️</span> Delete</button>
+            ${isPaid
+              ? `<div class="paid-info">Paid on ${debtor.date_paid ? new Date(debtor.date_paid).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}</div>`
+              : `<button class="action-btn btn-mark-paid" data-debtor-id="${debtor.id}"><span>✅</span>Mark as Paid</button>`
+            }
+            <button class="action-btn btn-delete-debtor" data-debtor-id="${debtor.id}"><span>🗑️</span>Delete</button>
           </div>
-        `}
+          ${isPaid && debtor.date_paid ? `<div class="auto-delete-countdown">Auto-deletes after 7 days</div>` : ''}
+        </div>
       </div>
     `;
   });
@@ -263,427 +249,228 @@ function renderDebtorsCards(debtors, isPaid) {
   return html;
 }
 
-// =============================================================================
-//  PART 2: CSS STYLES
-// =============================================================================
-
 function getDebtorStyles() {
-  const isDarkMode = document.body.classList.contains('dark-mode');
   return `
     <style>
-      .debtors-summary-cards {
-        display: grid; grid-template-columns: repeat(3, 1fr);
-        gap: 16px; margin-bottom: 40px;
-      }
+      .debtors-summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
       @media (max-width: 900px) { .debtors-summary-cards { grid-template-columns: repeat(2, 1fr); } }
       @media (max-width: 560px) { .debtors-summary-cards { grid-template-columns: 1fr; } }
+
+      /* ── Warning Banner ── */
+      .debt-warning-banner {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 28px;
+        padding: 14px 18px;
+        background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(245,158,11,0.10));
+        border: 1.5px solid rgba(245,158,11,0.45);
+        border-left: 5px solid #f59e0b;
+        border-radius: 14px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .debt-warning-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+      .debt-warning-body { flex: 1; }
+      .debt-warning-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: #92400e;
+        margin-bottom: 4px;
+        letter-spacing: 0.3px;
+      }
+      .debt-warning-text {
+        font-size: 12px;
+        color: #78350f;
+        line-height: 1.65;
+      }
+      .debt-warning-text strong { color: #92400e; }
+
+      body.dark-mode .debt-warning-banner {
+        background: linear-gradient(135deg, rgba(120,80,0,0.25), rgba(100,60,0,0.15));
+        border-color: rgba(245,158,11,0.35);
+        border-left-color: #f59e0b;
+      }
+      body.dark-mode .debt-warning-title { color: #fcd34d; }
+      body.dark-mode .debt-warning-text  { color: #fde68a; }
+      body.dark-mode .debt-warning-text strong { color: #fbbf24; }
+
       .summary-card {
-        display: flex; align-items: center; padding: 22px 20px;
-        border-radius: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); transition: all 0.3s ease;
+        border-radius: 20px; padding: 18px 20px; position: relative; overflow: hidden;
+        transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease;
+        display: flex; align-items: flex-start; gap: 12px;
+        backdrop-filter: blur(18px) saturate(1.6); -webkit-backdrop-filter: blur(18px) saturate(1.6);
+        border: 1.5px solid rgba(255,255,255,0.55);
+        box-shadow: 0 8px 32px rgba(80,140,75,0.22), 0 2px 8px rgba(80,140,75,0.12), 0 -2px 0 rgba(255,255,255,0.9) inset, 0 1px 0 rgba(80,140,75,0.15) inset;
       }
-      .summary-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.13); }
-      .card-icon { font-size: 2.2rem; margin-right: 16px; flex-shrink: 0; }
-      .card-content { flex: 1; min-width: 0; }
-      .card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.75; margin-bottom: 5px; }
-      .card-value { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
-      .card-sub   { font-size: 0.72rem; font-weight: 600; opacity: 0.65; margin-top: 3px; }
+      .summary-card::before { content: ''; position: absolute; inset: 0; border-radius: 20px; background: linear-gradient(135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 40%, transparent 70%); pointer-events: none; z-index: 0; }
+      .summary-card::after { content: ''; position: absolute; top: 0; left: 20px; right: 20px; height: 2px; border-radius: 0 0 4px 4px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent); z-index: 0; }
+      .summary-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 16px 48px rgba(80,140,75,0.28), 0 4px 14px rgba(80,140,75,0.16), 0 -2px 0 rgba(255,255,255,0.95) inset; }
 
-      .debt-card-red    { background: linear-gradient(135deg,#FEE2E2,#FECACA); border-left: 5px solid #DC2626; }
-      .debt-card-red .card-label, .debt-card-red .card-sub { color: #7f1d1d; }
-      .debt-card-red .card-value { color: #DC2626; }
-      body.dark-mode .debt-card-red { background: linear-gradient(135deg,#4a2c2c,#5c3535); border-left-color: #f87171; }
-      body.dark-mode .debt-card-red .card-label, body.dark-mode .debt-card-red .card-sub { color: #fca5a5; }
-      body.dark-mode .debt-card-red .card-value { color: #fca5a5; }
+      .card-icon { font-size: 2rem; flex-shrink: 0; position: relative; z-index: 1; line-height: 1; }
+      .card-content { flex: 1; min-width: 0; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 3px; }
+      .card-label { font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; opacity: 0.75; line-height: 1.1; }
+      .card-value { font-size: 1.4rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+      .card-sub { font-size: 0.68rem; font-weight: 600; opacity: 0.65; line-height: 1.2; }
 
-      .debt-card-green  { background: linear-gradient(135deg,#D1FAE5,#A7F3D0); border-left: 5px solid #10B981; }
-      .debt-card-green .card-label, .debt-card-green .card-sub { color: #064e3b; }
-      .debt-card-green .card-value { color: #059669; }
-      body.dark-mode .debt-card-green { background: linear-gradient(135deg,#1e3a2f,#264536); border-left-color: #34d399; }
-      body.dark-mode .debt-card-green .card-label, body.dark-mode .debt-card-green .card-sub { color: #6ee7b7; }
-      body.dark-mode .debt-card-green .card-value { color: #6ee7b7; }
+      .debt-card-red { background: linear-gradient(135deg, #d4e09b 0%, #c5d68d 100%); border-color: #c0cf88; }
+      .debt-card-red .card-label, .debt-card-red .card-sub { color: #4a5a2a; }
+      .debt-card-red .card-value { color: #3d4a23; }
 
-      .debt-card-blue   { background: linear-gradient(135deg,#DBEAFE,#BFDBFE); border-left: 5px solid #3B82F6; }
-      .debt-card-blue .card-label, .debt-card-blue .card-sub { color: #1e3a5f; }
-      .debt-card-blue .card-value { color: #1D4ED8; }
-      body.dark-mode .debt-card-blue { background: linear-gradient(135deg,#1e2f4a,#243a58); border-left-color: #60a5fa; }
-      body.dark-mode .debt-card-blue .card-label, body.dark-mode .debt-card-blue .card-sub { color: #93c5fd; }
-      body.dark-mode .debt-card-blue .card-value { color: #93c5fd; }
+      .debt-card-green { background: linear-gradient(135deg, #cbdfbd 0%, #bdd4ae 100%); border-color: #b5cca8; }
+      .debt-card-green .card-label, .debt-card-green .card-sub { color: #3e5235; }
+      .debt-card-green .card-value { color: #32422b; }
 
-      .debt-card-amber  { background: linear-gradient(135deg,#FEF3C7,#FDE68A); border-left: 5px solid #F59E0B; }
-      .debt-card-amber .card-label, .debt-card-amber .card-sub { color: #78350f; }
-      .debt-card-amber .card-value { color: #B45309; }
-      body.dark-mode .debt-card-amber { background: linear-gradient(135deg,#4a4528,#5c5530); border-left-color: #fbbf24; }
-      body.dark-mode .debt-card-amber .card-label, body.dark-mode .debt-card-amber .card-sub { color: #fcd34d; }
-      body.dark-mode .debt-card-amber .card-value { color: #fcd34d; }
+      .debt-card-blue { background: linear-gradient(135deg, #f6f4d2 0%, #eee9c4 100%); border-color: #e5e0ba; }
+      .debt-card-blue .card-label, .debt-card-blue .card-sub { color: #6b6438; }
+      .debt-card-blue .card-value { color: #5a5230; }
 
-      .debt-card-orange { background: linear-gradient(135deg,#FFEDD5,#FED7AA); border-left: 5px solid #F97316; }
-      .debt-card-orange .card-label, .debt-card-orange .card-sub { color: #7c2d12; }
-      .debt-card-orange .card-value { color: #C2410C; }
-      body.dark-mode .debt-card-orange { background: linear-gradient(135deg,#3d2010,#4f2a14); border-left-color: #fb923c; }
-      body.dark-mode .debt-card-orange .card-label, body.dark-mode .debt-card-orange .card-sub { color: #fdba74; }
-      body.dark-mode .debt-card-orange .card-value { color: #fdba74; }
+      .debt-card-amber { background: linear-gradient(135deg, #f6e4d8 0%, #f0d9cc 100%); border-color: #e8d0c0; }
+      .debt-card-amber .card-label, .debt-card-amber .card-sub { color: #8a6a55; }
+      .debt-card-amber .card-value { color: #6b5245; }
 
-      .debt-card-purple { background: linear-gradient(135deg,#EDE9FE,#DDD6FE); border-left: 5px solid #7C3AED; }
-      .debt-card-purple .card-label, .debt-card-purple .card-sub { color: #3b0764; }
-      .debt-card-purple .card-value { color: #5B21B6; }
-      body.dark-mode .debt-card-purple { background: linear-gradient(135deg,#2d1f4a,#39255c); border-left-color: #a78bfa; }
-      body.dark-mode .debt-card-purple .card-label, body.dark-mode .debt-card-purple .card-sub { color: #c4b5fd; }
-      body.dark-mode .debt-card-purple .card-value { color: #c4b5fd; }
+      .debt-card-orange { background: linear-gradient(135deg, #f5e8d4 0%, #efdcc0 100%); border-color: #e8dcc8; }
+      .debt-card-orange .card-label, .debt-card-orange .card-sub { color: #8a7050; }
+      .debt-card-orange .card-value { color: #6a5840; }
 
-      /* ── Section header row with toggle ── */
-      .section-header-row {
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
-      }
-      .section-header-row .section-header { margin-bottom: 0; }
+      .debt-card-purple { background: linear-gradient(135deg, #f6e4d8 0%, #f0d9cc 100%); border-color: #e8d0c0; }
+      .debt-card-purple .card-label, .debt-card-purple .card-sub { color: #8a6a55; }
+      .debt-card-purple .card-value { color: #6b5245; }
 
-      .toggle-section-btn {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 7px 16px; border: none; border-radius: 20px;
-        font-size: 13px; font-weight: 700; cursor: pointer;
-        font-family: 'Quicksand', sans-serif;
-        transition: all 0.2s ease;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-      }
-      .toggle-section-btn:hover { transform: translateY(-2px); }
+      .debtors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+      .debtor-card { border-radius: 20px; overflow: hidden; position: relative; transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease; backdrop-filter: blur(16px) saturate(1.5); -webkit-backdrop-filter: blur(16px) saturate(1.5); border: 1.5px solid rgba(255,255,255,0.5); box-shadow: 0 8px 32px rgba(80,140,75,0.18), 0 2px 8px rgba(80,140,75,0.1), 0 -1px 0 rgba(255,255,255,0.8) inset; }
+      .debtor-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; z-index: 2; }
+      .debtor-card.unpaid::before { background: linear-gradient(180deg, #e74c3c, #c41e3a); }
+      .debtor-card.paid::before { background: linear-gradient(180deg, #7db89f, #a8d4ba); }
+      .debtor-card-inner { padding: 18px; position: relative; z-index: 1; background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 50%); }
+      .debtor-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1.5px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); z-index: 1; pointer-events: none; }
+      .debtor-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 14px 40px rgba(80,140,75,0.24), 0 4px 12px rgba(80,140,75,0.12), 0 -1px 0 rgba(255,255,255,0.9) inset; }
 
-      .toggle-btn-red {
-        background: linear-gradient(135deg, #EF4444, #DC2626);
-        color: white;
-      }
-      body.dark-mode .toggle-btn-red {
-        background: linear-gradient(135deg, #b91c1c, #991b1b);
-      }
+      .debtor-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.6); position: relative; z-index: 2; }
+      .debtor-name { font-size: 1.1rem; font-weight: 700; color: #2d3748; }
+      .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+      .badge-unpaid { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.6); }
+      .badge-paid { background: linear-gradient(135deg, #c8efd9, #a8e6c8); color: #2d5238; border: 1px solid rgba(255,255,255,0.6); }
 
-      .toggle-btn-green {
-        background: linear-gradient(135deg, #10B981, #059669);
-        color: white;
-      }
-      body.dark-mode .toggle-btn-green {
-        background: linear-gradient(135deg, #047857, #065f46);
-      }
+      .debtor-details { margin-bottom: 12px; position: relative; z-index: 2; }
+      .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; }
+      .detail-label { color: #6a7a6a; font-weight: 600; }
+      .detail-value { color: #2d3748; font-weight: 600; }
 
-      /* ── Paid header row ── */
-      .paid-header-row {
-        display: flex; align-items: center; justify-content: space-between;
-        gap: 12px; flex-wrap: wrap;
-      }
+      .debtor-items { background: rgba(255,255,255,0.4); backdrop-filter: blur(8px); padding: 10px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
+      .items-label { font-size: 0.7rem; text-transform: uppercase; color: #6a7a6a; font-weight: 700; margin-bottom: 5px; letter-spacing: 0.5px; }
+      .items-list { color: #2d3748; font-size: 0.85rem; line-height: 1.4; }
 
-      .btn-clear-paid {
-        display: flex; align-items: center; gap: 6px;
-        padding: 8px 18px;
-        background: ${isDarkMode ? 'linear-gradient(135deg,#4a2c2c,#3a2020)' : 'linear-gradient(135deg,#FEE2E2,#FECACA)'};
-        color: ${isDarkMode ? '#f87171' : '#DC2626'};
-        border: 1px solid ${isDarkMode ? 'rgba(248,113,113,0.3)' : '#fca5a5'};
-        border-radius: 12px; font-weight: 700; font-size: 13px;
-        cursor: pointer; transition: all 0.3s ease;
-        font-family: 'Quicksand', sans-serif;
-      }
-      .btn-clear-paid:hover {
-        background: ${isDarkMode ? 'linear-gradient(135deg,#5a2e2e,#4a2222)' : 'linear-gradient(135deg,#FECACA,#FCA5A5)'};
-        transform: translateY(-2px); box-shadow: 0 4px 12px rgba(220,38,38,0.2);
-      }
-      .btn-clear-paid .btn-icon { font-size: 15px; }
+      .debtor-amount { font-size: 1.6rem; font-weight: 800; text-align: center; padding: 14px; border-radius: 10px; margin-bottom: 12px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
+      .amount-unpaid { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; }
+      .amount-paid { background: linear-gradient(135deg, #c8efd9, #a8e6c8); color: #2d5238; }
 
-      .auto-delete-notice {
-        font-size: 12px; color: ${isDarkMode ? '#9CA3AF' : '#6B7280'};
-        margin: 4px 0 12px 0; padding: 6px 12px;
-        background: ${isDarkMode ? 'rgba(75,85,99,0.3)' : 'rgba(243,244,246,0.8)'};
-        border-radius: 8px; border-left: 3px solid ${isDarkMode ? '#6B7280' : '#9CA3AF'};
-        font-style: italic;
-      }
+      .debtor-amount-breakdown { padding: 12px; border-radius: 10px; margin-bottom: 10px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
+      .amount-unpaid.debtor-amount-breakdown { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; }
+      .amount-paid.debtor-amount-breakdown { background: linear-gradient(135deg, #c8efd9, #a8e6c8); }
 
-      .modern-btn {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 15px 25px; border: none; border-radius: 12px;
-        font-size: 1rem; font-weight: 700; font-family: 'Quicksand', sans-serif;
-        cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      }
-      .modern-btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-      .btn-icon { font-size: 1.2rem; }
-
-      .debts-section { margin-bottom: 40px; }
-      .section-header { font-size: 1.3rem; font-weight: 700; color: #5D534A; display: flex; align-items: center; gap: 10px; }
-      body.dark-mode .section-header { color: #f7fafc; }
-      .unpaid-header { color: #DC2626; }
-      body.dark-mode .unpaid-header { color: #f87171; }
-      .paid-header { color: #059669; }
-      body.dark-mode .paid-header { color: #34d399; }
-
-      .debtors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; }
-      .debtor-card {
-        background: white; border-radius: 16px; padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06); transition: all 0.3s ease;
-        position: relative; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);
-      }
-      body.dark-mode .debtor-card { background: #2d3748; border-color: #4a5568; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-      .debtor-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
-      .debtor-card.unpaid::before { background: linear-gradient(180deg,#DC2626,#EF4444); }
-      .debtor-card.paid::before   { background: linear-gradient(180deg,#10B981,#34D399); }
-      .debtor-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-      body.dark-mode .debtor-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
-
-      .debtor-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 2px solid #F3F4F6; }
-      body.dark-mode .debtor-header { border-bottom-color: #4a5568; }
-      .debtor-name { font-size: 1.2rem; font-weight: 700; color: #5D534A; }
-      body.dark-mode .debtor-name { color: #f7fafc; }
-
-      .status-badge { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-      .badge-unpaid { background: #FEE2E2; color: #DC2626; }
-      body.dark-mode .badge-unpaid { background: #4a2c2c; color: #fca5a5; }
-      .badge-paid   { background: #D1FAE5; color: #059669; }
-      body.dark-mode .badge-paid   { background: #1e3a2f; color: #6ee7b7; }
-
-      .debtor-details { margin-bottom: 15px; }
-      .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-      .detail-label { color: #6B7280; font-weight: 600; }
-      body.dark-mode .detail-label { color: #a0aec0; }
-      .detail-value { color: #5D534A; font-weight: 600; }
-      body.dark-mode .detail-value { color: #e2e8f0; }
-
-      .debtor-items { background: #F9FAFB; padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); }
-      body.dark-mode .debtor-items { background: #1a202c; border-color: #4a5568; }
-      .items-label { font-size: 0.75rem; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 6px; }
-      body.dark-mode .items-label { color: #a0aec0; }
-      .items-list { color: #5D534A; font-size: 0.9rem; line-height: 1.5; }
-      body.dark-mode .items-list { color: #e2e8f0; }
-
-      .debtor-amount { font-size: 1.8rem; font-weight: 800; text-align: center; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-      .debtor-amount-breakdown { padding: 14px 16px; border-radius: 10px; margin-bottom: 10px; }
       .breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 0.9rem; }
-      .breakdown-label  { color: inherit; opacity: 0.75; font-weight: 600; }
-      .breakdown-value  { font-weight: 700; }
+      .breakdown-label { color: inherit; opacity: 0.8; font-weight: 600; }
+      .breakdown-value { font-weight: 700; }
       .surcharge-row .breakdown-label { opacity: 1; }
-      .surcharge-value  { color: #F59E0B !important; }
-      body.dark-mode .surcharge-value { color: #fbbf24 !important; }
+      .surcharge-value { color: #d4945c !important; font-weight: 700; }
       .breakdown-divider { border-top: 1px dashed currentColor; opacity: 0.25; margin: 6px 0; }
-      .total-row        { padding-top: 4px; }
+      .total-row { padding-top: 4px; }
       .total-label-text { opacity: 1; font-weight: 800; font-size: 1rem; }
-      .total-value      { font-size: 1.4rem; font-weight: 900; }
+      .total-value { font-size: 1.3rem; font-weight: 900; }
 
-      .amount-unpaid { background: linear-gradient(135deg,#FEE2E2,#FECACA); color: #DC2626; }
-      body.dark-mode .amount-unpaid { background: linear-gradient(135deg,#4a2c2c,#5c3535); color: #fca5a5; }
-      .amount-paid   { background: linear-gradient(135deg,#D1FAE5,#A7F3D0); color: #059669; }
-      body.dark-mode .amount-paid   { background: linear-gradient(135deg,#1e3a2f,#264536); color: #6ee7b7; }
+      .surcharge-note { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 10px 12px; background: linear-gradient(135deg, #fff5eb, #fef3c7); border: 1px solid rgba(253,230,138,0.6); border-left: 4px solid #ddb74a; border-radius: 8px; font-size: 12px; color: #8a6a30; font-weight: 600; line-height: 1.4; position: relative; z-index: 2; }
+      .surcharge-note strong { color: #b67a2a; font-size: 13px; }
 
-      .surcharge-note { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 10px 14px; background: linear-gradient(135deg,#FFF7ED,#FEF3C7); border: 1px solid #FCD34D; border-left: 4px solid #F59E0B; border-radius: 10px; font-size: 13px; color: #92400E; font-weight: 600; line-height: 1.5; }
-      body.dark-mode .surcharge-note { background: linear-gradient(135deg,rgba(245,158,11,0.12),rgba(251,191,36,0.08)); border-color: rgba(251,191,36,0.3); border-left-color: #F59E0B; color: #FCD34D; }
-      .surcharge-note strong { color: #D97706; font-size: 14px; }
-      body.dark-mode .surcharge-note strong { color: #FBBF24; }
+      .debtor-actions { display: flex; gap: 10px; position: relative; z-index: 3; }
+      .action-btn { flex: 1; padding: 11px; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 5px; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 3; }
+      .btn-mark-paid { background: linear-gradient(135deg, #a8d4ba, #98c8aa); color: #2d5238; }
+      .btn-mark-paid:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(125,184,159,0.25); }
+      .btn-delete-debtor { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); }
+      .btn-delete-debtor:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
 
-      .debtor-actions { display: flex; gap: 10px; }
-      .action-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 6px; }
-      .btn-mark-paid { background: linear-gradient(135deg,#10B981,#059669); color: white; }
-      .btn-mark-paid:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
-      .btn-delete-debtor { background: linear-gradient(135deg,#EF4444,#DC2626); color: white; }
-      .btn-delete-debtor:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(239,68,68,0.3); }
+      .paid-info { text-align: center; padding: 11px; background: linear-gradient(135deg, #c8efd9, #a8e6c8); border-radius: 8px; color: #2d5238; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(6px); position: relative; z-index: 2; }
+      .auto-delete-countdown { text-align: center; padding: 8px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; color: #8a6a30; font-weight: 600; font-size: 0.75rem; margin-top: 8px; border: 1px solid rgba(253,230,138,0.6); position: relative; z-index: 2; }
 
-      .paid-info { text-align: center; padding: 12px; background: #ECFDF5; border-radius: 10px; color: #059669; font-weight: 600; font-size: 0.9rem; }
-      body.dark-mode .paid-info { background: #1e3a2f; color: #6ee7b7; }
-      .auto-delete-countdown { text-align: center; padding: 8px; background: #FEF3C7; border-radius: 8px; color: #92400E; font-weight: 600; font-size: 0.8rem; margin-top: 6px; }
-      body.dark-mode .auto-delete-countdown { background: rgba(146,64,14,0.2); color: #FCD34D; }
+      .section-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+      .toggle-section-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Quicksand', sans-serif; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.12); position: relative; z-index: 10; }
+      .toggle-btn-red { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); }
+      .toggle-btn-green { background: linear-gradient(135deg, #a8d4ba, #98c8aa); color: #2d5238; }
 
-      .no-data { text-align: center; padding: 60px 20px; background: linear-gradient(135deg,#F9FAFB,#F3F4F6); border-radius: 16px; color: #9CA3AF; font-size: 1.1rem; font-weight: 600; border: 1px solid rgba(0,0,0,0.05); }
-      body.dark-mode .no-data { background: linear-gradient(135deg,#2d3748,#252d3d); color: #718096; border-color: #4a5568; }
+      .btn-clear-paid { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.3s ease; font-family: 'Quicksand', sans-serif; position: relative; z-index: 10; }
+      .btn-clear-paid:hover { background: linear-gradient(135deg, #c41e3a, #a61828); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
+
+      .auto-delete-notice { font-size: 12px; color: #6a8060; margin: 8px 0 12px 0; padding: 8px 12px; background: rgba(216,243,230,0.5); border-radius: 8px; border-left: 3px solid #a8d4ba; font-style: italic; backdrop-filter: blur(4px); position: relative; z-index: 2; }
+
+      .modern-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; font-family: 'Quicksand', sans-serif; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
+
+      .debts-section { margin-bottom: 36px; }
+      .section-header { font-size: 1.2rem; font-weight: 700; color: #2d3748; display: flex; align-items: center; gap: 10px; }
+      .unpaid-header { color: #c95a6a; }
+      .paid-header { color: #4a8a6a; }
+
+      .no-data { text-align: center; padding: 48px 20px; background: rgba(248,248,248,0.6); border-radius: 12px; color: #a0a0a0; font-size: 1rem; font-weight: 600; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5); }
 
       @media (max-width: 768px) {
         .debtors-grid { grid-template-columns: 1fr; }
         .debtor-actions { flex-direction: column; }
-      }
-      @media (max-width: 480px) {
-        .summary-card { padding: 15px; } .card-icon { font-size: 1.8rem; margin-right: 12px; }
-        .card-value { font-size: 1.3rem; } .debtor-card { padding: 15px; }
-        .debtor-amount { font-size: 1.5rem; padding: 12px; } .total-value { font-size: 1.2rem; }
+        .summary-card { padding: 15px 16px; gap: 10px; }
+        .card-icon { font-size: 1.8rem; }
+        .card-value { font-size: 1.2rem; }
+        .debt-warning-banner { padding: 12px 14px; gap: 10px; }
+        .debt-warning-icon { font-size: 18px; }
+        .debt-warning-title { font-size: 12px; }
+        .debt-warning-text { font-size: 11px; }
       }
     </style>
   `;
 }
 
-// =============================================================================
-//  PART 3: EVENT LISTENERS
-// =============================================================================
-
-let selectedLoanProducts = [];
-let allAvailableProducts = [];
-
 function setupDebtorEventListeners() {
   document.querySelectorAll('.btn-mark-paid').forEach(btn => {
-    btn.addEventListener('click', function() {
-      markAsPaid(parseInt(this.getAttribute('data-debtor-id')));
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const debtorId = parseInt(this.getAttribute('data-debtor-id'));
+      console.log('Mark as paid clicked:', debtorId);
+      markAsPaid(debtorId);
     });
   });
   document.querySelectorAll('.btn-delete-debtor').forEach(btn => {
-    btn.addEventListener('click', function() {
-      deleteDebtor(parseInt(this.getAttribute('data-debtor-id')));
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const debtorId = parseInt(this.getAttribute('data-debtor-id'));
+      console.log('Delete clicked:', debtorId);
+      deleteDebtor(debtorId);
     });
   });
   const btnClearAllPaid = document.getElementById('btnClearAllPaid');
-  if (btnClearAllPaid) btnClearAllPaid.addEventListener('click', clearAllPaidDebtors);
-}
-
-// =============================================================================
-//  PART 3.5: CUSTOM CONFIRMATION MODAL
-// =============================================================================
-
-window.customConfirm = function(message, title = 'Confirm Action', options = {}) {
-  return new Promise((resolve) => {
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    const overlay    = document.createElement('div');
-    overlay.className = 'custom-confirm-overlay';
-
-    const lines       = message.split('\n\n');
-    const mainMessage = lines[0] || message;
-    const details     = lines.slice(1).join('\n\n');
-
-    overlay.innerHTML = `
-      <div class="custom-confirm-modal">
-        <div class="confirm-header">
-          <span class="confirm-icon">${options.icon || '❓'}</span>
-          <h3 class="confirm-title">${title}</h3>
-        </div>
-        <div class="confirm-body">
-          <p class="confirm-main-message">${mainMessage.replace(/\n/g, '<br>')}</p>
-          ${details ? `<div class="confirm-details">${details.replace(/\n/g, '<br>')}</div>` : ''}
-        </div>
-        <div class="confirm-actions">
-          ${options.cancelText !== '' ? `
-          <button class="confirm-btn confirm-btn-cancel" id="confirmCancel">
-            <span class="btn-icon">✕</span>
-            <span>${options.cancelText || 'Cancel'}</span>
-          </button>` : ''}
-          <button class="confirm-btn confirm-btn-ok" id="confirmOk">
-            <span class="btn-icon">✓</span>
-            <span>${options.okText || 'OK'}</span>
-          </button>
-        </div>
-      </div>
-      <style>
-        .custom-confirm-overlay { position:fixed;top:0;left:0;right:0;bottom:0;background:${isDarkMode?'rgba(0,0,0,0.8)':'rgba(0,0,0,0.6)'};backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:10000;animation:confirmFadeIn 0.25s ease-out; }
-        @keyframes confirmFadeIn  { from{opacity:0}to{opacity:1} }
-        @keyframes confirmFadeOut { from{opacity:1}to{opacity:0} }
-        @keyframes confirmSlideUp { from{transform:translateY(30px) scale(0.95);opacity:0}to{transform:translateY(0) scale(1);opacity:1} }
-        .custom-confirm-modal { background:${isDarkMode?'linear-gradient(145deg,#1e2530,#171c24)':'linear-gradient(145deg,#ffffff,#f8f9fa)'};border:1px solid ${isDarkMode?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.05)'};border-radius:24px;box-shadow:${isDarkMode?'0 25px 80px rgba(0,0,0,0.6)':'0 25px 60px rgba(0,0,0,0.2)'};max-width:500px;width:90%;overflow:hidden;animation:confirmSlideUp 0.35s cubic-bezier(0.34,1.56,0.64,1); }
-        .confirm-header { background:${isDarkMode?'linear-gradient(135deg,#2d4a3e,#1e3a2f)':'linear-gradient(135deg,#87B382,#689962)'};padding:25px 30px;display:flex;align-items:center;gap:15px;border-bottom:1px solid ${isDarkMode?'rgba(255,255,255,0.05)':'transparent'}; }
-        .confirm-icon { font-size:2.5rem; }
-        .confirm-title { color:${isDarkMode?'#e8f5e9':'white'};font-size:1.4rem;font-weight:700;margin:0;font-family:'Quicksand',sans-serif; }
-        .confirm-body { padding:30px; }
-        .confirm-main-message { font-size:1.1rem;color:${isDarkMode?'#e2e8f0':'#374151'};line-height:1.6;margin:0 0 15px 0;font-weight:600; }
-        .confirm-details { background:${isDarkMode?'rgba(255,255,255,0.04)':'#F9FAFB'};padding:20px;border-radius:12px;border-left:4px solid ${isDarkMode?'#4ade80':'#87B382'};margin-top:15px;font-size:0.95rem;color:${isDarkMode?'#a0aec0':'#6B7280'};line-height:1.8;white-space:pre-line; }
-        .confirm-actions { display:flex;gap:12px;padding:0 30px 30px 30px; }
-        .confirm-btn { flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:15px 25px;border:none;border-radius:14px;font-size:1rem;font-weight:700;font-family:'Quicksand',sans-serif;cursor:pointer;transition:all 0.3s; }
-        .confirm-btn:hover { transform:translateY(-3px); }
-        .confirm-btn-cancel { background:${isDarkMode?'linear-gradient(135deg,#4a2c2c,#3a2020)':'linear-gradient(135deg,#FEE2E2,#FECACA)'};color:${isDarkMode?'#f87171':'#DC2626'};border:1px solid ${isDarkMode?'rgba(248,113,113,0.3)':'#fca5a5'}; }
-        .confirm-btn-ok { background:${isDarkMode?'linear-gradient(135deg,#22c55e,#16a34a)':'linear-gradient(135deg,#87B382,#689962)'};color:white; }
-        .confirm-btn .btn-icon { font-size:1.2rem; }
-        @media(max-width:600px) { .confirm-actions { flex-direction:column;padding:0 20px 20px; } }
-      </style>
-    `;
-
-    document.body.appendChild(overlay);
-    const btnOk     = overlay.querySelector('#confirmOk');
-    const btnCancel = overlay.querySelector('#confirmCancel');
-    const cleanup   = (result) => {
-      overlay.style.animation = 'confirmFadeOut 0.2s ease-out forwards';
-      setTimeout(() => { if (document.body.contains(overlay)) document.body.removeChild(overlay); resolve(result); }, 200);
-    };
-    btnOk.addEventListener('click', () => cleanup(true));
-    if (btnCancel) btnCancel.addEventListener('click', () => cleanup(false));
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) cleanup(false); });
-    const handleEsc = (e) => { if (e.key === 'Escape') { cleanup(false); document.removeEventListener('keydown', handleEsc); } };
-    document.addEventListener('keydown', handleEsc);
-    setTimeout(() => btnOk.focus(), 100);
-  });
-};
-
-// =============================================================================
-//  PART 4: ADD DEBTOR (kept for external calls via cart)
-// =============================================================================
-
-async function addDebtor() {
-  const customerName = document.getElementById('debtorCustomerName')?.value.trim();
-  const contact      = document.getElementById('debtorContact')?.value.trim() || '';
-
-  if (!customerName) { alert('⚠️ Please enter customer name!'); return; }
-  if (selectedLoanProducts.length === 0) { alert('⚠️ Please select at least one product!'); return; }
-
-  let subtotal = 0;
-  selectedLoanProducts.forEach(item => { subtotal += item.price * item.quantity; });
-  subtotal = parseFloat(subtotal.toFixed(2));
-
-  const surchargePercent = parseFloat(window.storeSettings?.debtSurcharge || 0);
-  const surchargeAmount  = parseFloat(((surchargePercent / 100) * subtotal).toFixed(2));
-  const grandTotal       = parseFloat((subtotal + surchargeAmount).toFixed(2));
-
-  const now = new Date();
-  const dateTime = now.toLocaleString('en-US', { year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true });
-  const itemsList = selectedLoanProducts.map(p => `${p.name} (×${p.quantity})`).join(', ');
-  const amountLine = surchargePercent > 0
-    ? `Subtotal: ₱${subtotal.toFixed(2)}\nSurcharge (${surchargePercent}%): +₱${surchargeAmount.toFixed(2)}\nTotal: ₱${grandTotal.toFixed(2)}`
-    : `Total Amount: ₱${grandTotal.toFixed(2)}`;
-
-  const confirmed = await customConfirm(
-    `Add debtor with the following details?\n\nCustomer: ${customerName}\nContact: ${contact || 'N/A'}\nItems: ${itemsList}\n${amountLine}\nDate & Time: ${dateTime}`,
-    'Add New Debtor', { icon:'👤', okText:'Add Debtor', cancelText:'Cancel' }
-  );
-  if (!confirmed) return;
-
-  try {
-    const productsList = await DB.getProducts();
-    for (const item of selectedLoanProducts) {
-      const product = productsList.find(p => p.id === item.id);
-      if (product) {
-        const newQty = parseFloat(product.quantity || 0) - item.quantity;
-        if (newQty < 0) { alert(`⚠️ Insufficient stock for ${product.name}!`); return; }
-        await DB.updateProduct(item.id, { quantity: newQty });
-      }
-    }
-
-    await DB.addDebtor({
-      name: customerName, contact,
-      items: selectedLoanProducts.map(item => ({ product_id:item.id, name:item.name, price:item.price, cost:item.cost, quantity:item.quantity })),
-      original_total: subtotal, surcharge_percent: surchargePercent,
-      surcharge_amount: surchargeAmount, total_debt: grandTotal,
-      date_borrowed: new Date().toISOString(), paid: false
+  if (btnClearAllPaid) {
+    btnClearAllPaid.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Clear all paid clicked');
+      clearAllPaidDebtors();
     });
-
-    await renderDebtors();
-    if (typeof renderProfit === 'function') await renderProfit();
-    if (typeof renderSales  === 'function') await renderSales();
-
-    const successAmount = surchargePercent > 0
-      ? `₱${subtotal.toFixed(2)} + ₱${surchargeAmount.toFixed(2)} surcharge = ₱${grandTotal.toFixed(2)}`
-      : `₱${grandTotal.toFixed(2)}`;
-    await customConfirm(`Debtor successfully added!\n\nCustomer: ${customerName}\nAmount: ${successAmount}`, 'Debtor Added', { icon:'✅', okText:'Great!', cancelText:'' });
-
-  } catch (error) {
-    console.error('Error adding debtor:', error);
-    alert(`❌ Failed to add debtor: ${error.message}`);
-    try {
-      const productsList = await DB.getProducts();
-      for (const item of selectedLoanProducts) {
-        const product = productsList.find(p => p.id === item.id);
-        if (product) await DB.updateProduct(item.id, { quantity: parseFloat(product.quantity || 0) + item.quantity });
-      }
-    } catch (restoreError) { console.error('Failed to restore product quantities:', restoreError); }
   }
 }
 
-// =============================================================================
-//  PART 5: MARK AS PAID & DELETE
-// =============================================================================
+// ─── FUNCTIONAL IMPLEMENTATIONS ───────────────────────────────────────────────
 
 async function markAsPaid(debtorId) {
   try {
     const debtors = await DB.getDebtors();
-    const debtor  = debtors.find(d => d.id === debtorId);
+    const debtor  = debtors.find(d => parseInt(d.id) === parseInt(debtorId));
     if (!debtor) { alert('⚠️ Debtor not found!'); return; }
 
     const amount       = parseFloat(debtor.total_debt || 0);
     const customerName = debtor.name || 'Unknown';
 
-    const confirmed = await customConfirm(
+    const confirmed = await showModernConfirm(
       `Mark this debt as paid?\n\nCustomer: ${customerName}\nAmount: ₱${amount.toFixed(2)}\n\nThis will record the payment and move it to paid debts.`,
-      'Mark Debt as Paid', { icon:'💰', okText:'Mark as Paid', cancelText:'Cancel' }
+      '💰',
+      'Yes'
     );
     if (!confirmed) return;
 
@@ -697,47 +484,44 @@ async function markAsPaid(debtorId) {
       return { product_id: item.product_id || item.product || item.id || null, name: item.name || item.product_name || '', quantity: qty, price, cost };
     });
 
-    try { await DB.addSale({ total: amount, profit: totalProfit, payment_method: 'credit-paid', items: saleItems }); }
+    try { await DB.addSale({ total: amount, profit: totalProfit, payment_method: 'credit-paid', customer_name: customerName, items: saleItems }); }
     catch (saleError) { console.error('Error creating sale record:', saleError); }
 
     await renderDebtors();
     if (typeof renderProfit === 'function') await renderProfit();
     if (typeof renderSales  === 'function') await renderSales();
 
-    await customConfirm(`Debt successfully marked as paid!\n\nCustomer: ${customerName}\nAmount: ₱${amount.toFixed(2)}`, 'Payment Recorded', { icon:'✅', okText:'Great!', cancelText:'' });
+    await showModernAlert(`Debt successfully marked as paid!\n\nCustomer: ${customerName}\nAmount: ₱${amount.toFixed(2)}`, '✅');
 
   } catch (error) {
     console.error('Error marking as paid:', error);
-    try {
-      const refreshed = await DB.getDebtors();
-      const isNowPaid = refreshed.find(d => d.id === debtorId)?.paid;
-      if (isNowPaid) { await renderDebtors(); if (typeof renderProfit === 'function') await renderProfit(); if (typeof renderSales === 'function') await renderSales(); }
-      else alert(`❌ Failed to mark as paid: ${error.message}`);
-    } catch { alert(`❌ Failed to mark as paid: ${error.message}`); }
+    await showModernAlert(`Failed to mark as paid: ${error.message}`, '❌');
   }
 }
 
 async function deleteDebtor(debtorId) {
   try {
     const debtors = await DB.getDebtors();
-    const debtor  = debtors.find(d => d.id === debtorId);
+    const debtor  = debtors.find(d => parseInt(d.id) === parseInt(debtorId));
     if (!debtor) { alert('⚠️ Debtor not found!'); return; }
 
     const amount       = parseFloat(debtor.total_debt || 0);
     const customerName = debtor.name || 'Unknown';
     const isPaid       = debtor.paid || false;
 
-    const confirmed = await customConfirm(
+    const confirmed = await showModernConfirm(
       `Are you sure you want to delete this debt record?\n\nCustomer: ${customerName}\nAmount: ₱${amount.toFixed(2)}\nStatus: ${isPaid ? 'Paid' : 'Unpaid'}\n\n${!isPaid ? '⚠️ WARNING: This debt is unpaid! The loaned items will NOT be returned to inventory automatically.\n\n' : ''}This action cannot be undone!`,
-      'Delete Debt Record', { icon:'🗑️', okText:'Delete', cancelText:'Keep It' }
+      '🗑️',
+      'Yes'
     );
     if (!confirmed) return;
 
     let returnToInventory = false;
     if (!isPaid) {
-      returnToInventory = await customConfirm(
-        `Do you want to return the loaned items back to inventory?\n\nClick "Return Items" to restore stock.\nClick "Don't Return" to keep inventory as is.`,
-        'Return Items to Inventory?', { icon:'📦', okText:'Return Items', cancelText:"Don't Return" }
+      returnToInventory = await showModernConfirm(
+        `Do you want to return the loaned items back to inventory?\n\nClick "Confirm" to restore stock.\nClick "Cancel" to keep inventory as is.`,
+        '📦',
+        'Confirm'
       );
     }
 
@@ -754,14 +538,16 @@ async function deleteDebtor(debtorId) {
     await renderDebtors();
     if (returnToInventory && typeof renderInventory === 'function') await renderInventory();
 
-    await customConfirm(
-      returnToInventory ? `Debt record deleted and items returned to inventory!\n\nCustomer: ${customerName}` : `Debt record deleted.\n\nCustomer: ${customerName}`,
-      'Record Deleted', { icon:'✅', okText:'Done', cancelText:'' }
+    await showModernAlert(
+      returnToInventory
+        ? `Debt record deleted and items returned to inventory!\n\nCustomer: ${customerName}`
+        : `Debt record deleted.\n\nCustomer: ${customerName}`,
+      '✅'
     );
 
   } catch (error) {
     console.error('Error deleting debtor:', error);
-    alert(`❌ Failed to delete debtor: ${error.message}`);
+    await showModernAlert(`Failed to delete debtor: ${error.message}`, '❌');
   }
 }
 
@@ -769,30 +555,29 @@ async function clearAllPaidDebtors() {
   try {
     const debtors     = await DB.getDebtors();
     const paidDebtors = debtors.filter(d => d.paid);
-    if (paidDebtors.length === 0) { await customConfirm('There are no paid debts to clear.', 'Nothing to Clear', { icon:'📭', okText:'OK', cancelText:'' }); return; }
+    if (paidDebtors.length === 0) { await showModernAlert('There are no paid debts to clear.', '📭'); return; }
 
-    const confirmed = await customConfirm(
+    const confirmed = await showModernConfirm(
       `Are you sure you want to delete all ${paidDebtors.length} paid debt record${paidDebtors.length !== 1 ? 's' : ''}?\n\nThis action cannot be undone!`,
-      'Clear All Paid Debts', { icon:'🧹', okText:'Clear All', cancelText:'Cancel' }
+      '🧹',
+      'Yes'
     );
     if (!confirmed) return;
 
     await DB.clearPaidDebtors();
     await renderDebtors();
-    await customConfirm(`Successfully cleared ${paidDebtors.length} paid debt record${paidDebtors.length !== 1 ? 's' : ''}.`, 'Cleared!', { icon:'✅', okText:'Done', cancelText:'' });
+    await showModernAlert(`Successfully cleared ${paidDebtors.length} paid debt record${paidDebtors.length !== 1 ? 's' : ''}.`, '✅');
   } catch (error) {
     console.error('Error clearing paid debtors:', error);
-    alert(`❌ Failed to clear paid debtors: ${error.message}`);
+    await showModernAlert(`Failed to clear paid debtors: ${error.message}`, '❌');
   }
 }
 
-// =============================================================================
-//  EXPORTS
-// =============================================================================
-
-window.addDebtor           = addDebtor;
+// ─── EXPORTS ──────────────────────────────────────────────────────────────────
+window.renderDebtors       = renderDebtors;
 window.markAsPaid          = markAsPaid;
 window.deleteDebtor        = deleteDebtor;
 window.clearAllPaidDebtors = clearAllPaidDebtors;
+window.toggleDebtSection   = toggleDebtSection;
 
-console.log('✅ debtors.js loaded — hide/show toggles, Add New Debtor section removed.');
+console.log('✅ debtors.js loaded — FULLY FUNCTIONAL + GLASSMORPHIC');
