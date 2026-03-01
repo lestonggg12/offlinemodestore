@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Secret Key & Debug
 SECRET_KEY = config('DJANGO_SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 # Allowed Hosts
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-   'sarisaristore.store'
+   'sarisaristore.store',
 ]
 
 # Middleware
