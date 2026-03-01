@@ -101,7 +101,7 @@ else:
     CORS_ALLOWED_ORIGINS = [
         # Add actual allowed origins for production below
         "https://your.production.domain",
-        "https://monaresstore.up.railway.app",
+        "https://sarisaristore-production-2fa3.up.railway.app",
     ]
 
 CSRF_TRUSTED_ORIGINS = [
