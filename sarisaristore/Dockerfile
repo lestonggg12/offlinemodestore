@@ -7,10 +7,9 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-ENV PYTHONPATH=/app:/app/sarisaristore
+ENV PYTHONPATH=/app:/app/sarisistore
 ENV DJANGO_SETTINGS_MODULE=settings
 
 EXPOSE 8000
-CMD ["gunicorn", "wsgi:application", "--bind", "0.0.0.0:8000"]
-release: python manage.py collectstatic --noinput && python manage.py migrate
-web: gunicorn wsgi:application --bind 0.0.0.0:$PORT
+
+CMD ["gunicorn", "sarisistore.wsgi:application", "--bind", "0.0.0.0:8000"]
