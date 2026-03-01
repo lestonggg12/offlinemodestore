@@ -1,2 +1,3 @@
+python manage.py collectstatic --noinput
 python manage.py migrate
-gunicorn sarisaristore.wsgi
+gunicorn sarisaristore.sarisaristore.wsgi:application --bind 0.0.0.0:$PORT
