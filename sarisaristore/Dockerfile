@@ -8,11 +8,20 @@ RUN pip install -r requirements.txt
 COPY . .
 
 ENV PYTHONPATH=/app:/app/sarisaristore
+ENV DJANGO_SETTINGS_MODULE=sarisaristore.settings
 
 EXPOSE 8000
 CMD ["gunicorn", "sarisaristore.wsgi:application", "--bind", "0.0.0.0:8000"]
 ```
 
-**Note:** No `migrate` in the Dockerfile. Instead, in Railway → service → **Settings → Deploy → Release Command**, set:
+## And in Railway → service → Settings → Release Command:
 ```
 python manage.py migrate
+```
+
+## Also add these Railway environment variables:
+Go to Railway → **Variables** and add:
+```
+DJANGO_SECRET_KEY=bf9e1c219bbc7978256f3f8723265a7a
+DEBUG=False
+ALLOWED_HOSTS=.railway.app
