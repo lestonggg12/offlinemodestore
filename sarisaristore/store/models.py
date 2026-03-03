@@ -158,6 +158,8 @@ class Sale(models.Model):
     profit         = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
     user           = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    # In models.py, add to Sale model:
+    customer_name = models.CharField(max_length=200, blank=True, default='')
 
     def __str__(self):
         return f"Sale {self.id} — ₱{self.total} ({self.payment_method})"
