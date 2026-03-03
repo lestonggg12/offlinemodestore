@@ -362,6 +362,18 @@ const DB = {
     try {
       const allProducts = await this.getProducts();
       let totalProfit   = 0;
+      const paymentMethod = (sale.paymentType || sale.payment_method || 'cash').toLowerCase().trim();
+      const rawCustomerName = String(sale.customer_name || '').trim();
+      let normalizedCustomerName = rawCustomerName;
+
+      if (paymentMethod === 'cash' && !normalizedCustomerName) {
+        normalizedCustomerName = 'N/A';
+      }
+
+      if (paymentMethod.startsWith('credit') && !normalizedCustomerName) {
+        throw new Error('Customer name is required for credit transactions.');
+      }
+
       const itemsWithCost = sale.items.map(item => {
         const product   = allProducts.find(p => p.id === (item.id || item.productId || item.product_id));
         const itemCost  = item.cost != null ? parseFloat(item.cost) : (product ? parseFloat(product.cost) : 0);
@@ -373,8 +385,8 @@ const DB = {
      const saleData = {
   total:          parseFloat(sale.total.toFixed(2)),
   profit:         parseFloat(totalProfit.toFixed(2)),
-  payment_method: sale.paymentType || sale.payment_method || 'cash',
-  customer_name:  sale.customer_name || '',    // ← ADD THIS
+  payment_method: paymentMethod,
+  customer_name:  normalizedCustomerName,
   items:          itemsWithCost,
 };
       const newSale = await this.apiCall('/sales/', 'POST', saleData);

@@ -76,7 +76,22 @@ class SaleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model  = Sale
-        fields = ['id', 'date', 'total', 'profit', 'payment_method', 'user', 'items']
+        fields = ['id', 'date', 'total', 'profit', 'payment_method', 'customer_name', 'user', 'items']
+
+    def validate(self, attrs):
+        payment_method = str(attrs.get('payment_method', '')).strip().lower()
+        customer_name = str(attrs.get('customer_name', '') or '').strip()
+
+        if payment_method == 'cash' and not customer_name:
+            customer_name = 'N/A'
+
+        if payment_method.startswith('credit') and not customer_name:
+            raise serializers.ValidationError({
+                'customer_name': 'Customer name is required for credit transactions.'
+            })
+
+        attrs['customer_name'] = customer_name
+        return attrs
 
     def create(self, validated_data):
         items_data = validated_data.pop('items', [])

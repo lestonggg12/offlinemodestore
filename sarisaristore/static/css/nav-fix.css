@@ -445,16 +445,30 @@ body.dark-mode .clear-search-btn { background: #2a3d2a !important; color: #a0c8a
     #cartSearchWrapper { padding: 8px 10px 4px !important; }
     .cart-search-bar   { min-height: 42px !important; border-radius: 12px !important; }
 }
-}
 /* ============================================================
    FIX: Remove inner scrollbar — let the page scroll naturally
    ============================================================ */
-html, body {
+html {
     height: 100%;
     overflow-x: hidden;
 }
 
+body {
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+}
+
 .page-container {
+    height: auto !important;
+    max-height: none !important;
     min-height: unset !important;
     overflow: visible !important;
+}
+
+#mainContent,
+.page,
+.page.active-page {
+    max-height: none !important;
+    overflow-y: visible !important;
 }

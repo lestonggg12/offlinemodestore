@@ -769,6 +769,7 @@ function renderPotentialProfitCard(products = []) {
 }
 
 // ─── renderRecentSales ────────────────────────────────────────────────────────
+
 function renderRecentSales(recentSales) {
   if (!Array.isArray(recentSales) || recentSales.length === 0) {
     return `
@@ -795,8 +796,13 @@ function renderRecentSales(recentSales) {
 
     const total        = parseFloat(sale.total) || 0;
     const profit       = parseFloat(sale.profit || sale.total_profit) || 0;
-    const customerName = sale.customer_name || sale.customerName || '';
+    
     const pmRaw        = (sale.paymentType || sale.payment_method || 'cash').toLowerCase().trim();
+    const customerName = (sale.customer_name || sale.customerName || '').trim();
+    const displayName  = customerName
+      ? customerName
+      : (pmRaw === 'cash' ? 'N/A' : (pmRaw.startsWith('credit') ? 'Missing Debtor Name' : 'Walk-in Customer'));
+
     const pmClass      = pmRaw.replace(/\s+/g,'-');
     const pmLabel      = pmRaw.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 
@@ -806,7 +812,7 @@ function renderRecentSales(recentSales) {
           <div>
             <div class="p-sale-date">${fDate}</div>
             <div class="p-sale-time">${fTime}</div>
-            <div class="p-sale-customer">👤 ${customerName||'N/A'}</div>
+            <div class="p-sale-customer">👤 ${displayName}</div>
           </div>
           <span class="payment-badge ${pmClass}">${pmLabel}</span>
         </div>
@@ -827,7 +833,6 @@ function renderRecentSales(recentSales) {
   html += '</div>';
   return html;
 }
-
 // ─── clearTransactionHistory ──────────────────────────────────────────────────
 async function clearTransactionHistory() {
   try {
