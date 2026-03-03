@@ -37,9 +37,7 @@
 
 
 /* Prevent <style> tags from rendering as visible text */
-style {
-    display: none !important;
-}
+style { display: none !important; }
 
 html {
     height: 100%;
