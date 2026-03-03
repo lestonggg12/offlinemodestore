@@ -545,6 +545,25 @@ def calendar_data(request):
         except Exception as cleanup_err:
             print(f'⚠️  Auto-cleanup failed (non-fatal): {cleanup_err}')
 
+        # ── Backfill PaymentHistory for paid debtors missing records ──────────
+        try:
+            existing_ids = set(
+                PaymentHistory.objects.values_list('debtor_id', flat=True)
+            )
+            missing = (
+                Debtor.objects
+                .filter(paid=True)
+                .exclude(pk__in=existing_ids)
+                .prefetch_related('items__product')
+            )
+            for debtor in missing:
+                try:
+                    PaymentHistory.record_from_debtor(debtor)
+                except Exception:
+                    pass
+        except Exception as bf_err:
+            print(f'⚠️  Payment backfill failed (non-fatal): {bf_err}')
+
         year  = int(request.GET.get('year',  datetime.now().year))
         month = int(request.GET.get('month', datetime.now().month))
 
@@ -772,6 +791,41 @@ def cleanup_old_data(request):
 # =============================================================================
 #  10. BACKFILL
 # =============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def backfill_payment_history(request):
+    """
+    Scan all paid Debtors that do NOT yet have a PaymentHistory record
+    and create one.  This is a one-time repair for debts that were paid
+    while the PaymentHistory table was broken.
+    """
+    try:
+        existing_ids = set(
+            PaymentHistory.objects.values_list('debtor_id', flat=True)
+        )
+        paid_debtors = (
+            Debtor.objects
+            .filter(paid=True)
+            .exclude(pk__in=existing_ids)
+            .prefetch_related('items__product')
+        )
+        created = 0
+        for debtor in paid_debtors:
+            try:
+                PaymentHistory.record_from_debtor(debtor)
+                created += 1
+            except Exception as e:
+                print(f'⚠️  Backfill failed for debtor {debtor.pk}: {e}')
+        return Response({
+            'message': f'Backfilled {created} PaymentHistory record(s)',
+            'created': created,
+            'status':  'success',
+        })
+    except Exception as e:
+        traceback.print_exc()
+        return Response({'error': str(e), 'status': 'error'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

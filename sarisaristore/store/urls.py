@@ -74,7 +74,8 @@ urlpatterns = [
     path('api/calendar/',                views.calendar_data,    name='calendar-data'),
     path('api/calendar/generate/',       views.generate_summary, name='generate-summary'),
     path('api/calendar/cleanup/',        views.cleanup_old_data, name='cleanup-old-data'),
-    path('api/calendar/backfill/',       views.backfill_summaries, name='backfill-summaries'),
+    path('api/calendar/backfill/',           views.backfill_summaries,        name='backfill-summaries'),
+    path('api/calendar/backfill-payments/', views.backfill_payment_history, name='backfill-payments'),
     path('api/calendar/<str:date_str>/', views.date_details,     name='date-details'),
 
     # ── Transaction Cleanup API ───────────────────────────────────────────────
