@@ -688,12 +688,10 @@ async function renderCategoryInventory(content, categoryId) {
     const outOfStock    = products.filter(p => parseFloat(p.quantity||0) === 0).length;
     const totalValue    = products.reduce((s,p) => s+(parseFloat(p.cost||0)*parseFloat(p.quantity||0)), 0);
 
-    let html = `
+   let html = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:15px;">
             <div>
                 <h2 style="color:#2d3a2d;margin:0;font-size:1.8rem;font-weight:900;">${category.icon} ${category.name}</h2>
-                body.dark-mode #inventoryContent .gl-cat-name,
-                 
                 <p style="color:#7a9070;margin:5px 0 0;font-size:14px;font-weight:600;">Manage products in this category</p>
             </div>
             <button id="btnBackToCategories">← Back to Categories</button>
