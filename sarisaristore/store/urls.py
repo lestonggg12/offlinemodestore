@@ -24,6 +24,10 @@ from django.urls import path
 from . import views
 from django.views.generic import RedirectView
 from django.http import HttpResponse
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({'status': 'ok'})
 def favicon(request):
     return HttpResponse(status=204)
 
@@ -75,4 +79,4 @@ urlpatterns = [
 
     # ── Transaction Cleanup API ───────────────────────────────────────────────
     path('api/transactions/cleanup-old/', views.cleanup_old_transactions, name='cleanup-old-transactions'),
-]
+    path('health/', health_check, name='health'),]
