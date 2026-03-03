@@ -288,7 +288,7 @@
                 <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search" style="background: none; border: none; color: #b0b0b0; font-size: 1.2rem; cursor: pointer; border-radius: 50%; width: 28px; height: 28px; display: none; align-items: center; justify-content: center; transition: background 0.15s;">✕</button>
             </div>
         </div>
-        <style>
+        <style id="cartSearchDarkModeStyles">
         body.dark-mode #cartSearchBar {
             background: #23282b !important;
             border: 1.5px solid #23282b !important;
@@ -431,7 +431,46 @@
             if (results) results.innerHTML = '';
         });
     });
-    </script>
+    // ── Neutralize injected <style> tags added to <body> ──
+    (function() {
+        var allowedBodyStyleIds = {
+            cartSearchDarkModeStyles: true
+        };
+
+        function shouldNeutralizeStyle(styleEl) {
+            if (!styleEl || styleEl.tagName !== 'STYLE') return false;
+            if (styleEl.parentElement !== document.body) return false;
+            if (styleEl.id && allowedBodyStyleIds[styleEl.id]) return false;
+            return true;
+        }
+
+        function neutralizeStyle(styleEl) {
+            if (!shouldNeutralizeStyle(styleEl)) return;
+            styleEl.disabled = true;
+            if (styleEl.parentNode) {
+                styleEl.parentNode.removeChild(styleEl);
+            }
+        }
+
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(m) {
+                m.addedNodes.forEach(function(node) {
+                    if (node.nodeType !== 1) return;
+                    if (node.tagName === 'STYLE') {
+                        neutralizeStyle(node);
+                        return;
+                    }
+                    node.querySelectorAll('style').forEach(neutralizeStyle);
+                });
+            });
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('body > style').forEach(neutralizeStyle);
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
+    })();
+
+        </script>
 
 </body>
 </html>
