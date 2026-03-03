@@ -10,12 +10,17 @@ SECRET_KEY = config('DJANGO_SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # Allowed Hosts
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
-
-# Automatically trust the Railway-assigned public domain (Railway injects this env var)
+is_railway_env = bool(os.environ.get('RAILWAY_ENVIRONMENT'))
 railway_public_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
-if railway_public_domain and railway_public_domain not in ALLOWED_HOSTS:
-    ALLOWED_HOSTS.append(railway_public_domain)
+
+if is_railway_env:
+    # Railway sits behind its own proxy; allow all hosts so internal
+    # health-checks and the public domain both work.
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+    if railway_public_domain and railway_public_domain not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(railway_public_domain)
 
 # Applications
 INSTALLED_APPS = [
@@ -68,7 +73,6 @@ DATABASE_URL = config('DATABASE_URL', default='')
 # Railway's network.  If the URL references that host but we are NOT running
 # inside Railway (i.e. RAILWAY_ENVIRONMENT is absent), ignore it so that
 # local `manage.py migrate` falls back to SQLite instead of crashing.
-is_railway_env = bool(os.environ.get('RAILWAY_ENVIRONMENT'))
 is_railway_internal_url = 'railway.internal' in DATABASE_URL
 if DATABASE_URL and (not is_railway_internal_url or is_railway_env):
     DATABASES = {'default': dj_database_url.parse(DATABASE_URL)}

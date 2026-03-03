@@ -5,6 +5,7 @@
   },
   "deploy": {
     "restartPolicyType": "ON_FAILURE",
-    "healthcheckPath": "/"
+    "healthcheckPath": "/health/",
+    "healthcheckTimeout": 30
   }
 }
