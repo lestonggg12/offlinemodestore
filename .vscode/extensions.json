@@ -1,0 +1,10 @@
+{
+  // VS Code will show a prompt to install these when you open the project.
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "batisteo.vscode-django",
+    "eamodio.gitlens"
+  ]
+}

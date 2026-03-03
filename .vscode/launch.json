@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Press F5 (or click the green play button) to start the Django dev server
+      // with the VS Code debugger attached — set breakpoints anywhere in your code.
+      "name": "Django: runserver",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["runserver"],
+      "django": true,
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "sarisaristore.sarisaristore.settings"
+      },
+      "justMyCode": true
+    }
+  ]
+}

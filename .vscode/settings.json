@@ -1,0 +1,17 @@
+{
+  // Point VS Code at the virtual-environment interpreter.
+  // Run: python -m venv venv  to create it first.
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+
+  // Load .env variables for the editor (IntelliSense, linting, etc.)
+  "python.envFile": "${workspaceFolder}/.env",
+
+  // Tell the Django extension where your settings module lives
+  "python.analysis.extraPaths": ["${workspaceFolder}"],
+  "django.settingsModule": "sarisaristore.sarisaristore.settings",
+
+  // Auto-format Python files on save
+  "[python]": {
+    "editor.formatOnSave": true
+  }
+}

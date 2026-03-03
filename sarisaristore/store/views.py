@@ -29,6 +29,7 @@ from rest_framework.response import Response
 from .models import (
     Category, Product, Sale, SaleItem,
     Debtor, DebtorItem, StoreSettings, DailySummary, PeriodTotals,
+    PaymentHistory,
 )
 from .serializers import (
     CategorySerializer, ProductSerializer, SaleSerializer, DebtorSerializer,
@@ -298,9 +299,16 @@ def debtor_detail(request, pk):
     if request.method == 'GET':
         return Response(DebtorSerializer(debtor).data)
     if request.method == 'PUT':
+        was_paid = debtor.paid
         serializer = DebtorSerializer(debtor, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            updated = serializer.save()
+            # Record payment history the first time a debt is marked as paid
+            if not was_paid and updated.paid:
+                try:
+                    PaymentHistory.record_from_debtor(updated)
+                except Exception as e:
+                    print(f'⚠️  PaymentHistory record failed for debtor {updated.pk}: {e}')
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     debtor.delete()
@@ -310,8 +318,13 @@ def debtor_detail(request, pk):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def clear_paid_debtors(request):
-    paid  = Debtor.objects.filter(paid=True)
+    paid  = Debtor.objects.filter(paid=True).prefetch_related('items__product')
     count = paid.count()
+    for debtor in paid:
+        try:
+            PaymentHistory.record_from_debtor(debtor)
+        except Exception as e:
+            print(f'⚠️  PaymentHistory record failed for debtor {debtor.pk}: {e}')
     paid.delete()
     return Response({'message': f'{count} paid debtors cleared', 'count': count})
 
@@ -320,9 +333,14 @@ def clear_paid_debtors(request):
 @permission_classes([IsAuthenticated])
 def auto_cleanup_paid_debtors(request):
     cutoff   = timezone.now() - timedelta(days=7)
-    old_paid = Debtor.objects.filter(paid=True, date_paid__lte=cutoff)
+    old_paid = Debtor.objects.filter(paid=True, date_paid__lte=cutoff).prefetch_related('items__product')
     count    = old_paid.count()
     if count > 0:
+        for debtor in old_paid:
+            try:
+                PaymentHistory.record_from_debtor(debtor)
+            except Exception as e:
+                print(f'⚠️  PaymentHistory record failed for debtor {debtor.pk}: {e}')
         old_paid.delete()
     return Response({'message': f'{count} old paid debtors auto-deleted', 'count': count})
 
@@ -540,7 +558,16 @@ def calendar_data(request):
             for s in summaries
         ]
 
-        return Response({'year': year, 'month': month, 'summaries': result})
+        paid_debt_dates = [
+            d.strftime('%Y-%m-%d')
+            for d in PaymentHistory.objects.filter(
+                date_paid__year=year,
+                date_paid__month=month,
+            ).values_list('date_paid', flat=True).distinct()
+        ]
+
+        return Response({'year': year, 'month': month, 'summaries': result,
+                         'paid_debt_dates': paid_debt_dates})
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -551,11 +578,22 @@ def date_details(request, date_str):
     try:
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
 
+        # ── PaymentHistory for this date (survives debtor deletion) ──────────
+        debts_paid = []
+        for record in PaymentHistory.objects.filter(date_paid=target_date):
+            try:    items = json.loads(record.items_json)
+            except (json.JSONDecodeError, ValueError): items = []
+            debts_paid.append({
+                'customer_name': record.customer_name,
+                'total_amount':  float(record.total_amount),
+                'items':         items,
+            })
+
         try:
             ds = DailySummary.objects.get(date=target_date)
             if ds.transaction_count > 0:
                 try:    products_list = json.loads(ds.products_sold)
-                except: products_list = []
+                except (json.JSONDecodeError, ValueError): products_list = []
                 return Response({
                     'date':                   date_str,
                     'total_revenue':           float(ds.total_revenue),
@@ -566,6 +604,7 @@ def date_details(request, date_str):
                     'best_seller_by_profit':   ds.best_seller_by_profit,
                     'best_seller_profit':      float(ds.best_seller_profit) if ds.best_seller_profit else 0,
                     'products_sold_list':      products_list,
+                    'debts_paid':              debts_paid,
                     'source':                  'summary',
                 })
         except DailySummary.DoesNotExist:
@@ -589,6 +628,7 @@ def date_details(request, date_str):
                 'total_profit':       0,
                 'transaction_count':  0,
                 'products_sold_list': [],
+                'debts_paid':         debts_paid,
             })
 
         product_stats = {}
@@ -618,6 +658,7 @@ def date_details(request, date_str):
             'best_seller_by_profit':   bbp['name']     if bbp else None,
             'best_seller_profit':      bbp['profit']   if bbp else 0,
             'products_sold_list':      pl,
+            'debts_paid':              debts_paid,
             'source':                  'live',
         })
     except Exception as e:
@@ -653,7 +694,11 @@ def cleanup_old_data(request):
     try:
         cutoff           = datetime.now().date() - timedelta(days=365)
         deleted_count, _ = DailySummary.objects.filter(date__lt=cutoff).delete()
-        return Response({'message': f'Deleted {deleted_count} old summaries', 'deleted_count': deleted_count})
+        ph_deleted       = PaymentHistory.cleanup_expired()
+        return Response({
+            'message':       f'Deleted {deleted_count} old summaries and {ph_deleted} expired payment records',
+            'deleted_count': deleted_count,
+        })
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

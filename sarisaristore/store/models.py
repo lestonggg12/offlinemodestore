@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.utils import timezone
+import json
 import re
 import secrets
 
@@ -284,6 +285,59 @@ class DailySummary(models.Model):
             }
         )
         return summary
+
+
+class PaymentHistory(models.Model):
+    """
+    Persists a record of a paid debt for 1 year so it remains visible in the
+    calendar even after the Debtor row is deleted.
+    debtor_id stores the original Debtor PK (not a FK — intentional, so it
+    survives deletion of the Debtor row).
+    """
+    debtor_id     = models.IntegerField(db_index=True, unique=True)
+    date_paid     = models.DateField(db_index=True)
+    customer_name = models.CharField(max_length=200)
+    total_amount  = models.DecimalField(max_digits=12, decimal_places=2)
+    items_json    = models.TextField(default='[]', blank=True)
+    expires_at    = models.DateField()
+    created_at    = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.customer_name} paid ₱{self.total_amount} on {self.date_paid}"
+
+    class Meta:
+        ordering = ['-date_paid', '-created_at']
+        verbose_name_plural = 'Payment History'
+
+    @classmethod
+    def record_from_debtor(cls, debtor):
+        """Create or update a PaymentHistory record from a Debtor instance."""
+        date_paid = debtor.date_paid.date() if debtor.date_paid else timezone.now().date()
+        items = [
+            {
+                'product_name': item.product.name if item.product else 'Unknown',
+                'quantity': item.quantity,
+                'price': float(item.price),
+            }
+            for item in debtor.items.select_related('product').all()
+        ]
+        cls.objects.update_or_create(
+            debtor_id=debtor.pk,
+            defaults={
+                'date_paid':     date_paid,
+                'customer_name': debtor.name,
+                'total_amount':  debtor.total_debt,
+                'items_json':    json.dumps(items),
+                'expires_at':    date_paid + timedelta(days=365),
+            },
+        )
+
+    @classmethod
+    def cleanup_expired(cls):
+        """Delete records whose 1-year retention window has passed."""
+        today = timezone.now().date()
+        deleted, _ = cls.objects.filter(expires_at__lt=today).delete()
+        return deleted
 
 
 class PeriodTotals(models.Model):

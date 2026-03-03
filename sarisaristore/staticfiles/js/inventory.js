@@ -487,6 +487,7 @@ console.log('📦 Loading inventory module...');
         body.dark-mode #inventoryContent .gl-empty-sub   { color: #4a6050 !important; }
         body.dark-mode #inventoryContent .cat-btn-edit   { background: rgba(40,70,45,0.8) !important; }
         body.dark-mode #inventoryContent .cat-btn-delete { background: rgba(80,30,25,0.8) !important; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     `;
     document.head.appendChild(s);
 })();
@@ -563,7 +564,6 @@ window.renderInventory = async function () {
             <div style="font-size:48px;animation:spin 1s linear infinite;">⏳</div>
             <p style="color:#666;margin-top:10px;">Loading inventory...</p>
         </div>
-        <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
     `;
 
     try {

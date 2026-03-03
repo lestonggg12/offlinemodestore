@@ -1,0 +1,55 @@
+{
+  // These tasks appear under Terminal → Run Task in VS Code.
+  // You do NOT need to remember any terminal commands — just pick a task and run it.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "1. Create virtual environment",
+      "type": "shell",
+      "command": "python -m venv venv",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "2. Install dependencies",
+      "type": "shell",
+      "command": "pip install -r requirements.txt",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "3. Apply migrations",
+      "type": "shell",
+      "command": "python manage.py migrate",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "4. Run dev server (use F5 instead to get debugger)",
+      "type": "shell",
+      "command": "python manage.py runserver",
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Collect static files",
+      "type": "shell",
+      "command": "python manage.py collectstatic --noinput",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Create superuser",
+      "type": "shell",
+      "command": "python manage.py createsuperuser",
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "shared" },
+      "problemMatcher": []
+    }
+  ]
+}
