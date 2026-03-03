@@ -603,16 +603,55 @@ def date_details(request, date_str):
     try:
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
 
+        # ── Backfill any missing PaymentHistory records first ────────────────
+        try:
+            existing_ids = set(
+                PaymentHistory.objects.values_list('debtor_id', flat=True)
+            )
+            for debtor in Debtor.objects.filter(paid=True).exclude(pk__in=existing_ids).prefetch_related('items__product'):
+                try:
+                    PaymentHistory.record_from_debtor(debtor)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
         # ── PaymentHistory for this date (survives debtor deletion) ──────────
         debts_paid = []
         for record in PaymentHistory.objects.filter(date_paid=target_date):
-            try:    items = json.loads(record.items_json)
-            except (json.JSONDecodeError, ValueError): items = []
+            try:    items = json.loads(record.items_json) if record.items_json else []
+            except (json.JSONDecodeError, ValueError, TypeError): items = []
             debts_paid.append({
-                'customer_name': record.customer_name,
-                'total_amount':  float(record.total_amount),
+                'customer_name': record.customer_name or 'Unknown',
+                'total_amount':  float(record.total_amount or 0),
                 'items':         items,
             })
+
+        # ── Fallback: if PaymentHistory is empty, check credit-paid Sales ────
+        if not debts_paid:
+            day_start = datetime.combine(target_date, time.min)
+            day_end   = datetime.combine(target_date, time.max)
+            if timezone.is_aware(timezone.now()):
+                day_start = timezone.make_aware(day_start)
+                day_end   = timezone.make_aware(day_end)
+            credit_paid_sales = Sale.objects.filter(
+                date__gte=day_start, date__lte=day_end,
+                payment_method='credit-paid',
+            ).prefetch_related('items__product')
+            for sale in credit_paid_sales:
+                sale_items = [
+                    {
+                        'product_name': si.product.name if si.product else 'Unknown',
+                        'quantity':     si.quantity,
+                        'price':        float(si.price),
+                    }
+                    for si in sale.items.all()
+                ]
+                debts_paid.append({
+                    'customer_name': sale.customer_name or 'Unknown',
+                    'total_amount':  float(sale.total),
+                    'items':         sale_items,
+                })
 
         try:
             ds = DailySummary.objects.get(date=target_date)
