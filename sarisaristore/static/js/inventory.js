@@ -420,6 +420,11 @@ console.log('📦 Loading inventory module...');
         }
         #inventoryContent .gl-empty-title { color: #7a9070; font-size: 1.4rem; margin-bottom: 8px; font-weight: 800; }
         #inventoryContent .gl-empty-sub   { color: #a0b8a0; font-size: 15px; margin: 0; }
+        /* ════════ PREVENT STYLE TAG LEAKAGE ════════ */
+        #inventoryContent style,
+        #mainContent style {
+            display: none !important;
+        }
 
         /* ════════ MOBILE RESPONSIVE ════════ */
         @media(max-width:768px) {
