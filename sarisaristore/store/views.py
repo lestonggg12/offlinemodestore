@@ -539,6 +539,12 @@ def update_periods(request):
 @permission_classes([IsAuthenticated])
 def calendar_data(request):
     try:
+        # ── Auto-cleanup records older than 1 year (lightweight / idempotent) ──
+        try:
+            _auto_cleanup_old_records()
+        except Exception as cleanup_err:
+            print(f'⚠️  Auto-cleanup failed (non-fatal): {cleanup_err}')
+
         year  = int(request.GET.get('year',  datetime.now().year))
         month = int(request.GET.get('month', datetime.now().month))
 
@@ -688,16 +694,76 @@ def generate_summary(request):
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+def _snapshot_last_year_totals():
+    """
+    Snapshot last year's aggregate into PeriodTotals BEFORE we delete the
+    underlying DailySummary rows.  This keeps 'Last Year' visible in the
+    dashboard even after old data is purged.
+    """
+    today    = timezone.now().date()
+    ly       = today.year - 1
+    ly_start = datetime(ly, 1,  1).date()
+    ly_end   = datetime(ly, 12, 31).date()
+    rev, prof, cnt = _get_period_data(ly_start, ly_end)
+    if cnt > 0:
+        PeriodTotals.objects.update_or_create(
+            period_type='last_year',
+            defaults={
+                'revenue':      rev,
+                'profit':       prof,
+                'sales_count':  cnt,
+                'period_start': ly_start,
+                'period_end':   ly_end,
+            },
+        )
+
+
+def _auto_cleanup_old_records():
+    """
+    Delete all sales, daily summaries, and payment-history records older than
+    365 days.  Called automatically on calendar load (idempotent / lightweight
+    — does nothing when there is no old data).
+
+    Returns a dict with deletion counts, or None when nothing was deleted.
+    """
+    cutoff = timezone.now().date() - timedelta(days=365)
+    cutoff_dt = timezone.make_aware(datetime.combine(cutoff, time.min))
+
+    old_summaries = DailySummary.objects.filter(date__lt=cutoff)
+    old_sales     = Sale.objects.filter(date__lt=cutoff_dt)
+
+    if not old_summaries.exists() and not old_sales.exists():
+        # Quick exit — no expensive queries needed.
+        PaymentHistory.cleanup_expired()
+        return None
+
+    # Snapshot last-year totals before deleting the rows they depend on.
+    _snapshot_last_year_totals()
+
+    summary_del, _ = old_summaries.delete()
+    sale_del, _    = old_sales.delete()         # cascades to SaleItem
+    ph_del         = PaymentHistory.cleanup_expired()
+
+    return {
+        'summaries_deleted':         summary_del,
+        'sales_deleted':             sale_del,
+        'payment_records_deleted':   ph_del,
+    }
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def cleanup_old_data(request):
     try:
-        cutoff           = datetime.now().date() - timedelta(days=365)
-        deleted_count, _ = DailySummary.objects.filter(date__lt=cutoff).delete()
-        ph_deleted       = PaymentHistory.cleanup_expired()
+        result = _auto_cleanup_old_records()
+        if result is None:
+            return Response({'message': 'No old records to delete', 'deleted_count': 0})
+        total = sum(result.values())
         return Response({
-            'message':       f'Deleted {deleted_count} old summaries and {ph_deleted} expired payment records',
-            'deleted_count': deleted_count,
+            'message':       f'Deleted {total} old records (summaries: {result["summaries_deleted"]}, '
+                             f'sales: {result["sales_deleted"]}, payment records: {result["payment_records_deleted"]})',
+            'deleted_count': total,
+            **result,
         })
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

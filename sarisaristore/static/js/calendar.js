@@ -85,6 +85,15 @@ async function renderCalendar() {
     const html = `
       <div class="calendar-container">
 
+        <!-- ── Retention Warning Banner ── -->
+        <div class="calendar-retention-banner">
+          <span class="retention-icon">⚠️</span>
+          <span class="retention-text">
+            Sales records, daily summaries, and paid debt entries older than <strong>1 year</strong>
+            are automatically deleted to free up space. Last Year's totals are preserved.
+          </span>
+        </div>
+
         <!-- ── Month Navigation ── -->
         <div class="calendar-nav">
           <button class="calendar-nav-btn" id="prevMonth"><span>←</span></button>
@@ -204,6 +213,32 @@ async function renderCalendar() {
           border-color: rgba(135,179,130,0.25);
         }
         body.dark-mode .jump-label { color: #87B382; }
+
+        /* ── Retention warning banner ── */
+        .calendar-retention-banner {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px 16px;
+          margin-bottom: 18px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.08));
+          border: 1.5px solid rgba(245,158,11,0.30);
+          backdrop-filter: blur(8px);
+        }
+        .retention-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
+        .retention-text {
+          font-size: 12px;
+          color: #92400e;
+          line-height: 1.5;
+          font-weight: 500;
+        }
+        .retention-text strong { font-weight: 800; }
+        body.dark-mode .calendar-retention-banner {
+          background: linear-gradient(135deg, rgba(120,80,0,0.25), rgba(100,60,0,0.15));
+          border-color: rgba(245,158,11,0.20);
+        }
+        body.dark-mode .retention-text { color: #fbbf24; }
       </style>
     `;
 
