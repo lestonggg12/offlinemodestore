@@ -1,15 +1,13 @@
 """
-Repair migration — Ensures ALL columns exist on store_paymenthistory.
+Repair migration (part 2) — Adds ALL missing columns to store_paymenthistory.
 
-Migration 0016 created the PaymentHistory table but on the Railway Postgres
-instance the columns are missing (migration was faked).  This migration
-introspects the schema and adds every missing column idempotently.
+Migration 0017 only repaired debtor_id. This migration ensures every column
+from the model definition exists in the actual database table.
 """
 
 from django.db import connection, migrations
 
 
-# Each tuple: (column_name, SQL type, default_clause_or_empty)
 EXPECTED_COLUMNS = [
     ('debtor_id',     'INTEGER',                       ''),
     ('date_paid',     'DATE',                          "DEFAULT '2000-01-01'"),
@@ -17,7 +15,7 @@ EXPECTED_COLUMNS = [
     ('total_amount',  'NUMERIC(12,2)',                  'DEFAULT 0'),
     ('items_json',    'TEXT',                           "DEFAULT '[]'"),
     ('expires_at',    'DATE',                           "DEFAULT '2000-01-01'"),
-    ('created_at',    'TIMESTAMP WITH TIME ZONE',       ''),      # Postgres
+    ('created_at',    'TIMESTAMP WITH TIME ZONE',       ''),
 ]
 
 SQLITE_TYPE_OVERRIDES = {
@@ -27,7 +25,6 @@ SQLITE_TYPE_OVERRIDES = {
 
 
 def repair_paymenthistory(apps, schema_editor):
-    """Idempotently add every missing column to store_paymenthistory."""
     with connection.cursor() as cursor:
         existing = {
             col.name
@@ -35,26 +32,21 @@ def repair_paymenthistory(apps, schema_editor):
                 cursor, 'store_paymenthistory'
             )
         }
-        vendor = connection.vendor  # 'postgresql' or 'sqlite'
+        vendor = connection.vendor
 
         for col_name, col_type, default_clause in EXPECTED_COLUMNS:
             if col_name in existing:
                 continue
-
-            # SQLite has narrower type support
             if vendor != 'postgresql':
                 col_type = SQLITE_TYPE_OVERRIDES.get(col_type, col_type)
-
             parts = [
                 'ALTER TABLE store_paymenthistory ADD COLUMN',
-                col_name,
-                col_type,
+                col_name, col_type,
             ]
             if default_clause:
                 parts.append(default_clause)
             cursor.execute(' '.join(parts) + ';')
 
-        # ── Indexes & constraints (Postgres only) ────────────────────────
         if vendor == 'postgresql':
             cursor.execute(
                 'CREATE INDEX IF NOT EXISTS store_paymenthistory_debtor_id_idx '
@@ -82,7 +74,7 @@ def repair_paymenthistory(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('store', '0016_paymenthistory'),
+        ('store', '0017_fix_paymenthistory_debtor_id'),
     ]
 
     operations = [
