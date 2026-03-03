@@ -447,25 +447,18 @@ body.dark-mode .clear-search-btn { background: #2a3d2a !important; color: #a0c8a
 }
 /* ============================================================
    FIX: Remove inner scrollbar — let the page scroll naturally.
-   Hide the browser scrollbar track while keeping scroll.
+   Only the browser's default scrollbar should appear.
    ============================================================ */
 html {
     height: 100%;
     overflow-x: hidden;
-    scrollbar-width: none;           /* Firefox */
-}
-html::-webkit-scrollbar {
-    display: none;                   /* Chrome, Edge, Safari */
+    overflow-y: scroll;              /* Always show browser scrollbar */
 }
 
 body {
     min-height: 100%;
     overflow-x: hidden;
     overflow-y: auto !important;
-    scrollbar-width: none;           /* Firefox */
-}
-body::-webkit-scrollbar {
-    display: none;                   /* Chrome, Edge, Safari */
 }
 
 .page-container {
@@ -479,5 +472,22 @@ body::-webkit-scrollbar {
 .page,
 .page.active-page {
     max-height: none !important;
-    overflow-y: visible !important;
+    overflow: visible !important;
+}
+
+/* Prevent any section/div inside pages from creating scroll containers */
+#inventoryContent,
+#profitContent,
+#calendarContent,
+#priceListContent,
+#debtorsContent,
+#settingsContent {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* page-bg-applied must not create a scroll container */
+.page-bg-applied {
+    overflow: clip !important;
 }

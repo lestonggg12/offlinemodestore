@@ -895,8 +895,8 @@ async function updatePrice(id, field, newValue) {
                                     <div style="font-size:11px;color:${isDark?'#7bc47f':'#5a7a5e'};margin-top:3px;">achieves exactly ${minMargin}% margin</div>
                                 </div>
                                 <div style="display:flex;gap:8px;">
-                                    <button id="margAdjust"  style="flex:1.3;padding:13px 8px;border-radius:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;box-shadow:0 4px 12px rgba(239,68,68,0.4);">✓ Use ₱${recommended}</button>
-                                    <button id="margProceed" style="flex:1;padding:13px 8px;border-radius:11px;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#2d5a3b;border:none;box-shadow:0 4px 12px rgba(203,223,189,0.4);">Keep ₱${newPrice.toFixed(2)}</button>
+                                    <button id="margAdjust"  style="flex:1.3;padding:13px 8px;border-radius:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#2d5a3b;border:none;box-shadow:0 4px 12px rgba(203,223,189,0.4);">✓ Use ₱${recommended}</button>
+                                    <button id="margProceed" style="flex:1;padding:13px 8px;border-radius:11px;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;box-shadow:0 4px 12px rgba(239,68,68,0.4);">Keep ₱${newPrice.toFixed(2)}</button>
                                 </div>
                             </div>
                             <style>@keyframes margIn2{from{transform:translateY(50px) scale(0.9);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}</style>

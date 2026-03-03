@@ -21,7 +21,7 @@
     ══════════════════════════════════════════════════ */
     .page-bg-applied {
       position: relative;
-      overflow-x: hidden;
+      overflow: clip;
       background: linear-gradient(145deg, #dff0da 0%, #eaf5e8 40%, #f0f8ee 70%, #e4f0e0 100%) !important;
     }
     body.dark-mode .page-bg-applied {
