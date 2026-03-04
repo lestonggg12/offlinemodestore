@@ -1594,20 +1594,70 @@ function injectSearchBarStyles() {
         #clearSearchBtn:active { transform: scale(0.9); }
         body.dark-mode #clearSearchBtn { background: #2a3d2a; color: #a0c8a0; }
         #cartSearchWrapper + #searchResults { padding-top: 8px; }
-        /* ── Search Go button ── */
+        /* ── Search Go button (neo-glassmorphic) ── */
         .cart-search-go-btn {
             display: none; flex-shrink: 0;
-            padding: 6px 14px; height: 32px;
-            border: none; border-radius: 8px;
-            background: var(--btn-green-bg);
-            color: var(--btn-green-text);
+            padding: 7px 18px; height: 34px;
+            border: 1.5px solid rgba(34, 197, 94, 0.35);
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(34,197,94,0.75) 0%, rgba(22,163,74,0.85) 100%);
+            backdrop-filter: blur(12px) saturate(1.4);
+            -webkit-backdrop-filter: blur(12px) saturate(1.4);
+            color: #fff;
             font-size: 13px; font-weight: 700;
+            letter-spacing: 0.3px;
             cursor: pointer;
-            transition: background 0.15s, transform 0.12s;
+            box-shadow:
+                0 2px 8px rgba(34, 197, 94, 0.25),
+                inset 0 1px 0 rgba(255,255,255,0.30),
+                0 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.22s cubic-bezier(.4,0,.2,1);
             white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
         }
-        .cart-search-go-btn:hover  { background: var(--btn-green-hover); transform: scale(1.04); }
-        .cart-search-go-btn:active { transform: scale(0.96); }
+        .cart-search-go-btn::before {
+            content: '';
+            position: absolute; inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .cart-search-go-btn:hover {
+            background: linear-gradient(135deg, rgba(22,163,74,0.9) 0%, rgba(21,128,61,0.95) 100%);
+            box-shadow:
+                0 4px 18px rgba(34, 197, 94, 0.40),
+                inset 0 1px 0 rgba(255,255,255,0.20),
+                0 0 12px rgba(34, 197, 94, 0.20);
+            transform: translateY(-1px) scale(1.03);
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+        .cart-search-go-btn:active {
+            transform: translateY(0) scale(0.97);
+            box-shadow:
+                0 1px 4px rgba(34, 197, 94, 0.20),
+                inset 0 2px 4px rgba(0,0,0,0.12);
+        }
+        body.dark-mode .cart-search-go-btn {
+            background: linear-gradient(135deg, rgba(21,128,61,0.7) 0%, rgba(22,101,52,0.85) 100%);
+            border-color: rgba(34, 197, 94, 0.25);
+            color: #dcfce7;
+            box-shadow:
+                0 2px 10px rgba(21, 128, 61, 0.30),
+                inset 0 1px 0 rgba(255,255,255,0.08),
+                0 1px 3px rgba(0,0,0,0.25);
+        }
+        body.dark-mode .cart-search-go-btn::before {
+            background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+        }
+        body.dark-mode .cart-search-go-btn:hover {
+            background: linear-gradient(135deg, rgba(22,101,52,0.9) 0%, rgba(20,83,45,0.95) 100%);
+            box-shadow:
+                0 4px 20px rgba(21, 128, 61, 0.40),
+                inset 0 1px 0 rgba(255,255,255,0.06),
+                0 0 14px rgba(34, 197, 94, 0.15);
+        }
         /* ── Inline search spinner ── */
         .cart-search-loading {
             display: flex; align-items: center; justify-content: center; gap: 10px;
