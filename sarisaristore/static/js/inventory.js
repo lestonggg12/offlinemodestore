@@ -1093,8 +1093,8 @@ function showCategoryModal({ title, icon='📦', name='', color='', submitLabel,
                 <label style="display:block;margin-bottom:8px;font-weight:700;color:${isDark?'#b0c0b0':'#5D534A'};font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Icon</label>
                 <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
                     <div id="emojiPreview" data-no-emoji-svg="1" style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#cbdfbd,#a8c99c);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 4px 12px rgba(0,0,0,0.12);">${_svg(icon)}</div>
-                    <input id="catEmojiInput" type="text" value="${icon}" maxlength="4" style="width:72px;padding:10px;border:2px solid ${isDark?'#3a4a40':'rgba(93,83,74,0.2)'};border-radius:10px;font-size:22px;text-align:center;background:${isDark?'#1a2420':'white'};color:${isDark?'#e0e0e0':'#5D534A'};transition:all 0.3s ease;" onfocus="this.style.borderColor='#a8c99c'" onblur="this.style.borderColor='${isDark?'#3a4a40':'rgba(93,83,74,0.2)'}'">
-                    <span style="font-size:12px;color:${isDark?'#888':'#9E9382'};">Type or pick →</span>
+                    <input id="catEmojiInput" type="hidden" value="${icon}">
+                    <span style="font-size:12px;color:${isDark?'#888':'#9E9382'};">Pick an icon ↓</span>
                 </div>
                 <div data-no-emoji-svg="1" style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:8px;border:1px solid ${isDark?'#2e3d38':'rgba(93,83,74,0.1)'};border-radius:12px;background:${isDark?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.5)'};max-height:160px;overflow-y:auto;">${emojiButtons}</div>
             </div>
@@ -1130,15 +1130,6 @@ function showCategoryModal({ title, icon='📦', name='', color='', submitLabel,
             this.style.background = 'rgba(203,223,189,0.45)';
         });
     });
-
-    // Wire text input — update preview with SVG on typing
-    const emojiInput = document.getElementById('catEmojiInput');
-    if (emojiInput) {
-        emojiInput.addEventListener('input', function() {
-            const val = this.value.trim() || '📦';
-            document.getElementById('emojiPreview').innerHTML = _svgFn(val);
-        });
-    }
 
     document.getElementById('catModalSubmit').addEventListener('click', async () => {
         const catName  = document.getElementById('catNameInput').value.trim();
