@@ -1074,7 +1074,8 @@ const PRESET_COLORS = [
 
 function showCategoryModal({ title, icon='📦', name='', color='', submitLabel, onSubmit, editingName='' }) {
     const isDark = document.body.classList.contains('dark-mode');
-    const emojiButtons  = EMOJI_LIST.map(e => `<button type="button" onclick="(function(b){document.getElementById('catEmojiInput').value='${e}';document.getElementById('emojiPreview').textContent='${e}';document.querySelectorAll('.ep-btn').forEach(x=>x.style.background='transparent');b.style.background='rgba(203,223,189,0.45)';})(this)" class="ep-btn" style="padding:4px;border:none;cursor:pointer;border-radius:6px;font-size:20px;background:transparent;transition:all 0.15s ease;">${e}</button>`).join('');
+    const _svg = typeof window.emojiToSVG === 'function' ? window.emojiToSVG : (e => e);
+    const emojiButtons  = EMOJI_LIST.map(e => `<button type="button" data-emoji="${e}" class="ep-btn" style="padding:4px;border:none;cursor:pointer;border-radius:6px;font-size:20px;background:transparent;transition:all 0.15s ease;display:flex;align-items:center;justify-content:center;width:36px;height:36px;">${_svg(e)}</button>`).join('');
     const colorSwatches = PRESET_COLORS.map(c => `<button type="button" onclick="(function(b){document.getElementById('catColorInput').value='${encodeURIComponent(c.value)}';document.querySelectorAll('.cp-swatch').forEach(x=>{x.style.outline='none';x.style.transform='scale(1)'});b.style.outline='3px solid #3e5235';b.style.transform='scale(1.15)';})(this)" class="cp-swatch" title="${c.label}" style="height:30px;border-radius:8px;border:none;cursor:pointer;background:${c.value};transition:all 0.2s ease;${color===c.value?'outline:3px solid #3e5235;transform:scale(1.15);':''}"></button>`).join('');
 
     const overlay = document.createElement('div');
@@ -1091,11 +1092,11 @@ function showCategoryModal({ title, icon='📦', name='', color='', submitLabel,
             <div style="margin-bottom:18px;">
                 <label style="display:block;margin-bottom:8px;font-weight:700;color:${isDark?'#b0c0b0':'#5D534A'};font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Icon</label>
                 <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
-                    <div id="emojiPreview" data-no-emoji-svg="1" style="width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,#cbdfbd,#a8c99c);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 12px rgba(0,0,0,0.12);">${icon}</div>
-                    <input id="catEmojiInput" type="text" value="${icon}" maxlength="4" style="width:72px;padding:10px;border:2px solid ${isDark?'#3a4a40':'rgba(93,83,74,0.2)'};border-radius:10px;font-size:22px;text-align:center;background:${isDark?'#1a2420':'white'};color:${isDark?'#e0e0e0':'#5D534A'};transition:all 0.3s ease;" onfocus="this.style.borderColor='#a8c99c'" onblur="this.style.borderColor='${isDark?'#3a4a40':'rgba(93,83,74,0.2)'}'" oninput="document.getElementById('emojiPreview').textContent=this.value||'📦'">
+                    <div id="emojiPreview" data-no-emoji-svg="1" style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#cbdfbd,#a8c99c);display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 4px 12px rgba(0,0,0,0.12);">${_svg(icon)}</div>
+                    <input id="catEmojiInput" type="text" value="${icon}" maxlength="4" style="width:72px;padding:10px;border:2px solid ${isDark?'#3a4a40':'rgba(93,83,74,0.2)'};border-radius:10px;font-size:22px;text-align:center;background:${isDark?'#1a2420':'white'};color:${isDark?'#e0e0e0':'#5D534A'};transition:all 0.3s ease;" onfocus="this.style.borderColor='#a8c99c'" onblur="this.style.borderColor='${isDark?'#3a4a40':'rgba(93,83,74,0.2)'}'">
                     <span style="font-size:12px;color:${isDark?'#888':'#9E9382'};">Type or pick →</span>
                 </div>
-                <div data-no-emoji-svg="1" style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px;padding:6px;border:1px solid ${isDark?'#2e3d38':'rgba(93,83,74,0.1)'};border-radius:10px;background:${isDark?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.5)'};max-height:130px;overflow-y:auto;">${emojiButtons}</div>
+                <div data-no-emoji-svg="1" style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:8px;border:1px solid ${isDark?'#2e3d38':'rgba(93,83,74,0.1)'};border-radius:12px;background:${isDark?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.5)'};max-height:160px;overflow-y:auto;">${emojiButtons}</div>
             </div>
             <div style="margin-bottom:22px;">
                 <label style="display:block;margin-bottom:8px;font-weight:700;color:${isDark?'#b0c0b0':'#5D534A'};font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Card Color</label>
@@ -1117,6 +1118,27 @@ function showCategoryModal({ title, icon='📦', name='', color='', submitLabel,
     document.body.appendChild(overlay);
     document.getElementById('catModalCancel').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', e => { if (e.target===overlay) overlay.remove(); });
+
+    // Wire emoji picker buttons — show SVG preview, store raw emoji
+    const _svgFn = typeof window.emojiToSVG === 'function' ? window.emojiToSVG : (e => e);
+    overlay.querySelectorAll('.ep-btn[data-emoji]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const emoji = this.getAttribute('data-emoji');
+            document.getElementById('catEmojiInput').value = emoji;
+            document.getElementById('emojiPreview').innerHTML = _svgFn(emoji);
+            overlay.querySelectorAll('.ep-btn').forEach(x => x.style.background = 'transparent');
+            this.style.background = 'rgba(203,223,189,0.45)';
+        });
+    });
+
+    // Wire text input — update preview with SVG on typing
+    const emojiInput = document.getElementById('catEmojiInput');
+    if (emojiInput) {
+        emojiInput.addEventListener('input', function() {
+            const val = this.value.trim() || '📦';
+            document.getElementById('emojiPreview').innerHTML = _svgFn(val);
+        });
+    }
 
     document.getElementById('catModalSubmit').addEventListener('click', async () => {
         const catName  = document.getElementById('catNameInput').value.trim();
