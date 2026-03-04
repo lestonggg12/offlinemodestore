@@ -1488,9 +1488,35 @@ function injectSearchBar() {
     const input    = document.getElementById('generalSearch');
     const clearBtn = document.getElementById('clearSearchBtn');
 
+    let _searchTimer = null;
+    const SEARCH_DEBOUNCE_MS = 400;
+
     input.addEventListener('input', () => {
         clearBtn.style.display = input.value ? 'flex' : 'none';
-        handleSearch();
+
+        // Cancel any pending search
+        if (_searchTimer) { clearTimeout(_searchTimer); _searchTimer = null; }
+
+        const query = input.value.trim();
+        const searchResults = document.getElementById('searchResults');
+
+        if (!query) {
+            // Cleared — remove results immediately, no spinner
+            if (searchResults) searchResults.innerHTML = '';
+            return;
+        }
+
+        // Show inline loading spinner immediately
+        if (searchResults) {
+            searchResults.innerHTML = `
+                <div class="cart-search-loading">
+                    <div class="cart-search-spinner"></div>
+                    <span>Searching…</span>
+                </div>`;
+        }
+
+        // Fire actual search after user stops typing
+        _searchTimer = setTimeout(() => { _searchTimer = null; handleSearch(); }, SEARCH_DEBOUNCE_MS);
     });
     clearBtn.addEventListener('click', clearSearch);
 }
@@ -1545,6 +1571,23 @@ function injectSearchBarStyles() {
         #clearSearchBtn:active { transform: scale(0.9); }
         body.dark-mode #clearSearchBtn { background: #2a3d2a; color: #a0c8a0; }
         #cartSearchWrapper + #searchResults { padding-top: 8px; }
+        /* ── Inline search spinner ── */
+        .cart-search-loading {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 28px 16px; color: var(--text-secondary, #888);
+            font-size: 14px; font-weight: 600;
+        }
+        .cart-search-spinner {
+            width: 22px; height: 22px;
+            border: 3px solid var(--border-light, #e5e7eb);
+            border-top-color: var(--primary-500, #22c55e);
+            border-radius: 50%;
+            animation: cartSearchSpin 0.7s linear infinite;
+        }
+        body.dark-mode .cart-search-loading { color: #9ca3af; }
+        body.dark-mode .cart-search-spinner { border-color: #374151; border-top-color: #4ade80; }
+        @keyframes cartSearchSpin { to { transform: rotate(360deg); } }
+
         @media (max-width: 480px) {
             #cartSearchWrapper { padding: 10px 10px 4px 10px; }
             .cart-search-input { height: 42px; font-size: 14px; }
@@ -1691,8 +1734,7 @@ function initializeCart() {
         return;
     }
 
-    const searchInput = document.getElementById('generalSearch');
-    if (searchInput) searchInput.addEventListener('input', handleSearch);
+    /* debounced listener is already set up inside injectSearchBar() */
 
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (checkoutBtn) checkoutBtn.onclick = () => { if (typeof handleCheckout === 'function') handleCheckout(); };
