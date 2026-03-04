@@ -661,7 +661,18 @@
         'CODE', 'PRE', 'SVG', 'CANVAS', 'NOSCRIPT',
     ]);
 
-    const PROCESSED = 'data-gm-done';
+    const PROCESSED  = 'data-gm-done';
+    const SKIP_ATTR  = 'data-no-emoji-svg';   // opt-out attribute for emoji pickers etc.
+
+    /** Check whether el or any ancestor has the skip attribute */
+    function isInsideSkipZone(el) {
+        let n = el;
+        while (n && n !== document.body) {
+            if (n.nodeType === 1 && n.hasAttribute && n.hasAttribute(SKIP_ATTR)) return true;
+            n = n.parentElement;
+        }
+        return false;
+    }
 
     /**
      * Walk a subtree and replace emoji text with SVG icons.
@@ -671,6 +682,7 @@
         if (root.nodeType === 1 && root.hasAttribute && root.hasAttribute(PROCESSED)) return;
         if (root.nodeType === 1 && SKIP_TAGS.has(root.tagName)) return;
         if (root.classList && root.classList.contains('gm-icon')) return;
+        if (root.nodeType === 1 && isInsideSkipZone(root)) return;
 
         const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
             acceptNode(node) {
@@ -679,6 +691,7 @@
                 if (SKIP_TAGS.has(p.tagName)) return NodeFilter.FILTER_REJECT;
                 if (p.classList && p.classList.contains('gm-icon')) return NodeFilter.FILTER_REJECT;
                 if (p.hasAttribute && p.hasAttribute(PROCESSED)) return NodeFilter.FILTER_REJECT;
+                if (isInsideSkipZone(p)) return NodeFilter.FILTER_REJECT;
                 if (!EMOJI_RE.test(node.textContent)) return NodeFilter.FILTER_REJECT;
                 EMOJI_RE.lastIndex = 0;
                 return NodeFilter.FILTER_ACCEPT;
