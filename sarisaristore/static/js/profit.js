@@ -192,9 +192,11 @@ console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
     #profitContent .p-card:active { transform: translateY(-3px); }
 
     /* ── Color variants (light mode) ── */
-    #profitContent .p-card.c-today    { background: linear-gradient(135deg,#d4e09b,#c5d68d); border-color:#c0cf88; }
-    #profitContent .p-card.c-yesterday{ background: linear-gradient(135deg,#f6f4d2,#eee9c4); border-color:#e5e0ba; }
-    #profitContent .p-card.c-week     { background: linear-gradient(135deg,#cbdfbd,#bdd4ae); border-color:#b5cca8; }
+    #profitContent .p-card.c-today    { background: linear-gradient(135deg,#b8e986,#a5d975); border-color:#9ad06e; }
+    #profitContent .p-card.c-yesterday{ background: linear-gradient(135deg,#fce588,#f5d76e); border-color:#eece5a; }
+    #profitContent .p-card.c-week     { background: linear-gradient(135deg,#a8e6cf,#8edbb5); border-color:#7dd3a8; }
+    #profitContent .p-card.c-month    { background: linear-gradient(135deg,#a3d5f7,#82c4f0); border-color:#6bb8ea; }
+    #profitContent .p-card.c-year     { background: linear-gradient(135deg,#d5b8f0,#c4a0e8); border-color:#b48ee0; }
     #profitContent .p-card.c-neutral  { background: linear-gradient(135deg,#f6e4d8,#f0d9cc); border-color:#e8d0c0; }
     #profitContent .p-card.c-gold     { background: linear-gradient(135deg,#f5e8d4,#efdcc0); border-color:#e8dcc8; box-shadow:var(--neo-float-gold); }
     #profitContent .p-card.c-gold:hover {
@@ -203,14 +205,20 @@ console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
 
     /* Light mode text per variant */
     #profitContent .p-card.c-today .p-card-eyebrow,
-    #profitContent .p-card.c-today .p-card-section-label { color: #4a5a2a; }
-    #profitContent .p-card.c-today .p-card-value         { color: #3d4a23; }
+    #profitContent .p-card.c-today .p-card-section-label { color: #3a5a1a; }
+    #profitContent .p-card.c-today .p-card-value         { color: #2d4a12; }
     #profitContent .p-card.c-yesterday .p-card-eyebrow,
-    #profitContent .p-card.c-yesterday .p-card-section-label { color: #6b6438; }
-    #profitContent .p-card.c-yesterday .p-card-value     { color: #5a5230; }
+    #profitContent .p-card.c-yesterday .p-card-section-label { color: #7a6420; }
+    #profitContent .p-card.c-yesterday .p-card-value     { color: #6a5418; }
     #profitContent .p-card.c-week .p-card-eyebrow,
-    #profitContent .p-card.c-week .p-card-section-label  { color: #3e5235; }
-    #profitContent .p-card.c-week .p-card-value          { color: #32422b; }
+    #profitContent .p-card.c-week .p-card-section-label  { color: #2a6048; }
+    #profitContent .p-card.c-week .p-card-value          { color: #1e4e38; }
+    #profitContent .p-card.c-month .p-card-eyebrow,
+    #profitContent .p-card.c-month .p-card-section-label { color: #1a5580; }
+    #profitContent .p-card.c-month .p-card-value         { color: #144568; }
+    #profitContent .p-card.c-year .p-card-eyebrow,
+    #profitContent .p-card.c-year .p-card-section-label  { color: #5a3580; }
+    #profitContent .p-card.c-year .p-card-value          { color: #482870; }
     #profitContent .p-card.c-neutral .p-card-eyebrow,
     #profitContent .p-card.c-neutral .p-card-section-label { color: #8a6a55; }
     #profitContent .p-card.c-neutral .p-card-value       { color: #6b5245; }
@@ -430,42 +438,85 @@ console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
         inset -4px -4px 10px rgba(60,80,55,0.15);
     }
 
-    /* ── Dark card backgrounds (lighter than before so text pops) ── */
-    body.dark-mode #profitContent .p-card.c-today,
-    body.dark-mode #profitContent .p-card.c-week {
-      background: rgba(38,62,35,0.88) !important;
-      border-color: rgba(135,179,130,0.32) !important;
+    /* ── Dark card backgrounds — each card has a unique hue ── */
+    body.dark-mode #profitContent .p-card.c-today {
+      background: linear-gradient(135deg, rgba(30,70,20,0.90), rgba(25,58,18,0.92)) !important;
+      border-color: rgba(120,200,90,0.28) !important;
     }
     body.dark-mode #profitContent .p-card.c-yesterday {
-      background: rgba(58,50,22,0.88) !important;
-      border-color: rgba(210,180,80,0.28) !important;
+      background: linear-gradient(135deg, rgba(70,58,12,0.90), rgba(60,48,8,0.92)) !important;
+      border-color: rgba(230,190,60,0.28) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-week {
+      background: linear-gradient(135deg, rgba(18,60,50,0.90), rgba(14,50,42,0.92)) !important;
+      border-color: rgba(100,210,170,0.28) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-month {
+      background: linear-gradient(135deg, rgba(15,42,72,0.90), rgba(12,35,62,0.92)) !important;
+      border-color: rgba(90,170,230,0.28) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-year {
+      background: linear-gradient(135deg, rgba(48,28,72,0.90), rgba(40,22,62,0.92)) !important;
+      border-color: rgba(170,120,220,0.28) !important;
     }
     body.dark-mode #profitContent .p-card.c-neutral {
-      background: rgba(42,52,40,0.88) !important;
+      background: linear-gradient(135deg, rgba(42,52,40,0.88), rgba(35,44,34,0.90)) !important;
       border-color: rgba(140,160,130,0.28) !important;
     }
     body.dark-mode #profitContent .p-card.c-gold {
-      background: rgba(62,48,10,0.90) !important;
+      background: linear-gradient(135deg, rgba(62,48,10,0.90), rgba(52,40,8,0.92)) !important;
       border-color: rgba(210,175,60,0.32) !important;
     }
     body.dark-mode #profitContent .p-card::before {
       background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%);
     }
 
-    /* ── Dark eyebrow & section labels — fully visible ── */
+    /* ── Dark eyebrow & section labels — per-card hue ── */
     body.dark-mode #profitContent .p-card-eyebrow {
-      color: #c8e6c0 !important;
       opacity: 1 !important;
       text-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
     body.dark-mode #profitContent .p-card-section-label {
-      color: #a0c898 !important;
       opacity: 1 !important;
     }
+    /* Today — bright green */
+    body.dark-mode #profitContent .p-card.c-today .p-card-eyebrow,
+    body.dark-mode #profitContent .p-card.c-today .p-card-section-label { color: #a8e090 !important; }
+    body.dark-mode #profitContent .p-card.c-today .p-card-value        { color: #d8f8c8 !important; }
+    body.dark-mode #profitContent .p-card.c-today .p-card-sub          { color: #7abf65 !important; }
+    /* Yesterday — warm gold */
+    body.dark-mode #profitContent .p-card.c-yesterday .p-card-eyebrow,
+    body.dark-mode #profitContent .p-card.c-yesterday .p-card-section-label { color: #e8d080 !important; }
+    body.dark-mode #profitContent .p-card.c-yesterday .p-card-value        { color: #f8eecc !important; }
+    body.dark-mode #profitContent .p-card.c-yesterday .p-card-sub          { color: #c4a850 !important; }
+    /* Week — teal/mint */
+    body.dark-mode #profitContent .p-card.c-week .p-card-eyebrow,
+    body.dark-mode #profitContent .p-card.c-week .p-card-section-label { color: #80d8b8 !important; }
+    body.dark-mode #profitContent .p-card.c-week .p-card-value         { color: #c8f8e8 !important; }
+    body.dark-mode #profitContent .p-card.c-week .p-card-sub           { color: #5ab890 !important; }
+    /* Month — cool blue */
+    body.dark-mode #profitContent .p-card.c-month .p-card-eyebrow,
+    body.dark-mode #profitContent .p-card.c-month .p-card-section-label { color: #80c0e8 !important; }
+    body.dark-mode #profitContent .p-card.c-month .p-card-value         { color: #c8e8f8 !important; }
+    body.dark-mode #profitContent .p-card.c-month .p-card-sub           { color: #5aa0c8 !important; }
+    /* Year — lavender/purple */
+    body.dark-mode #profitContent .p-card.c-year .p-card-eyebrow,
+    body.dark-mode #profitContent .p-card.c-year .p-card-section-label { color: #c8a0e8 !important; }
+    body.dark-mode #profitContent .p-card.c-year .p-card-value         { color: #e8d8f8 !important; }
+    body.dark-mode #profitContent .p-card.c-year .p-card-sub           { color: #a078c0 !important; }
+    /* Neutral — muted sage */
+    body.dark-mode #profitContent .p-card.c-neutral .p-card-eyebrow,
+    body.dark-mode #profitContent .p-card.c-neutral .p-card-section-label { color: #a0c898 !important; }
+    body.dark-mode #profitContent .p-card.c-neutral .p-card-value         { color: #eaf6e4 !important; }
+    body.dark-mode #profitContent .p-card.c-neutral .p-card-sub           { color: #8aaa84 !important; }
+    /* Gold — amber */
+    body.dark-mode #profitContent .p-card.c-gold .p-card-eyebrow,
+    body.dark-mode #profitContent .p-card.c-gold .p-card-section-label { color: #e0c060 !important; }
+    body.dark-mode #profitContent .p-card.c-gold .p-card-value         { color: #f8ecc8 !important; }
+    body.dark-mode #profitContent .p-card.c-gold .p-card-sub           { color: #b89840 !important; }
 
-    /* ── Dark main values ── */
+    /* ── Dark main value overrides (profit & gold stay universal) ── */
     body.dark-mode #profitContent .p-card-value {
-      color: #eaf6e4 !important;
       text-shadow: 0 1px 6px rgba(0,0,0,0.4);
     }
     body.dark-mode #profitContent .p-card-value.profit-color {
@@ -480,10 +531,7 @@ console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
       color: #8aaa84 !important;
     }
 
-    /* ── Dark sub-text ── */
-    body.dark-mode #profitContent .p-card-sub {
-      color: #8aaa84 !important; opacity: 1 !important;
-    }
+    /* ── Dark sub-text & empty msg ── */
     body.dark-mode #profitContent .p-empty-msg {
       color: #8aaa84 !important; opacity: 1 !important;
     }
@@ -492,17 +540,36 @@ console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
     body.dark-mode #profitContent .p-section-title { color: #d0eac8 !important; }
     body.dark-mode #profitContent .p-page-sub      { color: #7a9a74 !important; }
 
-    /* ── Dark divider ── */
+    /* ── Dark divider — per-card hue ── */
     body.dark-mode #profitContent .p-divider {
       background: linear-gradient(90deg, transparent, rgba(135,179,130,0.3), transparent) !important;
     }
+    body.dark-mode #profitContent .p-card.c-yesterday .p-divider {
+      background: linear-gradient(90deg, transparent, rgba(210,180,80,0.3), transparent) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-week .p-divider {
+      background: linear-gradient(90deg, transparent, rgba(100,210,170,0.3), transparent) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-month .p-divider {
+      background: linear-gradient(90deg, transparent, rgba(90,170,230,0.3), transparent) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-year .p-divider {
+      background: linear-gradient(90deg, transparent, rgba(170,120,220,0.3), transparent) !important;
+    }
+    body.dark-mode #profitContent .p-card.c-gold .p-divider {
+      background: linear-gradient(90deg, transparent, rgba(210,175,60,0.3), transparent) !important;
+    }
 
-    /* ── Dark timing strip ── */
+    /* ── Dark timing strip — per-card hue ── */
     body.dark-mode #profitContent .p-timing {
       background: rgba(255,255,255,0.07) !important;
       border-color: rgba(255,255,255,0.12) !important;
       color: #90b88a !important;
     }
+    body.dark-mode #profitContent .p-card.c-month .p-timing  { color: #6aa0c0 !important; }
+    body.dark-mode #profitContent .p-card.c-month .p-timing strong { color: #a0d0f0 !important; }
+    body.dark-mode #profitContent .p-card.c-year .p-timing   { color: #9078b0 !important; }
+    body.dark-mode #profitContent .p-card.c-year .p-timing strong  { color: #c8a8e8 !important; }
     body.dark-mode #profitContent .p-timing strong { color: #c8e6c0 !important; }
     body.dark-mode #profitContent .p-timing-row    { color: #90b88a !important; }
 
@@ -686,8 +753,8 @@ function renderPeriodCard(type, data = {}) {
     today:     { label:"TODAY'S PERFORMANCE",      icon:'📅', cls:'c-today'     },
     yesterday: { label:"YESTERDAY'S PERFORMANCE",  icon:'📆', cls:'c-yesterday' },
     week:      { label:"LAST WEEK'S PERFORMANCE",  icon:'🌿', cls:'c-week'      },
-    month:     { label:"LAST MONTH'S PERFORMANCE", icon:'📋', cls:'c-neutral'   },
-    year:      { label:"LAST YEAR'S PERFORMANCE",  icon:'📈', cls:'c-neutral'   },
+    month:     { label:"LAST MONTH'S PERFORMANCE", icon:'📋', cls:'c-month'     },
+    year:      { label:"LAST YEAR'S PERFORMANCE",  icon:'📈', cls:'c-year'      },
   }[type] || { label:'', icon:'', cls:'c-neutral' };
 
   if (!data || !data.has_data) {
