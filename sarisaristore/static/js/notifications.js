@@ -34,7 +34,6 @@ let notificationData = {
     lowStock: [],
     lowMargin: [],
     settingsChanges: [],
-    cleanupInfo: null,
     lastUpdated: null
 };
 
@@ -61,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Refresh notifications every 5 minutes (pulls latest from server)
     setInterval(refreshNotifications, 5 * 60 * 1000);
-    setInterval(updateCleanupTimer, 60 * 1000);
 
     console.log('✅ Enhanced notification system initialized');
 });
@@ -159,7 +157,6 @@ async function refreshNotifications() {
         // ── Change history comes from server (via window.storeSettings) ────
         notificationData.settingsChanges = window.storeSettings?.changeHistory || [];
 
-        notificationData.cleanupInfo = getCleanupInfo();
         notificationData.lastUpdated = new Date();
 
         updateNotificationBadge();
@@ -268,27 +265,6 @@ function renderNotificationDropdown() {
             <button class="notification-close-btn" onclick="window.NotificationSystem.close()">✕</button>
         </div>
         <div class="notification-content-wrapper">
-    `;
-
-    // Cleanup Timer
-    const cleanupInfo = getCleanupInfo();
-    html += `
-        <div class="notification-section cleanup-section">
-            <div class="section-header">
-                <span class="section-icon">⏰</span>
-                <span class="section-title">Auto-Cleanup</span>
-            </div>
-            <div class="cleanup-info-card">
-                <div class="cleanup-timer">
-                    <span class="timer-icon">🕐</span>
-                    <span class="timer-text">Next cleanup in <strong>${cleanupInfo.timeUntil}</strong></span>
-                </div>
-                <div class="cleanup-details">
-                    <p>🗑️ Old transactions will be automatically cleaned at midnight</p>
-                    <p>📊 Historical data is preserved in the calendar</p>
-                </div>
-            </div>
-        </div>
     `;
 
     // Settings Changes (from server — cross-device)
@@ -661,23 +637,6 @@ async function persistHistoryToServer(history) {
 //  HELPER FUNCTIONS
 // =============================================================================
 
-function getCleanupInfo() {
-    const now      = new Date();
-    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-    const diff     = tomorrow - now;
-    const hours    = Math.floor(diff / 1000 / 60 / 60);
-    const minutes  = Math.floor((diff / 1000 / 60) % 60);
-    return { timeUntil: `${hours}h ${minutes}m`, hours, minutes, timestamp: tomorrow };
-}
-
-function updateCleanupTimer() {
-    const timerText = document.querySelector('.timer-text');
-    if (timerText && notificationDropdownOpen) {
-        const info = getCleanupInfo();
-        timerText.innerHTML = `Next cleanup in <strong>${info.timeUntil}</strong>`;
-    }
-}
-
 function getTimeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     if (seconds < 60)     return 'just now';
@@ -814,16 +773,6 @@ function injectNotificationStyles() {
             font-size: 12px; font-weight: 800;
         }
 
-        .cleanup-info-card {
-            background: linear-gradient(135deg, rgba(168,201,156,0.15), rgba(203,223,189,0.1));
-            border-radius: 12px; padding: 16px; border-left: 4px solid #a8c99c;
-        }
-        .cleanup-timer { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 15px; color: #5D534A; }
-        .timer-icon { font-size: 24px; animation: clockTick 2s ease-in-out infinite; }
-        @keyframes clockTick { 0%,100%{transform:rotate(0deg)} 25%{transform:rotate(10deg)} 75%{transform:rotate(-10deg)} }
-        .cleanup-details { font-size: 13px; color: #7F8C8D; line-height: 1.6; }
-        .cleanup-details p { margin: 6px 0; }
-
         .notification-list {
             max-height: 350px;
             overflow-y: auto; overflow-x: hidden;
@@ -904,9 +853,6 @@ function injectNotificationStyles() {
         body.dark-mode .notification-close-btn:hover { background: rgba(203,223,189,0.22); }
         body.dark-mode .notification-section { border-bottom-color: rgba(255,255,255,0.07); }
         body.dark-mode .section-title { color: #d1d5db; }
-        body.dark-mode .cleanup-info-card { background: linear-gradient(135deg, rgba(168,201,156,0.1), rgba(90,158,111,0.08)); border-left-color: #5a9e6f; }
-        body.dark-mode .cleanup-timer  { color: #c8d8c0; }
-        body.dark-mode .cleanup-details { color: #8aaa90; }
         body.dark-mode .notification-list::-webkit-scrollbar-track { background: #1f2e24; }
         body.dark-mode .notification-list::-webkit-scrollbar-thumb { background: #3a5040; }
         body.dark-mode .notification-item.settings-change { background: linear-gradient(135deg, rgba(96,165,250,0.12), rgba(59,130,246,0.08)); }
