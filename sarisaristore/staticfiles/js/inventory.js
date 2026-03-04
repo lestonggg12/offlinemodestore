@@ -1072,7 +1072,7 @@ const PRESET_COLORS = [
     { label:'Pink',   value:'linear-gradient(135deg,#c97ba8 0%,#ab5d8a 100%)' },
 ];
 
-function showCategoryModal({ title, icon='📦', name='', color='', submitLabel, onSubmit }) {
+function showCategoryModal({ title, icon='📦', name='', color='', submitLabel, onSubmit, editingName='' }) {
     const isDark = document.body.classList.contains('dark-mode');
     const emojiButtons  = EMOJI_LIST.map(e => `<button type="button" onclick="(function(b){document.getElementById('catEmojiInput').value='${e}';document.getElementById('emojiPreview').textContent='${e}';document.querySelectorAll('.ep-btn').forEach(x=>x.style.background='transparent');b.style.background='rgba(203,223,189,0.45)';})(this)" class="ep-btn" style="padding:4px;border:none;cursor:pointer;border-radius:6px;font-size:20px;background:transparent;transition:all 0.15s ease;">${e}</button>`).join('');
     const colorSwatches = PRESET_COLORS.map(c => `<button type="button" onclick="(function(b){document.getElementById('catColorInput').value='${encodeURIComponent(c.value)}';document.querySelectorAll('.cp-swatch').forEach(x=>{x.style.outline='none';x.style.transform='scale(1)'});b.style.outline='3px solid #3e5235';b.style.transform='scale(1.15)';})(this)" class="cp-swatch" title="${c.label}" style="height:30px;border-radius:8px;border:none;cursor:pointer;background:${c.value};transition:all 0.2s ease;${color===c.value?'outline:3px solid #3e5235;transform:scale(1.15);':''}"></button>`).join('');
@@ -1091,11 +1091,11 @@ function showCategoryModal({ title, icon='📦', name='', color='', submitLabel,
             <div style="margin-bottom:18px;">
                 <label style="display:block;margin-bottom:8px;font-weight:700;color:${isDark?'#b0c0b0':'#5D534A'};font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Icon</label>
                 <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">
-                    <div id="emojiPreview" style="width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,#cbdfbd,#a8c99c);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 12px rgba(0,0,0,0.12);">${icon}</div>
+                    <div id="emojiPreview" data-no-emoji-svg="1" style="width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,#cbdfbd,#a8c99c);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 12px rgba(0,0,0,0.12);">${icon}</div>
                     <input id="catEmojiInput" type="text" value="${icon}" maxlength="4" style="width:72px;padding:10px;border:2px solid ${isDark?'#3a4a40':'rgba(93,83,74,0.2)'};border-radius:10px;font-size:22px;text-align:center;background:${isDark?'#1a2420':'white'};color:${isDark?'#e0e0e0':'#5D534A'};transition:all 0.3s ease;" onfocus="this.style.borderColor='#a8c99c'" onblur="this.style.borderColor='${isDark?'#3a4a40':'rgba(93,83,74,0.2)'}'" oninput="document.getElementById('emojiPreview').textContent=this.value||'📦'">
                     <span style="font-size:12px;color:${isDark?'#888':'#9E9382'};">Type or pick →</span>
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px;padding:6px;border:1px solid ${isDark?'#2e3d38':'rgba(93,83,74,0.1)'};border-radius:10px;background:${isDark?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.5)'};max-height:130px;overflow-y:auto;">${emojiButtons}</div>
+                <div data-no-emoji-svg="1" style="display:grid;grid-template-columns:repeat(10,1fr);gap:3px;padding:6px;border:1px solid ${isDark?'#2e3d38':'rgba(93,83,74,0.1)'};border-radius:10px;background:${isDark?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.5)'};max-height:130px;overflow-y:auto;">${emojiButtons}</div>
             </div>
             <div style="margin-bottom:22px;">
                 <label style="display:block;margin-bottom:8px;font-weight:700;color:${isDark?'#b0c0b0':'#5D534A'};font-size:12px;text-transform:uppercase;letter-spacing:0.5px;">Card Color</label>
@@ -1125,7 +1125,7 @@ function showCategoryModal({ title, icon='📦', name='', color='', submitLabel,
         const catColor = rawColor ? decodeURIComponent(rawColor) : 'linear-gradient(135deg,#e3b04b 0%,#d19a3d 100%)';
 
         if (!catName) { document.getElementById('catNameInput').style.borderColor='#EF4444'; document.getElementById('catNameInput').focus(); return; }
-        const nameExists = CATEGORIES.some(c => c.name.trim().toLowerCase() === catName.toLowerCase());
+        const nameExists = CATEGORIES.some(c => c.name.trim().toLowerCase() === catName.toLowerCase() && c.name.trim().toLowerCase() !== editingName.trim().toLowerCase());
         if (nameExists) { document.getElementById('catNameInput').style.borderColor='#EF4444'; showModernAlert('A category with this name already exists.','⚠️'); return; }
 
         const submitBtn = document.getElementById('catModalSubmit');
@@ -1146,7 +1146,7 @@ function showAddCategoryModal() {
     showCategoryModal({ title:'➕ New Category', icon:'📦', submitLabel:'➕ Add Category', onSubmit:({name,icon,color}) => DB.addCategory({name,icon,color}) });
 }
 function showEditCategoryModal(cat) {
-    showCategoryModal({ title:`✏️ Edit "${cat.name}"`, icon:cat.icon, name:cat.name, color:cat.color, submitLabel:'💾 Save Changes', onSubmit:({name,icon,color}) => DB.updateCategory(cat.pk,{name,icon,color}) });
+    showCategoryModal({ title:`✏️ Edit "${cat.name}"`, icon:cat.icon, name:cat.name, color:cat.color, editingName:cat.name, submitLabel:'💾 Save Changes', onSubmit:({name,icon,color}) => DB.updateCategory(cat.pk,{name,icon,color}) });
 }
 
 async function showDeleteCategoryModal(pk, id, name) {
