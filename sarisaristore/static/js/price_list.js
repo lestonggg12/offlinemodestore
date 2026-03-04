@@ -140,6 +140,13 @@ async function getCategories() {
         #priceListContent .gl-stat-card.sc-mint   .stat-label { color: #4a5a2a; }
         #priceListContent .gl-stat-card.sc-mint   .stat-value { color: #3d4a23; }
 
+        /* Hint subtitle under stat values */
+        #priceListContent .stat-hint {
+            font-size: 10px; font-weight: 600;
+            opacity: 0.6; margin-top: 4px;
+            letter-spacing: 0.2px;
+        }
+
         /* ── Category cards ── */
         #priceListContent .gl-cat-card {
             border-radius: 20px;
@@ -251,6 +258,7 @@ async function getCategories() {
         #priceListContent .gl-mini-stat .ms-body  { position: relative; z-index:1; }
         #priceListContent .gl-mini-stat .ms-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; margin-bottom: 3px; }
         #priceListContent .gl-mini-stat .ms-value { font-size: 1.2rem; font-weight: 900; }
+        #priceListContent .gl-mini-stat .ms-hint  { font-size: 9px; font-weight: 600; opacity: 0.6; margin-top: 3px; letter-spacing: 0.2px; }
 
         #priceListContent .gl-mini-stat.ms-beige  { background: linear-gradient(135deg, #f5ede0, #eee4d5); }
         #priceListContent .gl-mini-stat.ms-beige  .ms-label, .ms-beige  .ms-value { color: #5D534A; }
@@ -610,8 +618,8 @@ async function renderPriceCategorySelection(content) {
         <div style="display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap;justify-content:center;">
             <div class="gl-stat-card sc-beige"><span class="stat-icon">📦</span><div class="stat-body"><div class="stat-label">Total Products</div><div class="stat-value">${totalProducts}</div></div></div>
             <div class="gl-stat-card sc-green"><span class="stat-icon">💰</span><div class="stat-body"><div class="stat-label">Avg Profit</div><div class="stat-value">₱${avgProfit.toFixed(2)}</div></div></div>
-            <div class="gl-stat-card sc-amber"><span class="stat-icon">⚠️</span><div class="stat-body"><div class="stat-label">Low Margin</div><div class="stat-value">${lowMargin}</div></div></div>
-            <div class="gl-stat-card sc-mint" ><span class="stat-icon">✨</span><div class="stat-body"><div class="stat-label">High Margin</div><div class="stat-value">${highMargin}</div></div></div>
+            <div class="gl-stat-card sc-amber" title="Products with less than 20% markup on cost price"><span class="stat-icon">⚠️</span><div class="stat-body"><div class="stat-label">Low Margin</div><div class="stat-value">${lowMargin}</div><div class="stat-hint">Below 20% markup</div></div></div>
+            <div class="gl-stat-card sc-mint"  title="Products with more than 50% markup on cost price"><span class="stat-icon">✨</span><div class="stat-body"><div class="stat-label">High Margin</div><div class="stat-value">${highMargin}</div><div class="stat-hint">Above 50% markup</div></div></div>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:30px;">
@@ -676,8 +684,8 @@ async function renderCategoryPriceList(content, categoryId) {
         <div style="display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;">
             <div class="gl-mini-stat ms-beige"><span class="ms-icon">📦</span><div class="ms-body"><div class="ms-label">Products</div><div class="ms-value">${totalItems}</div></div></div>
             <div class="gl-mini-stat ms-green"><span class="ms-icon">💰</span><div class="ms-body"><div class="ms-label">Avg Profit</div><div class="ms-value">₱${avgProfit.toFixed(2)}</div></div></div>
-            <div class="gl-mini-stat ms-amber"><span class="ms-icon">⚠️</span><div class="ms-body"><div class="ms-label">Low Margin</div><div class="ms-value">${lowMargin}</div></div></div>
-            <div class="gl-mini-stat ms-mint" ><span class="ms-icon">✨</span><div class="ms-body"><div class="ms-label">High Margin</div><div class="ms-value">${highMargin}</div></div></div>
+            <div class="gl-mini-stat ms-amber" title="Products with less than 20% markup on cost price"><span class="ms-icon">⚠️</span><div class="ms-body"><div class="ms-label">Low Margin</div><div class="ms-value">${lowMargin}</div><div class="ms-hint">Below 20% markup</div></div></div>
+            <div class="gl-mini-stat ms-mint"  title="Products with more than 50% markup on cost price"><span class="ms-icon">✨</span><div class="ms-body"><div class="ms-label">High Margin</div><div class="ms-value">${highMargin}</div><div class="ms-hint">Above 50% markup</div></div></div>
         </div>
 
         <div class="gl-tip-banner">
