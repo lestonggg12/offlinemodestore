@@ -486,70 +486,315 @@
 
 
         // ── Kitchen / Dining ────────────────────────────────────────────────
-        '🍴': { c: 'warmGray', t: '🍴' },
-        '🍷': { c: 'rose', t: '🍷' },
-        '🍸': { c: 'cyan', t: '🍸' },
-        '🍽️': { c: 'slate', t: '🍽️' },
-        '🍽': { c: 'slate', t: '🍽' },
-        '🍾': { c: 'emerald', t: '🍾' },
-        '🥂': { c: 'amber', t: '🥂' },
-        '🥃': { c: 'brown', t: '🥃' },
-        '🥄': { c: 'warmGray', t: '🥄' },
-        '🥫': { c: 'red', t: '🥫' },
-        '🫙': { c: 'teal', t: '🫙' },
+        '🍴': { c: 'warmGray', i:
+            `<path d="M15 8v24M25 8v7a5 5 0 0 1-5 5v12" stroke="FG" stroke-width="2.2" stroke-linecap="round"/>
+             <path d="M12 8v8a3 3 0 0 0 3 3M18 8v8a3 3 0 0 1-3 3" stroke="FG" stroke-width="1.8" stroke-linecap="round"/>` },
 
-        // ── Food / Beverages (text fallbacks) ───────────────────────────────
-        '☕': { c: 'brown', t: '☕' },
-        '🍵': { c: 'emerald', t: '🍵' },
-        '🍶': { c: 'slate', t: '🍶' },
-        '🍹': { c: 'pink', t: '🍹' },
-        '🍺': { c: 'amber', t: '🍺' },
-        '🍻': { c: 'amber', t: '🍻' },
-        '🥛': { c: 'slate', t: '🥛' },
-        '🧃': { c: 'orange', t: '🧃' },
-        '🧊': { c: 'sky', t: '🧊' },
-        '🥤': { c: 'red', t: '🥤' },
-        '🍚': { c: 'warmGray', t: '🍚' },
-        '🍞': { c: 'brown', t: '🍞' },
-        '🌽': { c: 'yellow', t: '🌽' },
-        '🍅': { c: 'red', t: '🍅' },
-        '🥕': { c: 'orange', t: '🥕' },
-        '🥚': { c: 'cream', t: '🥚' },
-        '🥦': { c: 'green', t: '🥦' },
-        '🧄': { c: 'warmGray', t: '🧄' },
-        '🧈': { c: 'yellow', t: '🧈' },
-        '🥩': { c: 'red', t: '🥩' },
-        '🍌': { c: 'yellow', t: '🍌' },
-        '🍎': { c: 'red', t: '🍎' },
-        '🍩': { c: 'brown', t: '🍩' },
-        '🍪': { c: 'brown', t: '🍪' },
-        '🍫': { c: 'brown', t: '🍫' },
-        '🍬': { c: 'pink', t: '🍬' },
-        '🍭': { c: 'pink', t: '🍭' },
-        '🍿': { c: 'yellow', t: '🍿' },
-        '🎂': { c: 'pink', t: '🎂' },
-        '🧁': { c: 'rose', t: '🧁' },
+        '🍷': { c: 'rose', i:
+            `<path d="M20 22v8M15 30h10" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M13 8h14l-2 10a5 5 0 0 1-10 0z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M14 14h12" stroke="FG" stroke-width="1.5"/>` },
+
+        '🍸': { c: 'cyan', i:
+            `<path d="M20 22v8M15 30h10" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M10 8l10 14L30 8" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '🍽️': { c: 'slate', i:
+            `<circle cx="20" cy="20" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="20" r="6" fill="none" stroke="FG" stroke-width="1.2"/>
+             <path d="M8 8v24M32 8v7a3 3 0 0 1-3 3h0v14" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🍽': { c: 'slate', i:
+            `<circle cx="20" cy="20" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="20" r="6" fill="none" stroke="FG" stroke-width="1.2"/>
+             <path d="M8 8v24M32 8v7a3 3 0 0 1-3 3h0v14" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🍾': { c: 'emerald', i:
+            `<path d="M17 10h6l2 6v12a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3V16z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M18 8h4" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>
+             <path d="M24 10l4-4" stroke="FG" stroke-width="1.8" stroke-linecap="round"/>
+             <circle cx="27" cy="7" r="1.5" fill="FG"/>` },
+
+        '🥂': { c: 'amber', i:
+            `<path d="M14 30l3-8 3-14M26 30l-3-8-3-14" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M12 30h6M22 30h6" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M17 12a4 4 0 0 0 6 0" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '🥃': { c: 'brown', i:
+            `<path d="M12 12h16l-2 16H14z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M14 20h12" stroke="FG" stroke-width="1.5"/>
+             <path d="M12 12l1-4h14l1 4" stroke="FG" stroke-width="2" stroke-linejoin="round"/>` },
+
+        '🥄': { c: 'warmGray', i:
+            `<path d="M20 10a5 5 0 0 1 0 10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 10a5 5 0 0 0 0 10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 20v12" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>` },
+
+        '🥫': { c: 'red', i:
+            `<rect x="13" y="10" width="14" height="20" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14 16h12M14 24h12" stroke="FG" stroke-width="1.5"/>
+             <rect x="15" y="8" width="10" height="4" rx="1.5" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+        '🫙': { c: 'teal', i:
+            `<rect x="12" y="12" width="16" height="18" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14 8h12M14 8v4M26 8v4" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M12 20h16" stroke="FG" stroke-width="1.5"/>` },
+
+        // ── Beverages ───────────────────────────────────────────────────────
+        '☕': { c: 'brown', i:
+            `<path d="M10 14h14v10a4 4 0 0 1-4 4h-6a4 4 0 0 1-4-4z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M24 16h3a3 3 0 0 1 0 6h-3" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14 10c1-3 3-3 4 0M19 10c1-3 3-3 4 0" stroke="FG" stroke-width="1.5" stroke-linecap="round" fill="none"/>` },
+
+        '🍵': { c: 'emerald', i:
+            `<path d="M10 16h14v8a4 4 0 0 1-4 4h-6a4 4 0 0 1-4-4z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M24 18h3a3 3 0 0 1 0 6h-3" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="17" cy="22" r="2" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+        '🍶': { c: 'slate', i:
+            `<path d="M16 10h8l-1 6h-6z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M15 16h10v12a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3z" fill="none" stroke="FG" stroke-width="2"/>` },
+
+        '🍹': { c: 'pink', i:
+            `<path d="M14 8l6 16 6-16" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M20 24v6M16 30h8" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M14 14h12" stroke="FG" stroke-width="1.5"/>
+             <circle cx="26" cy="10" r="3" fill="FG" opacity="0.5"/>` },
+
+        '🍺': { c: 'amber', i:
+            `<path d="M10 12h12v14a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M22 14h4a3 3 0 0 1 0 6h-4" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14 16v8M18 16v8" stroke="FG" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>` },
+
+        '🍻': { c: 'amber', i:
+            `<path d="M8 14h10v12a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2z" fill="none" stroke="FG" stroke-width="1.8"/>
+             <path d="M22 12h10v12a2 2 0 0 1-2 2h-6a2 2 0 0 1-2-2z" fill="none" stroke="FG" stroke-width="1.8"/>
+             <path d="M18 16h4" stroke="FG" stroke-width="1.5"/>
+             <path d="M12 18v6M15 18v6M26 16v6M29 16v6" stroke="FG" stroke-width="1.2" stroke-linecap="round" opacity="0.4"/>` },
+
+        '🥛': { c: 'slate', i:
+            `<path d="M13 8h14l-2 20a3 3 0 0 1-3 3h-4a3 3 0 0 1-3-3z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M13 14h14" stroke="FG" stroke-width="1.8"/>` },
+
+        '🧃': { c: 'orange', i:
+            `<rect x="13" y="10" width="14" height="20" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M18 10v-3l3-2" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M13 16h14" stroke="FG" stroke-width="1.5"/>
+             <circle cx="20" cy="23" r="3" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+        '🧊': { c: 'sky', i:
+            `<path d="M12 14l8-6 8 6v10l-8 6-8-6z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M12 14l8 6 8-6M20 20v10" stroke="FG" stroke-width="1.5" stroke-linejoin="round"/>` },
+
+        '🥤': { c: 'red', i:
+            `<path d="M14 10h12l-2 18a3 3 0 0 1-3 3h-2a3 3 0 0 1-3-3z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M14 16h12" stroke="FG" stroke-width="1.5"/>
+             <path d="M22 10l3-5" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <circle cx="25" cy="5" r="1" fill="FG"/>` },
+
+        // ── Grains / Staples ────────────────────────────────────────────────
+        '🍚': { c: 'warmGray', i:
+            `<path d="M10 18c0 6 4.5 12 10 12s10-6 10-12z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M10 18a10 4 0 0 1 20 0" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="16" cy="22" r="1.5" fill="FG" opacity="0.5"/><circle cx="20" cy="20" r="1.5" fill="FG" opacity="0.5"/><circle cx="24" cy="22" r="1.5" fill="FG" opacity="0.5"/>` },
+
+        '🍞': { c: 'brown', i:
+            `<path d="M8 18c0-4 5-8 12-8s12 4 12 8v6a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4z" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M12 18v8M20 16v10M28 18v8" stroke="FG" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>` },
+
+        // ── Produce / Vegetables ────────────────────────────────────────────
+        '🌽': { c: 'yellow', i:
+            `<path d="M16 8c-2 0-4 4-4 12s2 12 4 12h8c2 0 4-4 4-12s-2-12-4-12z" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M16 12v16M20 10v20M24 12v16" stroke="FG" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+             <path d="M18 8c-2-4 2-6 4-4" stroke="FG" stroke-width="1.5" stroke-linecap="round" fill="none"/>` },
+
+        '🍅': { c: 'red', i:
+            `<circle cx="20" cy="21" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M15 12c2-4 8-4 10 0" stroke="FG" stroke-width="2" stroke-linecap="round" fill="none"/>
+             <path d="M20 11v3" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🥕': { c: 'orange', i:
+            `<path d="M24 8L10 28l4 2L28 12z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M16 18l6-6M14 22l6-6" stroke="FG" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+             <path d="M26 10c2-2 4 0 2 2M28 8c2-2 4 0 2 2" stroke="FG" stroke-width="1.5" stroke-linecap="round" fill="none"/>` },
+
+        '🥚': { c: 'cream', i:
+            `<ellipse cx="20" cy="21" rx="8" ry="10" fill="none" stroke="FG" stroke-width="2"/>
+             <ellipse cx="18" cy="18" rx="3" ry="4" fill="FG" opacity="0.12"/>` },
+
+        '🥦': { c: 'green', i:
+            `<circle cx="16" cy="16" r="5" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="24" cy="16" r="5" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="12" r="5" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 21v10M17 22v6M23 22v6" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🧄': { c: 'warmGray', i:
+            `<path d="M20 8c-6 0-10 6-10 12a8 8 0 0 0 8 8h4a8 8 0 0 0 8-8c0-6-4-12-10-12z" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M16 12v10M20 10v12M24 12v10" stroke="FG" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+             <path d="M20 8v-2" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>` },
+
+        '🧈': { c: 'yellow', i:
+            `<rect x="10" y="14" width="20" height="12" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <rect x="14" y="18" width="8" height="6" rx="1" fill="FG" opacity="0.4"/>
+             <path d="M10 14l2-4h16l2 4" stroke="FG" stroke-width="2" stroke-linejoin="round"/>` },
+
+        '🥩': { c: 'red', i:
+            `<path d="M10 16c0-4 4-6 8-4 4-2 8 0 10 4 2 4 0 8-4 10s-8 0-10-2c-4 0-6-4-4-8z" fill="none" stroke="FG" stroke-width="2"/>
+             <ellipse cx="21" cy="19" rx="4" ry="3" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+        // ── Fruit ───────────────────────────────────────────────────────────
+        '🍌': { c: 'yellow', i:
+            `<path d="M28 10c-2 4-6 14-16 16" fill="none" stroke="FG" stroke-width="3" stroke-linecap="round"/>
+             <path d="M28 10c0 6-4 14-12 18" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M28 10c2-2 2-4 0-4" stroke="FG" stroke-width="1.5" stroke-linecap="round" fill="none"/>` },
+
+        '🍎': { c: 'red', i:
+            `<path d="M20 10c-6-2-12 4-12 10 0 7 5 12 12 12s12-5 12-12c0-6-6-12-12-10z" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 10V7c2-2 4-2 5 0" stroke="FG" stroke-width="2" stroke-linecap="round" fill="none"/>
+             <path d="M17 16a3 4 0 0 0 0 6" stroke="FG" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.4"/>` },
+
+        // ── Snacks / Sweets ─────────────────────────────────────────────────
+        '🍩': { c: 'brown', i:
+            `<circle cx="20" cy="20" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="20" r="4" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M12 16c3-1 5 0 8-1s5-2 8 1" stroke="FG" stroke-width="1.5" fill="none" opacity="0.5"/>` },
+
+        '🍪': { c: 'brown', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="16" cy="17" r="1.5" fill="FG"/><circle cx="23" cy="15" r="1.3" fill="FG"/>
+             <circle cx="18" cy="24" r="1.5" fill="FG"/><circle cx="25" cy="22" r="1.2" fill="FG"/>
+             <circle cx="14" cy="22" r="1" fill="FG"/>` },
+
+        '🍫': { c: 'brown', i:
+            `<rect x="10" y="12" width="20" height="16" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M10 18h20M10 24h20M17 12v16M24 12v16" stroke="FG" stroke-width="1.5"/>
+             <path d="M8 14l4-4h16l4 4" stroke="FG" stroke-width="1.8" stroke-linejoin="round" fill="none"/>` },
+
+        '🍬': { c: 'pink', i:
+            `<rect x="13" y="15" width="14" height="10" rx="5" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M13 18l-5-2M13 22l-5 2M27 18l5-2M27 22l5 2" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🍭': { c: 'pink', i:
+            `<circle cx="20" cy="15" r="8" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 23v10" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>
+             <path d="M14 11c3 0 3 4 6 4s3-4 6-4" stroke="FG" stroke-width="1.5" fill="none"/>
+             <path d="M14 17c3 0 3 4 6 4s3-4 6-4" stroke="FG" stroke-width="1.5" fill="none" opacity="0.5"/>` },
+
+        '🍿': { c: 'yellow', i:
+            `<path d="M12 16h16l-2 14H14z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <circle cx="16" cy="13" r="3" fill="none" stroke="FG" stroke-width="1.8"/>
+             <circle cx="24" cy="13" r="3" fill="none" stroke="FG" stroke-width="1.8"/>
+             <circle cx="20" cy="11" r="3" fill="none" stroke="FG" stroke-width="1.8"/>` },
+
+        '🎂': { c: 'pink', i:
+            `<rect x="10" y="18" width="20" height="12" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M10 24h20" stroke="FG" stroke-width="1.5"/>
+             <path d="M16 18v-4M20 18v-4M24 18v-4" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <circle cx="16" cy="12" r="1.5" fill="FG"/><circle cx="20" cy="12" r="1.5" fill="FG"/><circle cx="24" cy="12" r="1.5" fill="FG"/>` },
+
+        '🧁': { c: 'rose', i:
+            `<path d="M14 18h12l-1 12H15z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M12 18c0-4 3-8 8-8s8 4 8 8z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <circle cx="20" cy="8" r="2" fill="FG"/>` },
 
         // ── Personal Care / Cleaning ────────────────────────────────────────
-        '🧴': { c: 'lavender', t: '🧴' },
-        '🧻': { c: 'warmGray', t: '🧻' },
-        '🧼': { c: 'sky', t: '🧼' },
-        '🧽': { c: 'yellow', t: '🧽' },
-        '🪒': { c: 'slate', t: '🪒' },
-        '🪥': { c: 'blue', t: '🪥' },
-        '🫧': { c: 'sky', t: '🫧' },
+        '🧴': { c: 'lavender', i:
+            `<rect x="14" y="16" width="12" height="14" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M17 16v-4h6v4" stroke="FG" stroke-width="2"/>
+             <path d="M19 12V9h2v3" stroke="FG" stroke-width="1.8"/>
+             <path d="M14 23h12" stroke="FG" stroke-width="1.5"/>` },
+
+        '🧻': { c: 'warmGray', i:
+            `<ellipse cx="22" cy="20" rx="4" ry="10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M22 10H14a4 10 0 0 0 0 20h8" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14 14h8M14 20h8M14 26h8" stroke="FG" stroke-width="1.2" opacity="0.4"/>` },
+
+        '🧼': { c: 'sky', i:
+            `<rect x="10" y="14" width="20" height="14" rx="5" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="15" cy="11" r="2.5" fill="none" stroke="FG" stroke-width="1.5"/>
+             <circle cx="21" cy="9" r="2" fill="none" stroke="FG" stroke-width="1.5"/>
+             <circle cx="26" cy="12" r="1.5" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+        '🧽': { c: 'yellow', i:
+            `<rect x="10" y="12" width="20" height="16" rx="4" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="15" cy="18" r="1.2" fill="FG"/><circle cx="20" cy="16" r="1.2" fill="FG"/>
+             <circle cx="25" cy="19" r="1.2" fill="FG"/><circle cx="17" cy="23" r="1.2" fill="FG"/>
+             <circle cx="23" cy="24" r="1.2" fill="FG"/>` },
+
+        '🪒': { c: 'slate', i:
+            `<rect x="18" y="8" width="4" height="20" rx="1" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14 28h12" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M18 12h4" stroke="FG" stroke-width="1.5"/>` },
+
+        '🪥': { c: 'blue', i:
+            `<path d="M10 20h14" stroke="FG" stroke-width="4" stroke-linecap="round"/>
+             <rect x="24" y="16" width="8" height="8" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M26 18v4M29 18v4" stroke="FG" stroke-width="1.2" stroke-linecap="round"/>` },
+
+        '🫧': { c: 'sky', i:
+            `<circle cx="15" cy="15" r="5" fill="none" stroke="FG" stroke-width="1.8"/>
+             <circle cx="26" cy="13" r="3.5" fill="none" stroke="FG" stroke-width="1.8"/>
+             <circle cx="22" cy="24" r="6" fill="none" stroke="FG" stroke-width="1.8"/>
+             <circle cx="12" cy="27" r="2.5" fill="none" stroke="FG" stroke-width="1.5"/>
+             <circle cx="30" cy="22" r="2" fill="none" stroke="FG" stroke-width="1.5"/>` },
 
         // ── Nature / Decorative ─────────────────────────────────────────────
-        '🌱': { c: 'green', t: '🌱' },
-        '🌵': { c: 'green', t: '🌵' },
-        '🌸': { c: 'pink', t: '🌸' },
-        '🌻': { c: 'amber', t: '🌻' },
-        '🌾': { c: 'amber', t: '🌾' },
-        '🌿': { c: 'emerald', t: '🌿' },
-        '🍀': { c: 'green', t: '🍀' },
-        '🍃': { c: 'emerald', t: '🍃' },
-        '🎋': { c: 'green', t: '🎋' },
-        '🪴': { c: 'green', t: '🪴' },
+        '🌱': { c: 'green', i:
+            `<path d="M20 32v-14" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>
+             <path d="M20 18c-8-2-10-8-8-12 4 0 8 4 8 12z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M20 24c6-2 8-6 7-10-3 0-7 3-7 10z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>` },
+
+        '🌵': { c: 'green', i:
+            `<path d="M20 8v24" stroke="FG" stroke-width="4" stroke-linecap="round"/>
+             <path d="M20 16h-6v8h6" stroke="FG" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+             <path d="M20 20h5v6h-5" stroke="FG" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>` },
+
+        '🌸': { c: 'pink', i:
+            `<circle cx="20" cy="20" r="3" fill="FG"/>
+             <ellipse cx="20" cy="12" rx="3" ry="5" fill="none" stroke="FG" stroke-width="1.8"/>
+             <ellipse cx="20" cy="28" rx="3" ry="5" fill="none" stroke="FG" stroke-width="1.8"/>
+             <ellipse cx="12" cy="20" rx="5" ry="3" fill="none" stroke="FG" stroke-width="1.8"/>
+             <ellipse cx="28" cy="20" rx="5" ry="3" fill="none" stroke="FG" stroke-width="1.8"/>
+             <ellipse cx="14.3" cy="14.3" rx="4" ry="3" fill="none" stroke="FG" stroke-width="1.8" transform="rotate(-45 14.3 14.3)"/>` },
+
+        '🌻': { c: 'amber', i:
+            `<circle cx="20" cy="18" r="5" fill="FG"/>
+             <path d="M20 7v3M20 26v3M11 18h3M26 18h3M13 11l2 2M25 11l-2 2M13 25l2-2M25 25l-2-2" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>
+             <path d="M20 26v8" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🌾': { c: 'amber', i:
+            `<path d="M20 32V14" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M20 14l-4-6M20 18l-5-4M20 22l-4-3M20 14l4-6M20 18l5-4M20 22l4-3" stroke="FG" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+             <circle cx="16" cy="8" r="1.5" fill="FG"/><circle cx="24" cy="8" r="1.5" fill="FG"/>` },
+
+        '🌿': { c: 'emerald', i:
+            `<path d="M10 30c2-8 6-14 14-18" stroke="FG" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+             <path d="M14 26c0-6 4-10 10-12" stroke="FG" stroke-width="1.5" fill="none" opacity="0.5"/>
+             <path d="M12 28l-2 2M18 22l-3 4M22 16l-2 4" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '🍀': { c: 'green', i:
+            `<path d="M20 20c-4-2-10-2-10 4s6 6 10 4" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 20c2-4 2-10-4-10s-6 6-4 10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 20c4 2 10 2 10-4s-6-6-10-4" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 20c-2 4-2 10 4 10s6-6 4-10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 20v12" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🍃': { c: 'emerald', i:
+            `<path d="M10 28C14 16 22 8 32 8c0 10-8 18-20 22z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M10 28C18 22 26 14 32 8" stroke="FG" stroke-width="1.5" fill="none"/>
+             <path d="M16 24c4-4 8-6 12-8" stroke="FG" stroke-width="1.2" fill="none" opacity="0.4"/>` },
+
+        '🎋': { c: 'green', i:
+            `<path d="M20 8v24" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>
+             <path d="M20 12l-8 4c4-1 8 0 8 0" fill="none" stroke="FG" stroke-width="1.8" stroke-linejoin="round"/>
+             <path d="M20 18l8 4c-4-1-8 0-8 0" fill="none" stroke="FG" stroke-width="1.8" stroke-linejoin="round"/>
+             <path d="M20 24l-6 3c3-1 6 0 6 0" fill="none" stroke="FG" stroke-width="1.8" stroke-linejoin="round"/>` },
+
+        '🪴': { c: 'green', i:
+            `<path d="M14 28h12l-1-6H15z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M18 22v-4c-4-1-6-4-5-8" stroke="FG" stroke-width="2" stroke-linecap="round" fill="none"/>
+             <path d="M22 22v-4c4-1 6-4 5-8" stroke="FG" stroke-width="2" stroke-linecap="round" fill="none"/>
+             <path d="M20 18v-6c0-4-3-6-3-6" stroke="FG" stroke-width="2" stroke-linecap="round" fill="none"/>` },
     };
 
 
