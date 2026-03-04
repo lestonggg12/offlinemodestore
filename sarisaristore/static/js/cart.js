@@ -1490,6 +1490,7 @@ function injectSearchBar() {
                 autocorrect="off"
                 spellcheck="false"
             />
+            <button class="cart-search-go-btn" id="cartSearchGoBtn" style="display:none;">Search</button>
             <button class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search" style="display:none;">✕</button>
         </div>
     `;
@@ -1504,38 +1505,42 @@ function injectSearchBar() {
 
     const input    = document.getElementById('generalSearch');
     const clearBtn = document.getElementById('clearSearchBtn');
+    const goBtn    = document.getElementById('cartSearchGoBtn');
 
-    let _searchTimer = null;
-    const SEARCH_DEBOUNCE_MS = 400;
-
+    // Show/hide the Search button and clear button based on input
     input.addEventListener('input', () => {
-        clearBtn.style.display = input.value ? 'flex' : 'none';
+        const hasText = input.value.trim().length > 0;
+        clearBtn.style.display = hasText ? 'flex' : 'none';
+        goBtn.style.display    = hasText ? 'flex' : 'none';
 
-        // Reset any pending debounce timer
-        if (_searchTimer) { clearTimeout(_searchTimer); _searchTimer = null; }
-
-        const query = input.value.trim();
-        const searchResults = document.getElementById('searchResults');
-
-        if (!query) {
-            // Input is empty — clear results instantly, skip spinner
+        if (!hasText) {
+            const searchResults = document.getElementById('searchResults');
             if (searchResults) searchResults.innerHTML = '';
-            return;
         }
-
-        // Wait until typing stops, THEN show spinner and run search
-        _searchTimer = setTimeout(() => {
-            _searchTimer = null;
-            if (searchResults) {
-                searchResults.innerHTML = `
-                    <div class="cart-search-loading">
-                        <div class="cart-search-spinner"></div>
-                        <span>Searching…</span>
-                    </div>`;
-            }
-            handleSearch();
-        }, SEARCH_DEBOUNCE_MS);
     });
+
+    // Trigger search when the Search button is pressed
+    function triggerSearch() {
+        const query = input.value.trim();
+        if (!query) return;
+        const searchResults = document.getElementById('searchResults');
+        if (searchResults) {
+            searchResults.innerHTML = `
+                <div class="cart-search-loading">
+                    <div class="cart-search-spinner"></div>
+                    <span>Searching…</span>
+                </div>`;
+        }
+        handleSearch();
+    }
+
+    goBtn.addEventListener('click', triggerSearch);
+
+    // Also trigger search on Enter key
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); triggerSearch(); }
+    });
+
     clearBtn.addEventListener('click', clearSearch);
 }
 
@@ -1589,6 +1594,20 @@ function injectSearchBarStyles() {
         #clearSearchBtn:active { transform: scale(0.9); }
         body.dark-mode #clearSearchBtn { background: #2a3d2a; color: #a0c8a0; }
         #cartSearchWrapper + #searchResults { padding-top: 8px; }
+        /* ── Search Go button ── */
+        .cart-search-go-btn {
+            display: none; flex-shrink: 0;
+            padding: 6px 14px; height: 32px;
+            border: none; border-radius: 8px;
+            background: var(--btn-green-bg);
+            color: var(--btn-green-text);
+            font-size: 13px; font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.12s;
+            white-space: nowrap;
+        }
+        .cart-search-go-btn:hover  { background: var(--btn-green-hover); transform: scale(1.04); }
+        .cart-search-go-btn:active { transform: scale(0.96); }
         /* ── Inline search spinner ── */
         .cart-search-loading {
             display: flex; align-items: center; justify-content: center; gap: 10px;
