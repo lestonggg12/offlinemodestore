@@ -179,11 +179,6 @@ body.dark-mode .neo-btn-success[disabled] {
 }
 body.dark-mode .neo-card,
 body.dark-mode .neo-panel,
-body.dark-mode .neo-modal,
-body.dark-mode .neo-clear-confirm,
-body.dark-mode .neo-modal-smaller,
-body.dark-mode .neo-modal-success,
-body.dark-mode .neo-change-modal,
 body.dark-mode .neo-cart-header,
 body.dark-mode .neo-cart-list,
 body.dark-mode .neo-cart-item,
@@ -201,6 +196,18 @@ body.dark-mode .neo-btn-checkout {
   text-shadow: 0 2px 4px rgba(0,0,0,0.35);
   background: var(--primary-700, #283593) !important;
   border: none !important;
+}
+/* Modals get a dark neutral background, not green */
+body.dark-mode .neo-modal,
+body.dark-mode .neo-clear-confirm,
+body.dark-mode .neo-modal-smaller,
+body.dark-mode .neo-modal-success,
+body.dark-mode .neo-change-modal {
+  background: #1a1c20 !important;
+  border: 1.5px solid #2e3138 !important;
+  color: #f3f4f6 !important;
+  text-shadow: none;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.4);
 }
 body.dark-mode .neo-btn-success {
   background: linear-gradient(135deg, #14532d 0%, #166534 100%) !important;
