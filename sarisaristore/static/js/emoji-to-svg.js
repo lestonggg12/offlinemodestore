@@ -1,0 +1,779 @@
+/**
+ * emoji-to-svg.js — Neo-Glassmorphic Emoji → SVG Replacement Engine
+ *
+ * Replaces every Unicode emoji in the DOM with a self-contained, inline SVG
+ * that has a frosted-glass (neo-glassmorphic) background, subtle gradient,
+ * highlight, and drop-shadow.  Custom vector icon paths are provided for
+ * ~50 core UI emojis; all remaining emojis get the same glass treatment
+ * with the original character rendered as <text> inside the SVG.
+ *
+ * Features:
+ *   - Zero dependencies, pure vanilla JS
+ *   - Shared <defs> block (gradients + filters) injected once
+ *   - MutationObserver auto-replaces emojis in dynamically-added content
+ *   - window.emojiToSVG(emoji) public API for use in template literals
+ *   - Dark-mode aware via CSS classes
+ *   - Fully self-contained inline SVGs (no external assets)
+ *
+ * LOAD ORDER:  Include AFTER the DOM is ready (end of <body> or defer).
+ */
+
+(function () {
+    'use strict';
+
+    // =========================================================================
+    //  COLOUR PALETTE
+    // =========================================================================
+
+    const P = {
+        indigo:  { bg: '#6366f1', fg: '#3730a3' },
+        cyan:    { bg: '#06b6d4', fg: '#155e75' },
+        amber:   { bg: '#f59e0b', fg: '#92400e' },
+        orange:  { bg: '#f97316', fg: '#9a3412' },
+        violet:  { bg: '#8b5cf6', fg: '#5b21b6' },
+        slate:   { bg: '#94a3b8', fg: '#334155' },
+        yellow:  { bg: '#eab308', fg: '#854d0e' },
+        red:     { bg: '#ef4444', fg: '#991b1b' },
+        green:   { bg: '#22c55e', fg: '#166534' },
+        blue:    { bg: '#3b82f6', fg: '#1e40af' },
+        rose:    { bg: '#fb7185', fg: '#9f1239' },
+        emerald: { bg: '#34d399', fg: '#065f46' },
+        teal:    { bg: '#2dd4bf', fg: '#115e59' },
+        pink:    { bg: '#f472b6', fg: '#9d174d' },
+        lime:    { bg: '#a3e635', fg: '#3f6212' },
+        sky:     { bg: '#38bdf8', fg: '#075985' },
+        brown:   { bg: '#d97706', fg: '#78350f' },
+        warmGray:{ bg: '#a8a29e', fg: '#44403c' },
+        stone:   { bg: '#a1887f', fg: '#4e342e' },
+        copper:  { bg: '#d4a574', fg: '#6d4c2e' },
+        coral:   { bg: '#ff8a80', fg: '#c62828' },
+        mint:    { bg: '#80cbc4', fg: '#00695c' },
+        lavender:{ bg: '#b39ddb', fg: '#4527a0' },
+        peach:   { bg: '#ffab91', fg: '#bf360c' },
+        cream:   { bg: '#ffe0b2', fg: '#e65100' },
+    };
+
+    // =========================================================================
+    //  SVG ICON DEFINITIONS
+    //  Each: { c: 'palette-key', i: 'SVG inner markup (uses FG for fill)' }
+    //  If `i` is omitted the emoji character is rendered as <text>.
+    // =========================================================================
+
+    const ICONS = {
+
+        // ── Navigation / Pages ──────────────────────────────────────────────
+        '📊': { c: 'indigo', i:
+            `<rect x="10" y="22" width="4.5" height="9" rx="1.5" fill="FG"/>
+             <rect x="17.8" y="15" width="4.5" height="16" rx="1.5" fill="FG"/>
+             <rect x="25.5" y="19" width="4.5" height="12" rx="1.5" fill="FG"/>` },
+
+        '📅': { c: 'cyan', i:
+            `<rect x="10" y="13" width="20" height="18" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M10 19h20" stroke="FG" stroke-width="2"/>
+             <path d="M16 10v5M24 10v5" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <circle cx="15" cy="24" r="1.3" fill="FG"/><circle cx="20" cy="24" r="1.3" fill="FG"/>
+             <circle cx="25" cy="24" r="1.3" fill="FG"/><circle cx="15" cy="28" r="1.3" fill="FG"/>
+             <circle cx="20" cy="28" r="1.3" fill="FG"/>` },
+
+        '💰': { c: 'amber', i:
+            `<circle cx="20" cy="20" r="10.5" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M17 16.5c0-1.7 1.3-2.5 3-2.5s3 .8 3 2.5c0 2-3 2.2-3 4 0 1.7-3 2-3 2.5 0 1.7 1.3 2.5 3 2.5s3-.8 3-2.5" fill="none" stroke="FG" stroke-width="1.6" stroke-linecap="round"/>
+             <path d="M20 12v2m0 12v2" stroke="FG" stroke-width="1.6" stroke-linecap="round"/>` },
+
+        '📦': { c: 'orange', i:
+            `<path d="M20 8L32 14.5V26L20 32.5 8 26V14.5Z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M8 14.5L20 21l12-6.5M20 21v11.5" stroke="FG" stroke-width="2" stroke-linejoin="round"/>` },
+
+        '🧾': { c: 'violet', i:
+            `<path d="M12 9h16a2 2 0 0 1 2 2v18l-2.5-2-2.5 2-2.5-2-2.5 2-2.5-2-2.5 2-2.5-2L10 31V11a2 2 0 0 1 2-2z" fill="none" stroke="FG" stroke-width="1.8"/>
+             <path d="M15 15h10M15 19h10M15 23h6" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '⚙️': { c: 'slate', i:
+            `<circle cx="20" cy="20" r="4" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 9v3m0 16v3M9 20h3m16 0h3M12.2 12.2l2.1 2.1m11.4 11.4l2.1 2.1M27.8 12.2l-2.1 2.1M14.3 25.7l-2.1 2.1" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '⚙': { c: 'slate', i:
+            `<circle cx="20" cy="20" r="4" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 9v3m0 16v3M9 20h3m16 0h3M12.2 12.2l2.1 2.1m11.4 11.4l2.1 2.1M27.8 12.2l-2.1 2.1M14.3 25.7l-2.1 2.1" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🔔': { c: 'yellow', i:
+            `<path d="M20 9c-4.4 0-8 3.6-8 8v5l-2 3h20l-2-3v-5c0-4.4-3.6-8-8-8z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M17.5 28a2.5 2.5 0 0 0 5 0" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🚪': { c: 'red', i:
+            `<rect x="12" y="8" width="12" height="24" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="21" cy="20" r="1.2" fill="FG"/>
+             <path d="M27 20h5m-3-3l3 3-3 3" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '🛒': { c: 'green', i:
+            `<path d="M8 10h3l3.5 14h13l3-10H14" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <circle cx="17" cy="28" r="2" fill="FG"/><circle cx="26" cy="28" r="2" fill="FG"/>` },
+
+        '🔍': { c: 'blue', i:
+            `<circle cx="18" cy="18" r="8" fill="none" stroke="FG" stroke-width="2.2"/>
+             <path d="M24 24l7 7" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>` },
+
+
+        // ── Status Icons ────────────────────────────────────────────────────
+        '✅': { c: 'green', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M13.5 20l4.5 4.5 9-9" fill="none" stroke="FG" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '❌': { c: 'red', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14.5 14.5l11 11M25.5 14.5l-11 11" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>` },
+
+        '⚠️': { c: 'amber', i:
+            `<path d="M20 8L6 32h28Z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M20 17v7" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>
+             <circle cx="20" cy="28" r="1.5" fill="FG"/>` },
+
+        '⚠': { c: 'amber', i:
+            `<path d="M20 8L6 32h28Z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M20 17v7" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>
+             <circle cx="20" cy="28" r="1.5" fill="FG"/>` },
+
+        '🚫': { c: 'red', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2.5"/>
+             <path d="M12.2 27.8L27.8 12.2" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>` },
+
+        '🚨': { c: 'coral', i:
+            `<path d="M14 28h12V18a6 6 0 0 0-12 0v10z" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="12" r="3.5" fill="FG" opacity="0.8"/>
+             <path d="M12 28h16" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        'ℹ️': { c: 'blue', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="14" r="1.5" fill="FG"/>
+             <path d="M20 18v10" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>` },
+
+        'ℹ': { c: 'blue', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="14" r="1.5" fill="FG"/>
+             <path d="M20 18v10" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>` },
+
+        '❓': { c: 'violet', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M16 15c0-3 2.5-4 4-4s4 1.2 4 3.5c0 2.5-4 3-4 5" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <circle cx="20" cy="28" r="1.5" fill="FG"/>` },
+
+
+        // ── Close / Check marks ─────────────────────────────────────────────
+        '✕': { c: 'slate', i:
+            `<path d="M13 13l14 14M27 13L13 27" stroke="FG" stroke-width="2.8" stroke-linecap="round"/>` },
+
+        '✓': { c: 'green', i:
+            `<path d="M11 20l6 6 12-12" fill="none" stroke="FG" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '✎': { c: 'blue', i:
+            `<path d="M10 30l2-8L26 8l4 4-14 14z" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M22 12l4 4" stroke="FG" stroke-width="2"/>` },
+
+
+        // ── Action Icons ────────────────────────────────────────────────────
+        '✨': { c: 'yellow', i:
+            `<path d="M20 8l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="FG"/>
+             <path d="M28 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="FG" opacity="0.6"/>
+             <path d="M12 24l1 2.5 2.5 1-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z" fill="FG" opacity="0.5"/>` },
+
+        '🎉': { c: 'pink', i:
+            `<path d="M8 32l4-16 12 12z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <circle cx="22" cy="10" r="1.5" fill="FG"/><circle cx="28" cy="14" r="1.5" fill="FG"/>
+             <circle cx="26" cy="8" r="1" fill="FG"/><circle cx="30" cy="18" r="1" fill="FG"/>
+             <path d="M16 12l-2-4M22 16l4-2" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '➕': { c: 'green', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 13v14M13 20h14" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>` },
+
+        '⚡': { c: 'yellow', i:
+            `<path d="M22 8L12 22h7l-2 10 12-14h-7z" fill="FG"/>` },
+
+        '🗑️': { c: 'red', i:
+            `<path d="M13 13h14M16 13V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M14 13l1 17h10l1-17" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M18 17v9m4-9v9" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '🗑': { c: 'red', i:
+            `<path d="M13 13h14M16 13V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M14 13l1 17h10l1-17" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M18 17v9m4-9v9" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '✏️': { c: 'blue', i:
+            `<path d="M10 30l2-8L26 8l4 4-14 14z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M22 12l4 4" stroke="FG" stroke-width="2"/>` },
+
+        '✏': { c: 'blue', i:
+            `<path d="M10 30l2-8L26 8l4 4-14 14z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M22 12l4 4" stroke="FG" stroke-width="2"/>` },
+
+        '🖊️': { c: 'indigo', i:
+            `<path d="M10 30l2-8L26 8l4 4-14 14z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M22 12l4 4" stroke="FG" stroke-width="2"/>` },
+
+        '💾': { c: 'indigo', i:
+            `<rect x="9" y="9" width="22" height="22" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <rect x="14" y="9" width="10" height="8" rx="1" fill="none" stroke="FG" stroke-width="1.5"/>
+             <rect x="13" y="22" width="14" height="9" rx="2" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+        '🔄': { c: 'cyan', i:
+            `<path d="M28 16A9 9 0 0 0 12.5 12M12 24a9 9 0 0 0 15.5 4" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M28 10v6h-6M12 30v-6h6" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '📝': { c: 'blue', i:
+            `<rect x="10" y="8" width="16" height="24" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14 14h8M14 18h8M14 22h5" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>
+             <path d="M24 22l4-4 2 2-4 4h-2z" fill="FG"/>` },
+
+
+        // ── Data / Business ─────────────────────────────────────────────────
+        '📈': { c: 'emerald', i:
+            `<path d="M8 30l8-8 5 4 11-14" fill="none" stroke="FG" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M26 12h6v6" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '📉': { c: 'red', i:
+            `<path d="M8 12l8 8 5-4 11 14" fill="none" stroke="FG" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M26 30h6v-6" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '📋': { c: 'indigo', i:
+            `<rect x="10" y="11" width="20" height="22" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <rect x="16" y="8" width="8" height="6" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M15 19h10M15 23h10M15 27h6" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '💎': { c: 'cyan', i:
+            `<path d="M20 32L6 18l5-8h18l5 8z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M6 18h28M14 10l-2 8 8 14 8-14-2-8" stroke="FG" stroke-width="1.5" stroke-linejoin="round"/>` },
+
+        '🏆': { c: 'amber', i:
+            `<path d="M14 10h12v8c0 4-3 7-6 7s-6-3-6-7z" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M14 14H9c0 4 2 6 5 6M26 14h5c0 4-2 6-5 6" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M17 28h6M20 25v3" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '💡': { c: 'yellow', i:
+            `<path d="M20 8a8 8 0 0 0-5 14.2V26h10v-3.8A8 8 0 0 0 20 8z" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M16 29h8M17 32h6" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M20 14v4m-3-2h6" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '💳': { c: 'indigo', i:
+            `<rect x="7" y="12" width="26" height="16" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M7 18h26" stroke="FG" stroke-width="2"/>
+             <path d="M12 23h6" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>
+             <path d="M12 26h3" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '💵': { c: 'green', i:
+            `<rect x="7" y="12" width="26" height="16" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="20" r="4" fill="none" stroke="FG" stroke-width="1.5"/>
+             <path d="M20 17v6" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>
+             <circle cx="10" cy="20" r="1.2" fill="FG"/><circle cx="30" cy="20" r="1.2" fill="FG"/>` },
+
+        '💲': { c: 'green', i:
+            `<path d="M16 14c0-2 2-3.5 4-3.5s4 1.2 4 3.5c0 2.5-4 3-4 4.5 0 2.5-4 2-4 3.5 0 2 2 3.5 4 3.5s4-1.5 4-3.5" fill="none" stroke="FG" stroke-width="2.2" stroke-linecap="round"/>
+             <path d="M20 8v3m0 18v3" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🪙': { c: 'amber', i:
+            `<circle cx="20" cy="20" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="20" r="6" fill="none" stroke="FG" stroke-width="1.5"/>
+             <path d="M20 16v8" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+
+        // ── Time / Calendar ─────────────────────────────────────────────────
+        '⏰': { c: 'violet', i:
+            `<circle cx="20" cy="20" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 14v6l4 3" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M12 8l-3 3M28 8l3 3" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '⏱️': { c: 'violet', i:
+            `<circle cx="20" cy="21" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 15v6l3 3" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M20 8v3M26 12l2-2" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '⏱': { c: 'violet', i:
+            `<circle cx="20" cy="21" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 15v6l3 3" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M20 8v3M26 12l2-2" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '⏳': { c: 'amber', i:
+            `<path d="M13 8h14M13 32h14" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M14 8v5c0 4 6 5 6 7s-6 3-6 7v5M26 8v5c0 4-6 5-6 7s6 3 6 7v5" fill="none" stroke="FG" stroke-width="2"/>` },
+
+        '🕐': { c: 'slate', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 12v8l4 4" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '🕑': { c: 'slate', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 12v8h5" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '📆': { c: 'teal', i:
+            `<rect x="10" y="13" width="20" height="18" rx="3" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M10 19h20" stroke="FG" stroke-width="2"/>
+             <path d="M16 10v5M24 10v5" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <text x="20" y="28.5" font-size="9" font-weight="700" text-anchor="middle" fill="FG">17</text>` },
+
+        '🔚': { c: 'slate', i:
+            `<path d="M10 20h18M24 15l5 5-5 5" stroke="FG" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M32 13v14" stroke="FG" stroke-width="2.2" stroke-linecap="round"/>` },
+
+
+        // ── People / Misc ───────────────────────────────────────────────────
+        '👤': { c: 'slate', i:
+            `<circle cx="20" cy="15" r="5" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M10 32c0-5.5 4.5-10 10-10s10 4.5 10 10" fill="none" stroke="FG" stroke-width="2"/>` },
+
+        '👁️': { c: 'blue', i:
+            `<path d="M6 20s6-8 14-8 14 8 14 8-6 8-14 8-14-8-14-8z" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="20" r="4" fill="FG"/>` },
+
+        '👁': { c: 'blue', i:
+            `<path d="M6 20s6-8 14-8 14 8 14 8-6 8-14 8-14-8-14-8z" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="20" r="4" fill="FG"/>` },
+
+        '🙈': { c: 'warmGray', i:
+            `<circle cx="20" cy="20" r="9" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M13 17c2-2 4.5-3 7-3s5 1 7 3" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M15 16v4M25 16v4" stroke="FG" stroke-width="3" stroke-linecap="round"/>` },
+
+        '😔': { c: 'slate', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="16" cy="18" r="1.2" fill="FG"/><circle cx="24" cy="18" r="1.2" fill="FG"/>
+             <path d="M16 26c2-2 6-2 8 0" fill="none" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+
+        // ── Theme / Nature ──────────────────────────────────────────────────
+        '🌙': { c: 'indigo', i:
+            `<path d="M26 10A10 10 0 1 0 18 30a12 12 0 0 1 8-20z" fill="FG"/>` },
+
+        '☀️': { c: 'amber', i:
+            `<circle cx="20" cy="20" r="5" fill="FG"/>
+             <path d="M20 9v3m0 16v3M9 20h3m16 0h3M12.5 12.5l2 2m11 11l2 2M27.5 12.5l-2 2M14.5 25.5l-2 2" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '☀': { c: 'amber', i:
+            `<circle cx="20" cy="20" r="5" fill="FG"/>
+             <path d="M20 9v3m0 16v3M9 20h3m16 0h3M12.5 12.5l2 2m11 11l2 2M27.5 12.5l-2 2M14.5 25.5l-2 2" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🌓': { c: 'indigo', i:
+            `<circle cx="20" cy="20" r="10" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 10a10 10 0 0 1 0 20z" fill="FG"/>` },
+
+        '☁️': { c: 'sky', i:
+            `<path d="M12 26a6 6 0 0 1-.5-12A8 8 0 0 1 26 12a6 6 0 0 1 2 11.6H12z" fill="none" stroke="FG" stroke-width="2"/>` },
+
+        '☁': { c: 'sky', i:
+            `<path d="M12 26a6 6 0 0 1-.5-12A8 8 0 0 1 26 12a6 6 0 0 1 2 11.6H12z" fill="none" stroke="FG" stroke-width="2"/>` },
+
+        '🌐': { c: 'teal', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <ellipse cx="20" cy="20" rx="5" ry="11" fill="none" stroke="FG" stroke-width="1.5"/>
+             <path d="M9 15h22M9 25h22" stroke="FG" stroke-width="1.5"/>` },
+
+
+        // ── Objects ─────────────────────────────────────────────────────────
+        '📬': { c: 'blue', i:
+            `<rect x="8" y="16" width="24" height="14" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M8 16l12 8 12-8" stroke="FG" stroke-width="2"/>
+             <path d="M28 10v6" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '📭': { c: 'slate', i:
+            `<rect x="8" y="16" width="24" height="14" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M8 16l12 8 12-8" stroke="FG" stroke-width="2"/>` },
+
+        '🛡️': { c: 'emerald', i:
+            `<path d="M20 6l12 5v9c0 6-5 10-12 14C13 30 8 26 8 20v-9z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M16 20l3 3 6-6" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '🛡': { c: 'emerald', i:
+            `<path d="M20 6l12 5v9c0 6-5 10-12 14C13 30 8 26 8 20v-9z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M16 20l3 3 6-6" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` },
+
+        '🧹': { c: 'brown', i:
+            `<path d="M22 8l-8 16" stroke="FG" stroke-width="2.5" stroke-linecap="round"/>
+             <path d="M10 24c0 0 2 8 10 8s10-8 10-8H10z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M14 26v4M20 26v4M26 26v4" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '🚀': { c: 'violet', i:
+            `<path d="M20 6c-4 4-6 10-6 16h12c0-6-2-12-6-16z" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="18" r="2.5" fill="FG"/>
+             <path d="M14 26l-4 4M26 26l4 4M17 30h6" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '🎨': { c: 'pink', i:
+            `<circle cx="20" cy="20" r="11" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="15" cy="16" r="2" fill="FG"/><circle cx="24" cy="14" r="1.8" fill="FG"/>
+             <circle cx="14" cy="22" r="1.6" fill="FG"/><circle cx="25" cy="23" r="2.2" fill="FG"/>` },
+
+        '💚': { c: 'green', i:
+            `<path d="M20 30l-9-9a6 6 0 0 1 9-8 6 6 0 0 1 9 8z" fill="FG"/>` },
+
+        '💊': { c: 'rose', i:
+            `<rect x="11" y="11" width="18" height="18" rx="9" fill="none" stroke="FG" stroke-width="2" transform="rotate(45 20 20)"/>
+             <path d="M14 14l12 12" stroke="FG" stroke-width="2"/>` },
+
+
+        // ── Symbols / Arrows ────────────────────────────────────────────────
+        '▼': { c: 'slate', i:
+            `<path d="M12 16l8 8 8-8" fill="FG"/>` },
+
+        '●': { c: 'green', i:
+            `<circle cx="20" cy="20" r="6" fill="FG"/>` },
+
+        '✂️': { c: 'slate', i:
+            `<circle cx="14" cy="14" r="3.5" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="14" cy="26" r="3.5" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M17 16l13 12M17 24l13-12" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '✂': { c: 'slate', i:
+            `<circle cx="14" cy="14" r="3.5" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="14" cy="26" r="3.5" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M17 16l13 12M17 24l13-12" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+
+        // ── Office / School ─────────────────────────────────────────────────
+        '📌': { c: 'red', i:
+            `<path d="M20 22v10" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M13 12h14l-2 8H15z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <circle cx="20" cy="10" r="2.5" fill="FG"/>` },
+
+        '📎': { c: 'slate', i:
+            `<path d="M16 12v14a4 4 0 0 0 8 0V10a6 6 0 0 0-12 0v18" fill="none" stroke="FG" stroke-width="2" stroke-linecap="round"/>` },
+
+        '📏': { c: 'amber', i:
+            `<rect x="8" y="14" width="24" height="12" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M12 14v4M16 14v6M20 14v4M24 14v6M28 14v4" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '📐': { c: 'orange', i:
+            `<path d="M8 32L8 8l24 24z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <path d="M8 22l10 10" stroke="FG" stroke-width="1.5"/>` },
+
+        '📓': { c: 'blue', i:
+            `<rect x="12" y="8" width="18" height="24" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M10 12h4M10 18h4M10 24h4M10 28h4" stroke="FG" stroke-width="2" stroke-linecap="round"/>
+             <path d="M17 14h8M17 18h8" stroke="FG" stroke-width="1.5" stroke-linecap="round"/>` },
+
+        '📚': { c: 'indigo', i:
+            `<rect x="8" y="10" width="8" height="20" rx="1" fill="none" stroke="FG" stroke-width="1.8"/>
+             <rect x="16" y="8" width="8" height="22" rx="1" fill="none" stroke="FG" stroke-width="1.8"/>
+             <rect x="24" y="12" width="8" height="18" rx="1" fill="none" stroke="FG" stroke-width="1.8"/>` },
+
+        '🎒': { c: 'orange', i:
+            `<rect x="12" y="14" width="16" height="18" rx="4" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M16 14V11a4 4 0 0 1 8 0v3" stroke="FG" stroke-width="2"/>
+             <rect x="16" y="20" width="8" height="6" rx="1.5" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+
+        // ── Store / Tags ────────────────────────────────────────────────────
+        '🏷️': { c: 'emerald', i:
+            `<path d="M10 10h10l10 10-8 8-10-10V12a2 2 0 0 1 0-2z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <circle cx="15" cy="15" r="2" fill="FG"/>` },
+
+        '🏷': { c: 'emerald', i:
+            `<path d="M10 10h10l10 10-8 8-10-10V12a2 2 0 0 1 0-2z" fill="none" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <circle cx="15" cy="15" r="2" fill="FG"/>` },
+
+        '🏪': { c: 'teal', i:
+            `<rect x="8" y="16" width="24" height="16" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M8 16L12 8h16l4 8" stroke="FG" stroke-width="2" stroke-linejoin="round"/>
+             <rect x="16" y="22" width="8" height="10" rx="1" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+        '🏬': { c: 'blue', i:
+            `<rect x="10" y="10" width="20" height="22" rx="2" fill="none" stroke="FG" stroke-width="2"/>
+             <rect x="14" y="14" width="4" height="4" rx="1" fill="FG"/><rect x="22" y="14" width="4" height="4" rx="1" fill="FG"/>
+             <rect x="14" y="21" width="4" height="4" rx="1" fill="FG"/><rect x="22" y="21" width="4" height="4" rx="1" fill="FG"/>
+             <rect x="17" y="28" width="6" height="4" rx="1" fill="none" stroke="FG" stroke-width="1.5"/>` },
+
+        '🩺': { c: 'rose', i:
+            `<circle cx="20" cy="12" r="4" fill="none" stroke="FG" stroke-width="2"/>
+             <path d="M20 16v8a6 6 0 0 1-6 6 6 6 0 0 1-6-6" fill="none" stroke="FG" stroke-width="2"/>
+             <circle cx="20" cy="26" r="2" fill="FG"/>` },
+
+
+        // ── Kitchen / Dining ────────────────────────────────────────────────
+        '🍴': { c: 'warmGray', t: '🍴' },
+        '🍷': { c: 'rose', t: '🍷' },
+        '🍸': { c: 'cyan', t: '🍸' },
+        '🍽️': { c: 'slate', t: '🍽️' },
+        '🍽': { c: 'slate', t: '🍽' },
+        '🍾': { c: 'emerald', t: '🍾' },
+        '🥂': { c: 'amber', t: '🥂' },
+        '🥃': { c: 'brown', t: '🥃' },
+        '🥄': { c: 'warmGray', t: '🥄' },
+        '🥫': { c: 'red', t: '🥫' },
+        '🫙': { c: 'teal', t: '🫙' },
+
+        // ── Food / Beverages (text fallbacks) ───────────────────────────────
+        '☕': { c: 'brown', t: '☕' },
+        '🍵': { c: 'emerald', t: '🍵' },
+        '🍶': { c: 'slate', t: '🍶' },
+        '🍹': { c: 'pink', t: '🍹' },
+        '🍺': { c: 'amber', t: '🍺' },
+        '🍻': { c: 'amber', t: '🍻' },
+        '🥛': { c: 'slate', t: '🥛' },
+        '🧃': { c: 'orange', t: '🧃' },
+        '🧊': { c: 'sky', t: '🧊' },
+        '🥤': { c: 'red', t: '🥤' },
+        '🍚': { c: 'warmGray', t: '🍚' },
+        '🍞': { c: 'brown', t: '🍞' },
+        '🌽': { c: 'yellow', t: '🌽' },
+        '🍅': { c: 'red', t: '🍅' },
+        '🥕': { c: 'orange', t: '🥕' },
+        '🥚': { c: 'cream', t: '🥚' },
+        '🥦': { c: 'green', t: '🥦' },
+        '🧄': { c: 'warmGray', t: '🧄' },
+        '🧈': { c: 'yellow', t: '🧈' },
+        '🥩': { c: 'red', t: '🥩' },
+        '🍌': { c: 'yellow', t: '🍌' },
+        '🍎': { c: 'red', t: '🍎' },
+        '🍩': { c: 'brown', t: '🍩' },
+        '🍪': { c: 'brown', t: '🍪' },
+        '🍫': { c: 'brown', t: '🍫' },
+        '🍬': { c: 'pink', t: '🍬' },
+        '🍭': { c: 'pink', t: '🍭' },
+        '🍿': { c: 'yellow', t: '🍿' },
+        '🎂': { c: 'pink', t: '🎂' },
+        '🧁': { c: 'rose', t: '🧁' },
+
+        // ── Personal Care / Cleaning ────────────────────────────────────────
+        '🧴': { c: 'lavender', t: '🧴' },
+        '🧻': { c: 'warmGray', t: '🧻' },
+        '🧼': { c: 'sky', t: '🧼' },
+        '🧽': { c: 'yellow', t: '🧽' },
+        '🪒': { c: 'slate', t: '🪒' },
+        '🪥': { c: 'blue', t: '🪥' },
+        '🫧': { c: 'sky', t: '🫧' },
+
+        // ── Nature / Decorative ─────────────────────────────────────────────
+        '🌱': { c: 'green', t: '🌱' },
+        '🌵': { c: 'green', t: '🌵' },
+        '🌸': { c: 'pink', t: '🌸' },
+        '🌻': { c: 'amber', t: '🌻' },
+        '🌾': { c: 'amber', t: '🌾' },
+        '🌿': { c: 'emerald', t: '🌿' },
+        '🍀': { c: 'green', t: '🍀' },
+        '🍃': { c: 'emerald', t: '🍃' },
+        '🎋': { c: 'green', t: '🎋' },
+        '🪴': { c: 'green', t: '🪴' },
+    };
+
+
+    // =========================================================================
+    //  SHARED SVG <defs>  (gradients + filters, one per palette colour)
+    // =========================================================================
+
+    let _defsInjected = false;
+    let _idCtr = 0;   // counter for unique IDs when defs aren't on page yet
+
+    function injectSharedDefs() {
+        if (_defsInjected) return;
+        _defsInjected = true;
+
+        let defs = '';
+        for (const [name, col] of Object.entries(P)) {
+            defs += `
+                <linearGradient id="gm-g-${name}" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%"   stop-color="${col.bg}" stop-opacity="0.38"/>
+                    <stop offset="100%" stop-color="${col.bg}" stop-opacity="0.10"/>
+                </linearGradient>
+                <filter id="gm-f-${name}" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="1.5" stdDeviation="2.5"
+                                  flood-color="${col.bg}" flood-opacity="0.30"/>
+                </filter>`;
+        }
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '0');
+        svg.setAttribute('height', '0');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.style.position = 'absolute';
+        svg.style.pointerEvents = 'none';
+        svg.id = 'gm-shared-defs';
+        svg.innerHTML = `<defs>${defs}</defs>`;
+        document.body.insertBefore(svg, document.body.firstChild);
+    }
+
+
+    // =========================================================================
+    //  BUILD SVG STRING
+    // =========================================================================
+
+    /**
+     * Return an HTML string for the glassmorphic SVG icon.
+     * @param {string} emoji — The emoji character to convert
+     * @returns {string} — HTML string for the icon, or the original emoji if unknown
+     */
+    function buildSVG(emoji) {
+        // Normalise variant selectors
+        const key = emoji.replace(/\uFE0F/g, '');
+        const def = ICONS[emoji] || ICONS[key] || ICONS[emoji + '\uFE0F'];
+        if (!def) return emoji;                               // unknown → pass through
+
+        const col  = P[def.c] || P.slate;
+        const cName = def.c || 'slate';
+
+        let innerContent;
+
+        if (def.i) {
+            // Custom icon: replace FG placeholder with foreground colour
+            innerContent = def.i.replace(/FG/g, col.fg);
+        } else if (def.t) {
+            // Text-fallback: render the emoji inside the SVG as <text>
+            innerContent =
+                `<text x="20" y="27" font-size="18" text-anchor="middle" fill="${col.fg}">${def.t}</text>`;
+        } else {
+            return emoji;
+        }
+
+        // Build the full SVG with glass background
+        return `<span class="gm-icon" role="img" aria-label="${emoji}">` +
+            `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">` +
+                // Glass background
+                `<rect class="gm-bg" x="2" y="2" width="36" height="36" rx="11" ` +
+                    `fill="url(#gm-g-${cName})" ` +
+                    `stroke="rgba(255,255,255,0.55)" stroke-width="1" ` +
+                    `filter="url(#gm-f-${cName})"/>` +
+                // Top highlight (frosted refraction)
+                `<rect class="gm-highlight" x="4" y="4" width="32" height="15" rx="9" ` +
+                    `fill="rgba(255,255,255,0.18)"/>` +
+                // Icon content
+                `<g class="gm-icon-path">${innerContent}</g>` +
+            `</svg>` +
+        `</span>`;
+    }
+
+
+    // =========================================================================
+    //  EMOJI REGEX
+    //  Matches all emojis we have definitions for + common emoji ranges.
+    // =========================================================================
+
+    // Build a regex alternation from all defined emoji keys, sorted longest first
+    // so multi-codepoint emojis match before their base characters.
+    const _emojiKeys = Object.keys(ICONS)
+        .sort((a, b) => b.length - a.length)
+        .map(k => k.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'))
+        .join('|');
+    const EMOJI_RE = new RegExp(`(${_emojiKeys})`, 'g');
+
+
+    // =========================================================================
+    //  DOM WALKER  —  Replace emoji characters in text nodes
+    // =========================================================================
+
+    const SKIP_TAGS = new Set([
+        'SCRIPT', 'STYLE', 'TEXTAREA', 'INPUT', 'SELECT', 'OPTION',
+        'CODE', 'PRE', 'SVG', 'CANVAS', 'NOSCRIPT',
+    ]);
+
+    const PROCESSED = 'data-gm-done';
+
+    /**
+     * Walk a subtree and replace emoji text with SVG icons.
+     */
+    function processNode(root) {
+        if (!root) return;
+        if (root.nodeType === 1 && root.hasAttribute && root.hasAttribute(PROCESSED)) return;
+        if (root.nodeType === 1 && SKIP_TAGS.has(root.tagName)) return;
+        if (root.classList && root.classList.contains('gm-icon')) return;
+
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+            acceptNode(node) {
+                const p = node.parentElement;
+                if (!p) return NodeFilter.FILTER_REJECT;
+                if (SKIP_TAGS.has(p.tagName)) return NodeFilter.FILTER_REJECT;
+                if (p.classList && p.classList.contains('gm-icon')) return NodeFilter.FILTER_REJECT;
+                if (p.hasAttribute && p.hasAttribute(PROCESSED)) return NodeFilter.FILTER_REJECT;
+                if (!EMOJI_RE.test(node.textContent)) return NodeFilter.FILTER_REJECT;
+                EMOJI_RE.lastIndex = 0;
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        });
+
+        const textNodes = [];
+        let n;
+        while ((n = walker.nextNode())) textNodes.push(n);
+
+        for (const textNode of textNodes) {
+            EMOJI_RE.lastIndex = 0;
+            const text = textNode.textContent;
+            if (!EMOJI_RE.test(text)) continue;
+            EMOJI_RE.lastIndex = 0;
+
+            const html = text.replace(EMOJI_RE, (match) => buildSVG(match));
+            if (html === text) continue;
+
+            const wrapper = document.createElement('span');
+            wrapper.setAttribute(PROCESSED, '1');
+            wrapper.innerHTML = html;
+            textNode.parentNode.replaceChild(wrapper, textNode);
+        }
+    }
+
+
+    // =========================================================================
+    //  MUTATION OBSERVER  —  Auto-replace in dynamically added content
+    // =========================================================================
+
+    let _observer = null;
+    let _pendingMutations = [];
+    let _mutationTimer = null;
+
+    function flushMutations() {
+        _mutationTimer = null;
+        const nodes = _pendingMutations.splice(0);
+        const seen = new Set();
+        for (const node of nodes) {
+            if (seen.has(node)) continue;
+            seen.add(node);
+            processNode(node);
+        }
+    }
+
+    function startObserver() {
+        if (_observer) return;
+        _observer = new MutationObserver((mutations) => {
+            for (const m of mutations) {
+                for (const node of m.addedNodes) {
+                    if (node.nodeType === 1 || node.nodeType === 3) {
+                        _pendingMutations.push(node.nodeType === 3 ? node.parentElement : node);
+                    }
+                }
+            }
+            if (_pendingMutations.length && !_mutationTimer) {
+                _mutationTimer = requestAnimationFrame(flushMutations);
+            }
+        });
+        _observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+
+    // =========================================================================
+    //  INITIALISE
+    // =========================================================================
+
+    function init() {
+        injectSharedDefs();
+        processNode(document.body);
+        startObserver();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+
+    // =========================================================================
+    //  PUBLIC API
+    // =========================================================================
+
+    /**
+     * Convert an emoji character to its glassmorphic SVG HTML string.
+     * Usage in template literals:  `${emojiSVG('📊')} Sales Performance`
+     */
+    window.emojiToSVG = buildSVG;
+
+    /**
+     * Manually process a DOM subtree for emoji replacement.
+     * Useful after programmatically setting innerHTML.
+     */
+    window.processEmojis = processNode;
+
+})();
