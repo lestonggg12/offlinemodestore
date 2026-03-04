@@ -330,7 +330,7 @@
     <script src="{% static 'js/notifications.js' %}"></script>
     <script src="{% static 'js/dark-mode.js' %}?v=20260225"></script>
     <script src="{% static 'js/dialog-system.js' %}?v=20260225"></script>
-    <script src="{% static 'js/cart.js' %}?v=20260303"></script>
+    <script src="{% static 'js/cart.js' %}?v=20260304"></script>
     <script src="{% static 'js/inventory.js' %}?v=20260225"></script>
     <script src="{% static 'js/profit.js' %}?v=20260303"></script>
     <script src="{% static 'js/calendar.js' %}?v=20260303b"></script>
@@ -417,16 +417,39 @@
     document.addEventListener('DOMContentLoaded', function() {
         var input    = document.getElementById('generalSearch');
         var clearBtn = document.getElementById('clearSearchBtn');
+        var goBtn    = document.getElementById('cartSearchGoBtn');
         if (!input || !clearBtn) return;
 
+        // Show/hide Search button and clear button based on input
         input.addEventListener('input', function() {
-            clearBtn.style.display = input.value ? 'flex' : 'none';
-            if (typeof handleSearch === 'function') handleSearch();
+            var hasText = input.value.trim().length > 0;
+            clearBtn.style.display = hasText ? 'flex' : 'none';
+            if (goBtn) goBtn.style.display = hasText ? 'flex' : 'none';
+            if (!hasText) {
+                var results = document.getElementById('searchResults');
+                if (results) results.innerHTML = '';
+            }
         });
+
+        // Search only when button is clicked
+        function triggerFallbackSearch() {
+            if (!input.value.trim()) return;
+            var results = document.getElementById('searchResults');
+            if (results) {
+                results.innerHTML = '<div class="cart-search-loading"><div class="cart-search-spinner"></div><span>Searching…</span></div>';
+            }
+            if (typeof handleSearch === 'function') handleSearch();
+        }
+        if (goBtn) goBtn.addEventListener('click', triggerFallbackSearch);
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); triggerFallbackSearch(); }
+        });
+
         clearBtn.addEventListener('click', function() {
             if (typeof clearSearch === 'function') { clearSearch(); }
             else { input.value = ''; input.focus(); }
             clearBtn.style.display = 'none';
+            if (goBtn) goBtn.style.display = 'none';
             var results = document.getElementById('searchResults');
             if (results) results.innerHTML = '';
         });
