@@ -94,6 +94,8 @@ body.dark-mode .btn-alert:hover, body.dark-mode .alert-btn:hover, body.dark-mode
     .sidebar-overlay.active {
         top: 0 !important;
     }
+}
+
 .payment-badge {
     display: inline-block;
     padding: 5px 12px;

@@ -1,32 +1,38 @@
-/**
- * cart.js — Shopping-cart state, checkout flows, and search UI.
- *
- * Sections:
- *  1. Cart Operations   — addToCart, removeFromCart, updateCartQuantity,
- *                          setCartQuantity, clearCart
- *  2. Cart Display       — updateCartDisplay, toggleCartPanel, ensureCartPanelClosed,
- *                          overlay management
- *  3. Checkout Flow      — handleCheckout (payment picker), showChangeCalculator
- *                          (cash flow), processDebtCheckout → completeDebtSale,
- *                          completeSale (records sale + decrements stock)
- *  4. Search             — injectSearchBar, handleSearch, clearSearch,
- *                          setupSearchClearButton
- *  5. Initialisation     — initializeCart, DOMContentLoaded wiring
- *  6. Style Injectors    — injectCartNeomorphismStyles, injectCheckoutNeomorphismStyles,
- *                          injectDebtNeomorphismStyles (CSS-in-JS for modal overlays)
- *
- * State: `cart` — a module-level array of { id, name, price, cost, quantity }.
- * Dependencies: database.js (DB), dialog-system.js (DialogSystem)
- */
+/*
+  ╔══════════════════════════════════════════════════════════════════════════════╗
+  ║  cart.js — The shopping cart system for the SariSari Store app             ║
+  ║                                                                            ║
+  ║  FILE STRUCTURE (6 sections):                                              ║
+  ║                                                                            ║
+  ║  1. CART OPERATIONS    Modify the cart array (add, remove, update, clear)   ║
+  ║  2. CART DISPLAY       Render cart items in the side-panel + overlay logic  ║
+  ║  3. CHECKOUT FLOW      Payment method dialog → cash calculator or debt     ║
+  ║                        recording → completion with stock decrement         ║
+  ║  4. PRODUCT SEARCH     Search bar with debounced input + inline spinner    ║
+  ║  5. INITIALISATION     Wire up DOM events on page load                     ║
+  ║  6. STYLE INJECTORS    Inject CSS-in-JS for modals and checkout dialogs    ║
+  ║                                                                            ║
+  ║  STATE:                                                                    ║
+  ║  • `cart` array — each item: { id, name, price, cost, quantity }           ║
+  ║  • `isCartPanelOpen` boolean — tracks side-panel visibility                ║
+  ║                                                                            ║
+  ║  DEPENDENCIES:                                                             ║
+  ║  • database.js → DB.getProducts(), DB.addSale(), DB.updateProduct(), etc.  ║
+  ║  • dialog-system.js → DialogSystem.alert() for user-facing messages        ║
+  ╚══════════════════════════════════════════════════════════════════════════════╝
+*/
 
 console.log('🔄 Cart.js loaded - Version 10');
 
-/** In-memory cart item array — synced to window.cart for global access. */
+// The in-memory cart array. Each entry holds { id, name, price, cost, quantity }.
+// Also exposed globally as window.cart so other scripts can read it.
 let cart = [];
 
-// =============================================================================
-//  1. CART OPERATIONS
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+//  SECTION 1: CART OPERATIONS
+//  Functions that add/remove/update items in the `cart` array.
+//  Every function here calls updateCartDisplay() at the end to re-render.
+// ─────────────────────────────────────────────────────────────────────────────
 
 window.addToCart = async function(productId) {
     const products = await DB.getProducts();
@@ -256,10 +262,16 @@ window.clearCart = async function() {
     document.getElementById('cancelClear').onclick = () => { document.body.removeChild(confirmDialog); };
 };
 
-// =============================================================================
-//  2. CART DISPLAY & PANEL TOGGLE
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+//  SECTION 2: CART DISPLAY & PANEL TOGGLE
+//  updateCartDisplay() renders the cart item list + footer buttons.
+//  toggleCartPanel() opens/closes the slide-out panel with overlay.
+//  injectCartItemStyles() injects the CSS for cart item cards (once).
+//  setupCartEventListeners() wires +/- buttons and qty inputs after render.
+// ─────────────────────────────────────────────────────────────────────────────
 
+// Builds the entire cart HTML (item cards + clear/checkout buttons)
+// and updates the floating badge count. Called after every cart change.
 window.updateCartDisplay = function() {
     injectCartItemStyles();
 
@@ -321,7 +333,7 @@ window.updateCartDisplay = function() {
             </div>`;
     });
 
-    // Footer buttons
+    // Append clear + checkout buttons at the bottom of the cart list
     html += `
         <div class="nci-footer-btns">
             <button class="nci-btn-clear neo-btn-clear-cart" onclick="clearCart()">🗑️ Clear All</button>
@@ -335,7 +347,8 @@ window.updateCartDisplay = function() {
     injectCartNeomorphismStyles();
 };
 
-/** Inject clean cart item CSS once */
+// Creates a <style> tag with all CSS for .neo-cart-item cards.
+// Runs only once (idempotent via #nci-styles check).
 function injectCartItemStyles() {
     if (document.getElementById('nci-styles')) return;
     const s = document.createElement('style');
@@ -701,10 +714,18 @@ function hideCartOverlay() {
     document.body.style.overflow = '';
 }
 
-// =============================================================================
-//  3. CHECKOUT FLOW
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+//  SECTION 3: CHECKOUT FLOW
+//  handleCheckout()       → Payment method picker (Cash or Debt)
+//  processCheckout()      → Validates stock, then routes to cash calculator
+//  showChangeCalculator() → Cash payment modal with change calculation
+//  completeSale()         → Records the sale in DB, decrements stock
+//  processDebtCheckout()  → Debt modal with customer name + autocomplete
+//  completeDebtSale()     → Records debtor + sale, applies surcharge if set
+// ─────────────────────────────────────────────────────────────────────────────
 
+// Opens the payment method picker dialog (Cash vs Debt).
+// Calculates total and expected profit from the current cart.
 window.handleCheckout = async function() {
     if (cart.length === 0) {
         await DialogSystem.alert('Cart is empty! Add products first.', '🛒');
@@ -1036,12 +1057,12 @@ async function processDebtCheckout(total, profit) {
     const suggestionsBox    = document.getElementById('ndmSuggestions');
     customerNameInput.focus();
 
-    // ── Load existing debtors for autocomplete ──────────────────────────────
+    // Fetch existing unpaid debtor names for the autocomplete dropdown
     let existingNames = [];
     try {
         const debtors = await DB.getDebtors();
         existingNames = [...new Set(debtors.filter(d => !d.paid).map(d => d.name))];
-    } catch (e) { /* fail silently */ }
+    } catch (e) { /* ignore errors — autocomplete is optional */ }
 
     function showSuggestions(query) {
         if (!query) { suggestionsBox.style.display = 'none'; return; }
@@ -1123,7 +1144,7 @@ async function completeDebtSale(customerName, total, profit) {
             }
         }
 
-// ✅ NEW: Create a Sale record for the debt transaction
+// Also create a Sale record with payment_method='credit' so it shows in sales history
 try {
     await DB.addSale({
         date: new Date().toISOString(),
@@ -1248,20 +1269,8 @@ const surchargePercent = parseFloat(window.storeSettings?.debtSurcharge || 0);
     }
 }
 
-/**
- * KEY CHANGES FOR CUSTOMER NAME FEATURE:
- * 
- * 1. showChangeCalculator() - Added customer name input field
- * 2. completeSale() - Now accepts customerName parameter
- * 3. completeSale() - Passes customer_name to saleData object
- * 
- * Replace the following sections in your cart.js:
- */
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION 1: showChangeCalculator() - ADD CUSTOMER NAME FIELD
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Cash payment modal: shows total, input for cash received, calculates change,
+// includes optional customer name field for tracking who bought what.
 async function showChangeCalculator(total, profit, products) {
     const changeDialog = document.createElement('div');
     changeDialog.innerHTML = `
@@ -1284,7 +1293,7 @@ async function showChangeCalculator(total, profit, products) {
                     <div class="neo-change-label">Change to Return:</div>
                     <div id="changeAmount" class="neo-change-amount-value">₱0.00</div>
                 </div>
-            <!-- ✅ IMPROVED: Prominent Customer Name Section -->
+            <!-- Customer name field (optional, for tracking who bought what) -->", "oldString": "            <!-- ✅ IMPROVED: Prominent Customer Name Section -->
                 <div class="neo-form-group" style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e5e7eb;">
                     <label for="customerName" style="color: #059669; display: flex; align-items: center; gap: 6px; font-weight: 800;">
                         👤 Customer Name
@@ -1366,10 +1375,8 @@ async function showChangeCalculator(total, profit, products) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION 2: completeSale() - UPDATE TO ACCEPT AND STORE CUSTOMER NAME
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Final step of a cash sale: saves the sale to DB, decrements product stock,
+// shows a success dialog, then clears the cart.
 async function completeSale(paymentMethod, total, profit, products, customerName = '') {
     try {
         const normalizedCustomerName = (customerName || '').trim() || 'N/A';
@@ -1377,7 +1384,7 @@ async function completeSale(paymentMethod, total, profit, products, customerName
             date: new Date().toISOString(),
             total: parseFloat(total.toFixed(2)),
             profit: parseFloat(profit.toFixed(2)),
-            payment_method: paymentMethod,  // 'cash'
+            payment_method: paymentMethod,
             paymentType: paymentMethod,
             customer_name: normalizedCustomerName,
             items: cart.map(item => ({
@@ -1394,7 +1401,7 @@ async function completeSale(paymentMethod, total, profit, products, customerName
             }))
         };
 
-        await DB.addSale(saleData);  // ← ONLY this one for cash!
+        await DB.addSale(saleData);
 
         for (const item of cart) {
             const product = products.find(p => p.id === item.id);
@@ -1407,7 +1414,7 @@ async function completeSale(paymentMethod, total, profit, products, customerName
             }
         }
 
-        // ✅ SUCCESS DIALOG - show it here
+        // Show a success dialog with sale summary
         const successDialog = document.createElement('div');
         successDialog.innerHTML = `
             <div class="neo-modal-overlay" style="animation: fadeIn 0.3s ease;">
@@ -1447,10 +1454,20 @@ async function completeSale(paymentMethod, total, profit, products, customerName
     }
 }
 
-// =============================================================================
-//  4. PRODUCT SEARCH
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+//  SECTION 4: PRODUCT SEARCH
+//  injectSearchBar()       → Creates the search input inside the cart panel
+//  injectSearchBarStyles() → Injects CSS for the search bar + spinner
+//  handleSearch()          → Queries DB.getProducts(), filters, renders results
+//  clearSearch()           → Empties input + results
+//  setupSearchClearButton()→ Wires the ✕ button on the search field
+//
+//  Search uses a 400ms debounce — a spinner shows while the user types,
+//  then the actual DB query fires 400ms after they stop.
+// ─────────────────────────────────────────────────────────────────────────────
 
+// Builds the search bar HTML and inserts it at the top of the cart panel.
+// Sets up the debounced input listener with inline spinner.
 function injectSearchBar() {
     if (document.getElementById('generalSearch')) return;
 
@@ -1494,29 +1511,30 @@ function injectSearchBar() {
     input.addEventListener('input', () => {
         clearBtn.style.display = input.value ? 'flex' : 'none';
 
-        // Cancel any pending search
+        // Reset any pending debounce timer
         if (_searchTimer) { clearTimeout(_searchTimer); _searchTimer = null; }
 
         const query = input.value.trim();
         const searchResults = document.getElementById('searchResults');
 
         if (!query) {
-            // Cleared — remove results immediately, no spinner
+            // Input is empty — clear results instantly, skip spinner
             if (searchResults) searchResults.innerHTML = '';
             return;
         }
 
-        // Show inline loading spinner immediately
-        if (searchResults) {
-            searchResults.innerHTML = `
-                <div class="cart-search-loading">
-                    <div class="cart-search-spinner"></div>
-                    <span>Searching…</span>
-                </div>`;
-        }
-
-        // Fire actual search after user stops typing
-        _searchTimer = setTimeout(() => { _searchTimer = null; handleSearch(); }, SEARCH_DEBOUNCE_MS);
+        // Wait until typing stops, THEN show spinner and run search
+        _searchTimer = setTimeout(() => {
+            _searchTimer = null;
+            if (searchResults) {
+                searchResults.innerHTML = `
+                    <div class="cart-search-loading">
+                        <div class="cart-search-spinner"></div>
+                        <span>Searching…</span>
+                    </div>`;
+            }
+            handleSearch();
+        }, SEARCH_DEBOUNCE_MS);
     });
     clearBtn.addEventListener('click', clearSearch);
 }
@@ -1705,9 +1723,11 @@ function setupSearchClearButton() {
     }
 }
 
-// =============================================================================
-//  5. INITIALISATION
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+//  SECTION 5: INITIALISATION
+//  Runs once on page load. Inserts the search bar, wires up
+//  the floating cart button, and calls updateCartDisplay().
+// ─────────────────────────────────────────────────────────────────────────────
 
 let cartInitialized = false;
 
@@ -1734,7 +1754,7 @@ function initializeCart() {
         return;
     }
 
-    /* debounced listener is already set up inside injectSearchBar() */
+    // Search debounce is handled inside injectSearchBar() — no extra listener needed
 
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (checkoutBtn) checkoutBtn.onclick = () => { if (typeof handleCheckout === 'function') handleCheckout(); };
@@ -1749,16 +1769,23 @@ if (document.readyState === 'loading') {
     initializeCart();
 }
 
+// Expose cart globally so other scripts (debtors, profit, etc.) can read it
 window.cart = cart;
 
-// =============================================================================
-//  6. CSS-IN-JS STYLE INJECTORS
-// =============================================================================
+// ─────────────────────────────────────────────────────────────────────────────
+//  SECTION 6: CSS-IN-JS STYLE INJECTORS
+//  These functions inject <style> tags for checkout/payment modals.
+//  injectCartNeomorphismStyles() → now a no-op (moved to injectCartItemStyles)
+//  injectCheckoutNeomorphismStyles() → all modal classes (.neo-modal, etc.)
+//  injectDebtNeomorphismStyles() → alias for injectCheckoutNeomorphismStyles
+// ─────────────────────────────────────────────────────────────────────────────
 
+// Kept for backward compat — cart item CSS is now in injectCartItemStyles()
 function injectCartNeomorphismStyles() {
-    // Now handled by injectCartItemStyles() — no-op kept for compatibility
 }
 
+// Injects all .neo-modal-overlay, .neo-btn-*, .neo-form-group, etc. styles.
+// Used by checkout, cash payment, debt, and success dialogs.
 function injectCheckoutNeomorphismStyles() {
     if (document.getElementById('neo-checkout-styles')) return;
     
@@ -1832,6 +1859,7 @@ function injectCheckoutNeomorphismStyles() {
     document.head.appendChild(style);
 }
 
+// Alias — debt modals reuse the same checkout styles
 function injectDebtNeomorphismStyles() {
     injectCheckoutNeomorphismStyles();
 }
