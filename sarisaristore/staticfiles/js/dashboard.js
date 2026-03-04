@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', function() {
  *  3. Mobile zoom prevention — blocks double-tap and pinch-to-zoom so the
  *     app behaves like a native PWA.
  *  4. DOMContentLoaded bootstrap — wires nav buttons, loads the initial
- *     page (Profit), kicks off DB.scheduleAutoCleanup(), and injects the
- *     cleanup countdown indicator.
+ *     page (Profit), runs all cleanups on init, schedules midnight
+ *     auto-cleanup, and injects the cleanup countdown indicator.
  *  5. Sticky-hover fix — blurs nav buttons on touchend so mobile users
  *     don't see a permanent :hover highlight.
  *
@@ -207,10 +207,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load initial page
     showPage('profitPage');
     
-    // Initialize auto-cleanup scheduler for old transactions
-    if (typeof window.DB !== 'undefined' && typeof window.DB.scheduleAutoCleanup === 'function') {
-        console.log('⏰ Initializing transaction auto-cleanup scheduler...');
-        window.DB.scheduleAutoCleanup();
+    // ── Run all cleanups immediately on init ──────────────────────────
+    if (typeof window.DB !== 'undefined') {
+        // Run cleanups in background (don't block page load)
+        (async () => {
+            try {
+                console.log('🧹 Running startup cleanups...');
+                const results = await window.DB.runAllCleanups();
+                console.log('✅ Startup cleanup complete:', results);
+            } catch (e) { console.error('Startup cleanup error:', e); }
+        })();
+
+        // Schedule midnight auto-cleanup (recurring)
+        if (typeof window.DB.scheduleAutoCleanup === 'function') {
+            console.log('⏰ Initializing midnight auto-cleanup scheduler...');
+            window.DB.scheduleAutoCleanup();
+        }
     }
     
     // Add transaction cleanup indicator to the header/footer

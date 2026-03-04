@@ -592,16 +592,33 @@ const DB = {
     catch (error) { console.error('❌ Cleanup error:', error); throw error; }
   },
 
+  async cleanupOldRecords() {
+    try   { return await this.apiCall('/calendar/cleanup/', 'POST'); }
+    catch (error) { console.error('❌ Old records cleanup error:', error); return { deleted_count: 0 }; }
+  },
+
+  async runAllCleanups() {
+    const results = {};
+    try { results.transactions = await this.cleanupOldTransactions(2); } catch(e) { console.error('❌ Transaction cleanup:', e); }
+    try { results.debtors      = await this.autoCleanupPaidDebtors();  } catch(e) { console.error('❌ Debtor cleanup:', e); }
+    try { results.oldRecords   = await this.cleanupOldRecords();       } catch(e) { console.error('❌ Old records cleanup:', e); }
+    return results;
+  },
+
   scheduleAutoCleanup() {
     const now  = new Date();
     const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    if (window.autoCleanupTimeout) clearTimeout(window.autoCleanupTimeout);
     window.autoCleanupTimeout = setTimeout(async () => {
       try {
-        await this.cleanupOldTransactions(1);
+        console.log('🧹 Midnight auto-cleanup running...');
+        const results = await this.runAllCleanups();
+        console.log('✅ Midnight cleanup complete:', results);
         if (typeof renderProfit === 'function') await renderProfit();
       } catch (e) { console.error('❌ Scheduled cleanup failed:', e); }
       this.scheduleAutoCleanup();
     }, next - now);
+    console.log(`⏰ Next cleanup at midnight (${Math.round((next - now) / 60000)} min)`);
   },
 };
 
