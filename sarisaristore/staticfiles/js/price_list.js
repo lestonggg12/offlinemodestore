@@ -710,7 +710,7 @@ async function renderCategoryPriceList(content, categoryId) {
                 const marginCls = margin < 20 ? 'margin-low' : margin > 50 ? 'margin-high' : 'margin-normal';
 
                 html += `
-                    <div class="gl-mobile-card ${cardCls}">
+                    <div class="gl-mobile-card ${cardCls}" data-product-id="${product.id}">
                         <div class="gl-mobile-name">${product.name}</div>
                         <div class="gl-mobile-inputs">
                             <div class="gl-mobile-input-wrap">
@@ -756,7 +756,7 @@ async function renderCategoryPriceList(content, categoryId) {
                 const mrgCls  = margin < 20 ? 'margin-low' : margin > 50 ? 'margin-high' : 'margin-normal';
 
                 html += `
-                    <tr class="${rowCls}">
+                    <tr class="${rowCls}" data-product-id="${product.id}">
                         <td><strong class="product-name">${product.name}</strong></td>
                         <td><input type="number" value="${cost.toFixed(2)}" class="price-input cost-input" data-product-id="${product.id}" step="0.01" min="0"/></td>
                         <td><input type="number" value="${price.toFixed(2)}" class="price-input sell-input" data-product-id="${product.id}" step="0.01" min="0"/></td>
@@ -895,8 +895,8 @@ async function updatePrice(id, field, newValue) {
                                     <div style="font-size:11px;color:${isDark?'#7bc47f':'#5a7a5e'};margin-top:3px;">achieves exactly ${minMargin}% margin</div>
                                 </div>
                                 <div style="display:flex;gap:8px;">
-                                    <button id="margAdjust"  style="flex:1.3;padding:13px 8px;border-radius:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;box-shadow:0 4px 12px rgba(239,68,68,0.4);">✓ Use ₱${recommended}</button>
-                                    <button id="margProceed" style="flex:1;padding:13px 8px;border-radius:11px;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#2d5a3b;border:none;box-shadow:0 4px 12px rgba(203,223,189,0.4);">Keep ₱${newPrice.toFixed(2)}</button>
+                                    <button id="margAdjust"  style="flex:1.3;padding:13px 8px;border-radius:11px;font-weight:800;font-size:13px;cursor:pointer;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#2d5a3b;border:none;box-shadow:0 4px 12px rgba(203,223,189,0.4);">✓ Use ₱${recommended}</button>
+                                    <button id="margProceed" style="flex:1;padding:13px 8px;border-radius:11px;font-weight:700;font-size:12px;cursor:pointer;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;box-shadow:0 4px 12px rgba(239,68,68,0.4);">Keep ₱${newPrice.toFixed(2)}</button>
                                 </div>
                             </div>
                             <style>@keyframes margIn2{from{transform:translateY(50px) scale(0.9);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}</style>
@@ -937,3 +937,10 @@ async function updatePrice(id, field, newValue) {
 
 window.renderPriceList = loadPriceList;
 window.updatePrice     = updatePrice;
+
+// Allow external navigation (e.g. from notifications) to read/write the selected category
+Object.defineProperty(window, 'selectedPriceCategory', {
+    get() { return selectedPriceCategory; },
+    set(v) { selectedPriceCategory = v; },
+    configurable: true
+});

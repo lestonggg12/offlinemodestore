@@ -564,6 +564,12 @@ window.renderInventory = async function () {
     const content = document.getElementById('inventoryContent');
     if (!content) { console.error('❌ inventoryContent not found!'); return; }
 
+    // Allow external navigation (e.g. from notifications) to set the category
+    if (window._navToCategory) {
+        selectedCategory = window._navToCategory;
+        window._navToCategory = null;
+    }
+
     content.innerHTML = `
         <div style="text-align:center;padding:40px;">
             <div style="font-size:48px;animation:spin 1s linear infinite;">⏳</div>
@@ -746,7 +752,7 @@ async function renderCategoryInventory(content, categoryId) {
                 const cost=parseFloat(p.cost||0), price=parseFloat(p.price||0), qty=parseFloat(p.quantity||0);
                 const isOut=qty===0, isLow=!isOut&&qty<lowStockLimit;
                 html += `
-                    <div class="gl-inv-card ${isOut?'is-out':isLow?'is-low':''}">
+                    <div class="gl-inv-card ${isOut?'is-out':isLow?'is-low':''}" data-product-id="${p.id}">
                         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px;position:relative;z-index:1;">
                             <span class="gl-card-name" style="margin-bottom:0;padding-bottom:0;border-bottom:none;flex:1;">${p.name||'Unnamed Product'}</span>
                             <button class="btn-delete-modern" data-product-id="${p.id}" style="flex-shrink:0;">🗑️</button>
@@ -786,7 +792,7 @@ async function renderCategoryInventory(content, categoryId) {
                 const cost=parseFloat(p.cost||0), price=parseFloat(p.price||0), qty=parseFloat(p.quantity||0);
                 const rowCls = qty===0?'out-stock-row':qty<lowStockLimit?'low-stock-row':'';
                 html += `
-                    <tr class="${rowCls}">
+                    <tr class="${rowCls}" data-product-id="${p.id}">
                         <td><strong style="font-size:15px;font-weight:700;color:#2d3a2d;">${p.name||'Unnamed Product'}</strong></td>
                         <td><span style="font-size:15px;font-weight:700;color:#a44a3f;">₱${cost.toFixed(2)}</span></td>
                         <td><span style="font-size:15px;font-weight:700;color:#3e6e48;">₱${price.toFixed(2)}</span></td>

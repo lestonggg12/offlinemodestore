@@ -32,6 +32,7 @@ console.log('🔔 Loading enhanced notifications module...');
 let notificationDropdownOpen = false;
 let notificationData = {
     lowStock: [],
+    lowMargin: [],
     settingsChanges: [],
     cleanupInfo: null,
     lastUpdated: null
@@ -144,6 +145,17 @@ async function refreshNotifications() {
             parseFloat(a.quantity || a.stock || 0) - parseFloat(b.quantity || b.stock || 0)
         );
 
+        // ── Low margin alerts ──────────────────────────────────────────────
+        notificationData.lowMargin = products.filter(p => {
+            const cost  = parseFloat(p.cost || p.cost_price || 0);
+            const price = parseFloat(p.price || p.selling_price || 0);
+            return cost > 0 && ((price - cost) / cost * 100) < 20;
+        }).sort((a, b) => {
+            const aCost = parseFloat(a.cost||a.cost_price||0), aPrice = parseFloat(a.price||a.selling_price||0);
+            const bCost = parseFloat(b.cost||b.cost_price||0), bPrice = parseFloat(b.price||b.selling_price||0);
+            return (aCost>0?(aPrice-aCost)/aCost:0) - (bCost>0?(bPrice-bCost)/bCost:0);
+        });
+
         // ── Change history comes from server (via window.storeSettings) ────
         notificationData.settingsChanges = window.storeSettings?.changeHistory || [];
 
@@ -156,7 +168,7 @@ async function refreshNotifications() {
             renderNotificationDropdown();
         }
 
-        console.log(`✅ ${notificationData.lowStock.length} low stock, ${notificationData.settingsChanges.length} settings changes`);
+        console.log(`✅ ${notificationData.lowStock.length} low stock, ${notificationData.lowMargin.length} low margin, ${notificationData.settingsChanges.length} settings changes`);
     } catch (error) {
         console.error('❌ Error refreshing notifications:', error);
     }
@@ -170,7 +182,7 @@ function updateNotificationBadge() {
     const badge = document.getElementById('notificationBadge');
     if (!badge) return;
 
-    const total = notificationData.lowStock.length + notificationData.settingsChanges.length;
+    const total = notificationData.lowStock.length + notificationData.lowMargin.length + notificationData.settingsChanges.length;
 
     if (total > 0) {
         badge.textContent = total > 99 ? '99+' : total;
@@ -394,6 +406,71 @@ function renderNotificationDropdown() {
         }
     }
 
+    html += '</div>';
+
+    // ── Low Margin Alerts ──
+    html += `
+        <div class="notification-section">
+            <div class="section-header">
+                <span class="section-icon">📉</span>
+                <span class="section-title">Low Margin Alerts</span>
+                <span class="section-count">${notificationData.lowMargin.length}</span>
+            </div>
+    `;
+
+    if (notificationData.lowMargin.length === 0) {
+        html += `
+            <div class="empty-state">
+                <span class="empty-icon">✅</span>
+                <p>All products have healthy margins!</p>
+            </div>
+        `;
+    } else {
+        html += '<div class="notification-list">';
+
+        notificationData.lowMargin.slice(0, 10).forEach((product) => {
+            const cost   = parseFloat(product.cost || product.cost_price || 0);
+            const price  = parseFloat(product.price || product.selling_price || 0);
+            const margin = cost > 0 ? ((price - cost) / cost * 100) : 0;
+            const category = window.CATEGORIES?.find(c => c.id === (product.category || product.category_id));
+            const categoryIcon = category?.icon || '📦';
+
+            let urgencyClass = 'low', urgencyIcon = '💡';
+            if (margin <= 0)       { urgencyClass = 'critical'; urgencyIcon = '🚨'; }
+            else if (margin < 5)   { urgencyClass = 'high';     urgencyIcon = '⚠️'; }
+            else if (margin < 10)  { urgencyClass = 'medium';   urgencyIcon = '⚡'; }
+
+            html += `
+                <div class="notification-item ${urgencyClass}" data-product-id="${product.id}">
+                    <div class="item-icon">${categoryIcon}</div>
+                    <div class="item-content">
+                        <div class="item-title">${product.name}</div>
+                        <div class="item-meta">
+                            <span class="urgency-badge">${urgencyIcon} ${margin.toFixed(1)}% margin</span>
+                            <span class="category-badge">${category?.name || 'Uncategorized'}</span>
+                        </div>
+                    </div>
+                    <button class="item-action-btn"
+                            onclick="window.NotificationSystem.goToPriceProduct('${product.id}', '${product.category || product.category_id}')">
+                        <span>Adjust</span> →
+                    </button>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+
+        if (notificationData.lowMargin.length > 10) {
+            html += `
+                <div class="notification-footer">
+                    <button class="view-all-btn" onclick="window.NotificationSystem.goToPrices()">
+                        View all ${notificationData.lowMargin.length} low margin items →
+                    </button>
+                </div>
+            `;
+        }
+    }
+
     html += '</div></div>';
 
     if (notificationData.lastUpdated) {
@@ -416,51 +493,92 @@ function goToProduct(productId, categoryId) {
     closeNotificationDropdown();
     if (typeof showPage === 'function') showPage('inventoryPage');
     setTimeout(() => {
-        if (categoryId && typeof window.selectedCategory !== 'undefined') {
-            window.selectedCategory = categoryId;
+        if (categoryId) {
+            window._navToCategory = categoryId;
             if (typeof window.renderInventory === 'function') {
                 window.renderInventory();
-                setTimeout(() => highlightAndScrollToProduct(productId), 200);
+                setTimeout(() => highlightAndScrollToProduct(productId), 300);
             }
         }
     }, 100);
 }
 
 function highlightAndScrollToProduct(productId) {
-    const productCard = document.querySelector(`[data-product-id="${productId}"]`);
-    if (productCard) {
-        productCard.style.transition = 'all 0.3s ease';
-        productCard.style.border     = '3px solid #f59e0b';
-        productCard.style.boxShadow  = '0 0 20px rgba(245, 158, 11, 0.4)';
-        productCard.style.transform  = 'scale(1.02)';
-        productCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        let pulseCount = 0;
-        const pulseInterval = setInterval(() => {
-            if (pulseCount >= 3) {
-                clearInterval(pulseInterval);
-                setTimeout(() => {
-                    productCard.style.border    = '';
-                    productCard.style.boxShadow = '';
-                    productCard.style.transform = '';
-                }, 1000);
-                return;
-            }
-            productCard.style.transform = pulseCount % 2 === 0 ? 'scale(1.05)' : 'scale(1.02)';
-            pulseCount++;
-        }, 300);
-    } else {
-        console.warn('⚠️ Product card not found:', productId);
+    // Find the element — could be a <tr>, <div> card, or an input
+    let productEl = document.querySelector(`tr[data-product-id="${productId}"]`)
+                 || document.querySelector(`div[data-product-id="${productId}"]`)
+                 || document.querySelector(`[data-product-id="${productId}"]`);
+    if (!productEl) {
+        console.warn('⚠️ Product element not found:', productId);
+        return;
     }
+
+    const isRow = productEl.tagName === 'TR';
+
+    productEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Apply highlight
+    productEl.style.transition = 'all 0.3s ease';
+    productEl.style.outline = '3px solid #f59e0b';
+    productEl.style.outlineOffset = '2px';
+    productEl.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.4)';
+    if (!isRow) productEl.style.transform = 'scale(1.02)';
+
+    let pulseCount = 0;
+    const pulseInterval = setInterval(() => {
+        if (pulseCount >= 5) {
+            clearInterval(pulseInterval);
+            setTimeout(() => {
+                productEl.style.outline = '';
+                productEl.style.outlineOffset = '';
+                productEl.style.boxShadow = '';
+                if (!isRow) productEl.style.transform = '';
+            }, 1500);
+            return;
+        }
+        if (!isRow) {
+            productEl.style.transform = pulseCount % 2 === 0 ? 'scale(1.04)' : 'scale(1.02)';
+        }
+        productEl.style.boxShadow = pulseCount % 2 === 0
+            ? '0 0 28px rgba(245, 158, 11, 0.5)'
+            : '0 0 14px rgba(245, 158, 11, 0.3)';
+        pulseCount++;
+    }, 400);
 }
 
 function goToInventory(categoryId) {
     closeNotificationDropdown();
     if (typeof showPage === 'function') showPage('inventoryPage');
-    if (categoryId && typeof window.selectedCategory !== 'undefined') {
+    if (categoryId) {
         setTimeout(() => {
-            window.selectedCategory = categoryId;
+            window._navToCategory = categoryId;
             if (typeof window.renderInventory === 'function') window.renderInventory();
+        }, 100);
+    }
+}
+
+function goToPriceProduct(productId, categoryId) {
+    console.log('💲 Navigating to price product:', productId);
+    closeNotificationDropdown();
+    if (typeof showPage === 'function') showPage('pricePage');
+    setTimeout(() => {
+        if (categoryId && typeof window.selectedPriceCategory !== 'undefined') {
+            window.selectedPriceCategory = categoryId;
+        }
+        if (typeof window.renderPriceList === 'function') {
+            window.renderPriceList();
+            setTimeout(() => highlightAndScrollToProduct(productId), 300);
+        }
+    }, 100);
+}
+
+function goToPrices(categoryId) {
+    closeNotificationDropdown();
+    if (typeof showPage === 'function') showPage('pricePage');
+    if (categoryId) {
+        setTimeout(() => {
+            window.selectedPriceCategory = categoryId;
+            if (typeof window.renderPriceList === 'function') window.renderPriceList();
         }, 100);
     }
 }
@@ -856,6 +974,8 @@ window.NotificationSystem = {
     close:                   closeNotificationDropdown,
     goToInventory:           goToInventory,
     goToProduct:             goToProduct,
+    goToPriceProduct:        goToPriceProduct,
+    goToPrices:              goToPrices,
     onSettingsSaved:         onSettingsSaved,          // called by settings.js after save
     clearSettingsChange:     clearSettingsChange,
     clearAllSettingsChanges: clearAllSettingsChanges

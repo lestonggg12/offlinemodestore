@@ -710,7 +710,7 @@ async function renderCategoryPriceList(content, categoryId) {
                 const marginCls = margin < 20 ? 'margin-low' : margin > 50 ? 'margin-high' : 'margin-normal';
 
                 html += `
-                    <div class="gl-mobile-card ${cardCls}">
+                    <div class="gl-mobile-card ${cardCls}" data-product-id="${product.id}">
                         <div class="gl-mobile-name">${product.name}</div>
                         <div class="gl-mobile-inputs">
                             <div class="gl-mobile-input-wrap">
@@ -756,7 +756,7 @@ async function renderCategoryPriceList(content, categoryId) {
                 const mrgCls  = margin < 20 ? 'margin-low' : margin > 50 ? 'margin-high' : 'margin-normal';
 
                 html += `
-                    <tr class="${rowCls}">
+                    <tr class="${rowCls}" data-product-id="${product.id}">
                         <td><strong class="product-name">${product.name}</strong></td>
                         <td><input type="number" value="${cost.toFixed(2)}" class="price-input cost-input" data-product-id="${product.id}" step="0.01" min="0"/></td>
                         <td><input type="number" value="${price.toFixed(2)}" class="price-input sell-input" data-product-id="${product.id}" step="0.01" min="0"/></td>
@@ -937,3 +937,10 @@ async function updatePrice(id, field, newValue) {
 
 window.renderPriceList = loadPriceList;
 window.updatePrice     = updatePrice;
+
+// Allow external navigation (e.g. from notifications) to read/write the selected category
+Object.defineProperty(window, 'selectedPriceCategory', {
+    get() { return selectedPriceCategory; },
+    set(v) { selectedPriceCategory = v; },
+    configurable: true
+});
