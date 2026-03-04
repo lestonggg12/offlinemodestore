@@ -32,14 +32,14 @@ function showModernConfirm(message, icon = '❓') {
         <div style="font-size:64px;margin-bottom:20px;animation:bounce 0.5s ease;">${icon}</div>
         <div style="font-size:1.1rem;color:#5D534A;line-height:1.6;margin-bottom:30px;white-space:pre-line;">${message}</div>
         <div style="display:flex;gap:15px;justify-content:center;">
-          <button id="confirmNo" style="flex:1;padding:15px 30px;border:2px solid #fca5a5;
-            background:linear-gradient(135deg,#FEE2E2,#FECACA);color:#DC2626;border-radius:12px;
+          <button id="confirmNo" style="flex:1;padding:15px 30px;border:none;
+            background:var(--btn-red-bg);color:var(--btn-red-text);border-radius:12px;
             font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s ease;
             font-family:'Quicksand',sans-serif;">Cancel</button>
           <button id="confirmYes" style="flex:1;padding:15px 30px;border:none;
-            background:linear-gradient(135deg,#EF4444 0%,#DC2626 100%);color:white;
+            background:var(--btn-red-bg);color:var(--btn-red-text);
             border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;
-            transition:all 0.2s ease;box-shadow:0 4px 12px rgba(239,68,68,0.3);
+            transition:all 0.2s ease;box-shadow:var(--btn-red-shadow);
             font-family:'Quicksand',sans-serif;">Confirm</button>
         </div>
       </div>
@@ -47,8 +47,8 @@ function showModernConfirm(message, icon = '❓') {
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
         @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
         @keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-        #confirmNo:hover{background:#F3F4F6;border-color:#D1D5DB;transform:translateY(-2px);}
-        #confirmYes:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(239,68,68,0.4);}
+        #confirmNo:hover{background:var(--btn-red-hover);transform:translateY(-2px);}
+        #confirmYes:hover{transform:translateY(-2px);box-shadow:var(--btn-red-shadow-hover);}
       </style>
     `;
     overlay.appendChild(modal);
@@ -80,15 +80,21 @@ function showModernAlert(message, icon = '✓') {
       box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.3s ease;
       font-family:'Quicksand',sans-serif;
     `;
-    const iconColor = icon==='✅'||icon==='✓'?'#10B981':icon==='❌'?'#EF4444':icon==='⚠️'?'#F59E0B':'#6B7280';
+    const isSuccess = icon==='✅'||icon==='✓';
+    const isError = icon==='❌';
+    const btnBg = isSuccess ? 'var(--btn-green-bg)' : isError ? 'var(--btn-red-bg)' : 'linear-gradient(135deg,#F59E0B 0%,#D97706 100%)';
+    const btnHoverBg = isSuccess ? 'var(--btn-green-hover)' : isError ? 'var(--btn-red-hover)' : 'linear-gradient(135deg,#D97706 0%,#B45309 100%)';
+    const btnText = isSuccess ? 'var(--btn-green-text)' : isError ? 'var(--btn-red-text)' : '#fff';
+    const btnShadow = isSuccess ? 'var(--btn-green-shadow)' : isError ? 'var(--btn-red-shadow)' : '0 4px 12px rgba(245,158,11,0.3)';
+    const btnShadowHover = isSuccess ? 'var(--btn-green-shadow-hover)' : isError ? 'var(--btn-red-shadow-hover)' : '0 6px 16px rgba(245,158,11,0.5)';
     modal.innerHTML = `
       <div style="text-align:center;">
         <div style="font-size:64px;margin-bottom:20px;animation:bounce 0.5s ease;">${icon}</div>
         <div style="font-size:1.1rem;color:#5D534A;line-height:1.6;margin-bottom:30px;white-space:pre-line;">${message}</div>
         <button id="alertOk" style="width:100%;padding:15px;border:none;
-          background:linear-gradient(135deg,${iconColor} 0%,${iconColor}dd 100%);color:white;
+          background:${btnBg};color:${btnText};
           border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;
-          transition:all 0.2s ease;box-shadow:0 4px 12px ${iconColor}40;
+          transition:all 0.2s ease;box-shadow:${btnShadow};
           font-family:'Quicksand',sans-serif;">OK</button>
       </div>
       <style>
@@ -96,7 +102,7 @@ function showModernAlert(message, icon = '✓') {
         @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
         @keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
         @keyframes fadeOut{from{opacity:1}to{opacity:0}}
-        #alertOk:hover{transform:translateY(-2px);box-shadow:0 6px 16px ${iconColor}50;}
+        #alertOk:hover{transform:translateY(-2px);box-shadow:${btnShadowHover};}
       </style>
     `;
     overlay.appendChild(modal);

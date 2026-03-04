@@ -19,6 +19,7 @@ console.log('📅 Loading calendar module...');
 let currentYear  = new Date().getFullYear();
 let currentMonth = new Date().getMonth(); // 0-11
 let calendarData = {};
+let paidDebtDates = new Set(); // dates (YYYY-MM-DD) that have at least one paid debt
 
 // =============================================================================
 //  2. RENDER CALENDAR PAGE (IMPROVED)
@@ -49,6 +50,7 @@ async function renderCalendar() {
 
     // ✅ IMPROVED: Better data structure handling
     calendarData = {};
+    paidDebtDates = new Set(data.paid_debt_dates || []);
     if (data.summaries && Array.isArray(data.summaries)) {
       data.summaries.forEach(summary => {
         let dateStr = summary.date || summary.date_str || '';
@@ -82,6 +84,15 @@ async function renderCalendar() {
 
     const html = `
       <div class="calendar-container">
+
+        <!-- ── Retention Warning Banner ── -->
+        <div class="calendar-retention-banner">
+          <span class="retention-icon">⚠️</span>
+          <span class="retention-text">
+            Sales records, daily summaries, and paid debt entries older than <strong>1 year</strong>
+            are automatically deleted to free up space. Last Year's totals are preserved.
+          </span>
+        </div>
 
         <!-- ── Month Navigation ── -->
         <div class="calendar-nav">
@@ -128,6 +139,10 @@ async function renderCalendar() {
           <div class="legend-item">
             <div class="legend-color" style="background: #f5f5f0; border: 1px dashed #ccc;"></div>
             <span>No Sales</span>
+          </div>
+          <div class="legend-item">
+            <div style="font-size:14px; line-height:1;">💚</div>
+            <span>Debt Paid</span>
           </div>
         </div>
 
@@ -178,17 +193,18 @@ async function renderCalendar() {
           padding: 9px 20px;
           border-radius: 12px;
           border: none;
-          background: linear-gradient(135deg, #87B382, #5d9458);
-          color: white;
+          background: var(--btn-green-bg);
+          color: var(--btn-green-text);
           font-size: 13px;
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 4px 14px rgba(93,148,86,0.30);
+          box-shadow: var(--btn-green-shadow);
           transition: transform 0.15s, box-shadow 0.15s;
         }
         .jump-go-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 18px rgba(93,148,86,0.40);
+          box-shadow: var(--btn-green-shadow-hover);
+          background: var(--btn-green-hover);
         }
         .jump-go-btn:active { transform: translateY(0); }
         body.dark-mode .jump-select,
@@ -198,6 +214,32 @@ async function renderCalendar() {
           border-color: rgba(135,179,130,0.25);
         }
         body.dark-mode .jump-label { color: #87B382; }
+
+        /* ── Retention warning banner ── */
+        .calendar-retention-banner {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px 16px;
+          margin-bottom: 18px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.08));
+          border: 1.5px solid rgba(245,158,11,0.30);
+          backdrop-filter: blur(8px);
+        }
+        .retention-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
+        .retention-text {
+          font-size: 12px;
+          color: #92400e;
+          line-height: 1.5;
+          font-weight: 500;
+        }
+        .retention-text strong { font-weight: 800; }
+        body.dark-mode .calendar-retention-banner {
+          background: linear-gradient(135deg, rgba(120,80,0,0.25), rgba(100,60,0,0.15));
+          border-color: rgba(245,158,11,0.20);
+        }
+        body.dark-mode .retention-text { color: #fbbf24; }
       </style>
     `;
 
@@ -242,7 +284,7 @@ async function renderCalendar() {
         <h2>⚠️ Error Loading Calendar</h2>
         <p>${error.message}</p>
         <button onclick="renderCalendar()"
-          style="padding: 12px 24px; background: #87B382; color: white; border: none;
+          style="padding: 12px 24px; background: var(--btn-green-bg); color: var(--btn-green-text); border: none;
                  border-radius: 12px; cursor: pointer; font-weight: 700; margin-top: 15px;">
           Retry
         </button>
@@ -308,6 +350,8 @@ function renderCalendarGrid() {
 
     if (isToday) cellClass += ' today';
 
+    const hasPaidDebt = paidDebtDates.has(dateStr);
+
     html += `
       <div class="${cellClass}" data-date="${dateStr}" title="Click for details">
         <div class="date-day-number">${day}</div>
@@ -317,6 +361,7 @@ function renderCalendarGrid() {
           </div>
           <div class="date-transaction-count">${salesCount}</div>
         ` : ''}
+        ${hasPaidDebt ? `<div class="date-debt-badge" title="Debts paid on this day">💚</div>` : ''}
       </div>
     `;
   }
@@ -412,6 +457,7 @@ function renderCalendarGrid() {
     .date-day-number { font-size: 15px; font-weight: 700; color: inherit; margin-bottom: 3px; line-height: 1; letter-spacing: -0.3px; }
     .date-revenue-amount { font-size: 18px; font-weight: 900; color: inherit; line-height: 1; margin: 4px 0 2px; text-shadow: 0 1px 3px rgba(255,255,255,0.6); letter-spacing: -0.5px; }
     .date-transaction-count { font-size: 12px; font-weight: 700; color: inherit; opacity: 0.75; margin-top: 3px; }
+    .date-debt-badge { font-size: 11px; line-height: 1; margin-top: 3px; }
     body.dark-mode .calendar-date-cell {
       background: linear-gradient(135deg, rgba(30,50,40,0.55), rgba(20,40,30,0.35));
       backdrop-filter: blur(14px) saturate(1.2);

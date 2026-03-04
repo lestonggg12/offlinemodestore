@@ -148,30 +148,24 @@ body.dark-mode .top-nav {
 
 /* ── Logout button — glassmorphic red ── */
 .btn-logout {
-    background: rgba(220,50,60,0.7) !important;
+    background: var(--btn-red-bg) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255,120,120,0.3) !important;
+    border: none !important;
     text-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
-    box-shadow:
-        0 4px 16px rgba(220,50,60,0.25),
-        inset 0 1px 1px rgba(255,255,255,0.15),
-        inset 0 -1px 1px rgba(0,0,0,0.1) !important;
+    box-shadow: var(--btn-red-shadow) !important;
 }
 
 .btn-logout:hover {
-    background: rgba(220,50,60,0.85) !important;
+    background: var(--btn-red-hover) !important;
     transform: translateY(-2px);
-    box-shadow:
-        0 6px 24px rgba(220,50,60,0.3),
-        inset 0 1px 2px rgba(255,255,255,0.2) !important;
+    box-shadow: var(--btn-red-shadow-hover) !important;
 }
 
 .btn-logout:active {
-    background: rgba(180,40,50,0.8) !important;
-    box-shadow:
-        0 2px 8px rgba(220,50,60,0.15),
-        inset 0 2px 4px rgba(0,0,0,0.2) !important;
+    background: var(--btn-red-hover) !important;
+    transform: translateY(0);
+    box-shadow: var(--btn-red-shadow) !important;
 }
 
 /* ── Dark mode buttons — glass style ── */

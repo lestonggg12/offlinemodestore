@@ -14,16 +14,17 @@ body.dark-mode .inventory-table td:first-child {
 /* GLOBAL DARK MODE NEOMORPHISM OVERRIDES */
 /* Cancel button always red, blends in both modes */
 .mdc-no, .btn-cancel, .neo-btn-cancel, .cancel-btn, .modal-cancel-btn {
-  background: linear-gradient(135deg, #ff2222 0%, #b10000 100%) !important;
-  color: #fff !important;
-  border: 2px solid #b10000 !important;
+  background: var(--btn-red-bg) !important;
+  color: var(--btn-red-text) !important;
+  border: none !important;
   font-weight: 900;
-  box-shadow: 0 2px 12px rgba(255, 34, 34, 0.18);
+  box-shadow: var(--btn-red-shadow);
   transition: background 0.18s, border 0.18s;
 }
 .mdc-no:hover, .btn-cancel:hover, .neo-btn-cancel:hover, .cancel-btn:hover, .modal-cancel-btn:hover {
-  background: linear-gradient(135deg, #b10000 0%, #7a0000 100%) !important;
-  color: #fff !important;
+  background: var(--btn-red-hover) !important;
+  color: var(--btn-red-text) !important;
+  box-shadow: var(--btn-red-shadow-hover);
 }
 /* Debtors/stat cards and info boxes dark mode improvements */
 body.dark-mode .card,
@@ -149,25 +150,25 @@ body.dark-mode .neo-change-amount {
 }
 
 body.dark-mode .neo-btn-secondary {
-  background-color: #4a2323 !important;
-  color: #fff !important;
-  border-color: #7a2c2c !important;
+  background-color: var(--danger-800) !important;
+  color: var(--btn-red-text) !important;
+  border-color: var(--danger-700) !important;
   filter: brightness(0.95) saturate(0.7);
-  box-shadow: 0 2px 8px rgba(74,35,35,0.15);
+  box-shadow: var(--btn-red-shadow);
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 body.dark-mode .neo-btn-secondary:hover {
-  background-color: #7a2c2c !important;
-  color: #fff !important;
+  background-color: var(--danger-700) !important;
+  color: var(--btn-red-text) !important;
   filter: brightness(1) saturate(0.8);
 }
 
 body.dark-mode .neo-btn-success {
-  background: linear-gradient(135deg, #14532d 0%, #166534 100%) !important;
-  color: #e5ffe5 !important;
+  background: var(--btn-green-bg) !important;
+  color: var(--btn-green-text) !important;
   border: none !important;
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.10);
+  box-shadow: var(--btn-green-shadow);
   filter: none;
   transition: background 0.3s, color 0.3s, border 0.3s;
 }
@@ -184,17 +185,43 @@ body.dark-mode .neo-cart-list,
 body.dark-mode .neo-cart-item,
 body.dark-mode .neo-cart-controls,
 body.dark-mode .neo-checkout-amount,
-body.dark-mode .neo-checkout-buttons,
-body.dark-mode .neo-btn-primary,
-body.dark-mode .neo-btn-success,
-body.dark-mode .neo-btn-warning,
-body.dark-mode .neo-btn-danger,
-body.dark-mode .neo-btn-clear-cart,
-body.dark-mode .neo-btn-checkout {
+body.dark-mode .neo-checkout-buttons {
   color: #fff !important;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(0,0,0,0.35);
-  background: var(--primary-700, #283593) !important;
+  border: none !important;
+}
+body.dark-mode .neo-btn-primary {
+  color: #fff !important;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.35);
+  background: var(--btn-green-bg) !important;
+  border: none !important;
+}
+body.dark-mode .neo-btn-success {
+  background: var(--btn-green-bg) !important;
+  color: var(--btn-green-text) !important;
+}
+body.dark-mode .neo-btn-warning {
+  color: #fff !important;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.35);
+  background: var(--warning-700, #f39c12) !important;
+  border: none !important;
+}
+body.dark-mode .neo-btn-danger,
+body.dark-mode .neo-btn-clear-cart {
+  color: var(--btn-red-text) !important;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.35);
+  background: var(--btn-red-bg) !important;
+  border: none !important;
+}
+body.dark-mode .neo-btn-checkout {
+  color: var(--btn-green-text) !important;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.35);
+  background: var(--btn-green-bg) !important;
   border: none !important;
 }
 /* Modals get a dark neutral background, not green */
@@ -210,24 +237,25 @@ body.dark-mode .neo-change-modal {
   box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.4);
 }
 body.dark-mode .neo-btn-success {
-  background: linear-gradient(135deg, #14532d 0%, #166534 100%) !important;
+  background: var(--btn-green-bg) !important;
+  color: var(--btn-green-text) !important;
 }
 body.dark-mode .neo-btn-warning {
   background: var(--warning-700, #f39c12) !important;
 }
 body.dark-mode .neo-btn-danger,
 body.dark-mode .neo-btn-clear-cart {
-  background: var(--danger-700, #e74c3c) !important;
+  background: var(--btn-red-bg) !important;
 }
 body.dark-mode .neo-btn-checkout {
-  background: var(--primary-700, #283593) !important;
+  background: var(--btn-green-bg) !important;
 }
 body.dark-mode .neo-btn-secondary {
-  color: #fff !important;
+  color: var(--btn-red-text) !important;
   font-weight: 800;
   text-shadow: 0 2px 4px rgba(0,0,0,0.35);
-  background: var(--surface-dark, #23272f) !important;
-  border: 1px solid var(--primary-900, #1a237e) !important;
+  background: var(--btn-red-bg) !important;
+  border: none !important;
 }
 
 body.dark-mode .neo-cart-item-name,
@@ -685,55 +713,55 @@ body.dark-mode .paid-header {
    ───────────────────────────────────────────────────────────────────────────── */
 
 body.dark-mode .btn-mark-paid {
-  background: linear-gradient(135deg, #2a5a48, #1a4a38) !important;
-  color: #a8d4ba !important;
-  border-color: rgba(168, 212, 186, 0.2) !important;
+  background: var(--btn-green-bg) !important;
+  color: var(--btn-green-text) !important;
+  border: none !important;
 }
 
 body.dark-mode .btn-mark-paid:hover {
-  background: linear-gradient(135deg, #3a6a58, #2a5a48) !important;
-  box-shadow: 0 4px 12px rgba(125, 184, 159, 0.2) !important;
+  background: var(--btn-green-hover) !important;
+  box-shadow: var(--btn-green-shadow-hover) !important;
 }
 
 body.dark-mode .btn-delete-debtor {
-  background: linear-gradient(135deg, #7a2c2c, #5a1a1a) !important;
-  color: #ff9999 !important;
-  border-color: rgba(232, 80, 80, 0.3) !important;
+  background: var(--btn-red-bg) !important;
+  color: var(--btn-red-text) !important;
+  border: none !important;
 }
 
 body.dark-mode .btn-delete-debtor:hover {
-  background: linear-gradient(135deg, #8a3c3c, #6a2a2a) !important;
-  color: #ffb3b3 !important;
-  box-shadow: 0 4px 12px rgba(232, 80, 80, 0.2) !important;
+  background: var(--btn-red-hover) !important;
+  color: var(--btn-red-text) !important;
+  box-shadow: var(--btn-red-shadow-hover) !important;
 }
 
 body.dark-mode .toggle-btn-red {
-  background: linear-gradient(135deg, #7a2c2c, #5a1a1a) !important;
-  color: #ff9999 !important;
-  border: 1px solid rgba(232, 80, 80, 0.3) !important;
+  background: var(--btn-red-bg) !important;
+  color: var(--btn-red-text) !important;
+  border: none !important;
 }
 
 body.dark-mode .toggle-btn-red:hover {
-  background: linear-gradient(135deg, #8a3c3c, #6a2a2a) !important;
-  color: #ffb3b3 !important;
-  box-shadow: 0 4px 12px rgba(232, 80, 80, 0.2) !important;
+  background: var(--btn-red-hover) !important;
+  color: var(--btn-red-text) !important;
+  box-shadow: var(--btn-red-shadow-hover) !important;
 }
 
 body.dark-mode .toggle-btn-green {
-  background: linear-gradient(135deg, #2a5a48, #1a4a38) !important;
-  color: #a8d4ba !important;
+  background: var(--btn-green-bg) !important;
+  color: var(--btn-green-text) !important;
 }
 
 body.dark-mode .btn-clear-paid {
-  background: linear-gradient(135deg, #7a2c2c, #5a1a1a) !important;
-  color: #ff9999 !important;
-  border-color: rgba(232, 80, 80, 0.3) !important;
+  background: var(--btn-red-bg) !important;
+  color: var(--btn-red-text) !important;
+  border: none !important;
 }
 
 body.dark-mode .btn-clear-paid:hover {
-  background: linear-gradient(135deg, #8a3c3c, #6a2a2a) !important;
-  color: #ffb3b3 !important;
-  box-shadow: 0 4px 12px rgba(232, 80, 80, 0.2) !important;
+  background: var(--btn-red-hover) !important;
+  color: var(--btn-red-text) !important;
+  box-shadow: var(--btn-red-shadow-hover) !important;
 }
 
 body.dark-mode .toggle-section-btn {

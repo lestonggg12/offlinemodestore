@@ -193,17 +193,18 @@ async function renderCalendar() {
           padding: 9px 20px;
           border-radius: 12px;
           border: none;
-          background: linear-gradient(135deg, #87B382, #5d9458);
-          color: white;
+          background: var(--btn-green-bg);
+          color: var(--btn-green-text);
           font-size: 13px;
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 4px 14px rgba(93,148,86,0.30);
+          box-shadow: var(--btn-green-shadow);
           transition: transform 0.15s, box-shadow 0.15s;
         }
         .jump-go-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 18px rgba(93,148,86,0.40);
+          box-shadow: var(--btn-green-shadow-hover);
+          background: var(--btn-green-hover);
         }
         .jump-go-btn:active { transform: translateY(0); }
         body.dark-mode .jump-select,
@@ -283,7 +284,7 @@ async function renderCalendar() {
         <h2>⚠️ Error Loading Calendar</h2>
         <p>${error.message}</p>
         <button onclick="renderCalendar()"
-          style="padding: 12px 24px; background: #87B382; color: white; border: none;
+          style="padding: 12px 24px; background: var(--btn-green-bg); color: var(--btn-green-text); border: none;
                  border-radius: 12px; cursor: pointer; font-weight: 700; margin-top: 15px;">
           Retry
         </button>

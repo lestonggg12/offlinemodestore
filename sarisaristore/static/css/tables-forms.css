@@ -376,40 +376,43 @@ body.dark-mode .inventory-table tbody tr.out-of-stock {
 /* === ADD BUTTON === */
 /* Main action button (green gradient) */
 .btn-add {
-    background: var(--gradient-profit);  /* Green gradient */
-    color: white;
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
     font-weight: 700;
-    box-shadow: var(--neo-shadow-medium);
+    box-shadow: var(--btn-green-shadow);
     border: none;
 }
 
 .btn-add:hover {
-    transform: translateY(-2px);  /* Lifts up */
-    box-shadow: var(--neo-shadow-elevated); /* Bigger shadow */
+    background: var(--btn-green-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--btn-green-shadow-hover);
 }
 
 .btn-add:active {
-    transform: translateY(0);     /* Returns down when clicked */
-    box-shadow: var(--neo-shadow-light);
+    transform: translateY(0);
+    box-shadow: var(--btn-green-shadow);
 }
 
 /* === DELETE BUTTON === */
 /* Danger button (red) for removing items */
 .btn-delete {
-    background: var(--danger-50);   /* Light red */
-    color: var(--danger-700);       /* Dark red text */
-    border: 2px solid var(--danger-200);
-    font-size: var(--font-size-xs); /* Smaller text */
-    padding: var(--space-sm) var(--space-md);  /* Less padding */
+    background: var(--btn-red-bg);
+    color: var(--btn-red-text);
+    border: none;
+    font-size: var(--font-size-xs);
+    padding: var(--space-sm) var(--space-md);
+    box-shadow: var(--btn-red-shadow);
 }
 
 .btn-delete:hover {
-    background: var(--danger-100);  /* Darker red */
-    border-color: var(--danger-300);
+    background: var(--btn-red-hover);
+    box-shadow: var(--btn-red-shadow-hover);
+    transform: translateY(-1px);
 }
 
 .btn-delete:active {
-    background: var(--danger-200);  /* Even darker when clicked */
+    transform: translateY(0);
 }
 
 /* === QUANTITY BUTTONS === */
@@ -442,16 +445,17 @@ body.dark-mode .inventory-table tbody tr.out-of-stock {
 /* === CLEAR HISTORY BUTTON === */
 /* Danger button for clearing all data */
 .btn-clear-history {
-    background: var(--danger-50);
-    color: var(--danger-600);
-    border: 2px solid var(--danger-200);
+    background: var(--btn-red-bg);
+    color: var(--btn-red-text);
+    border: none;
     font-weight: 700;
+    box-shadow: var(--btn-red-shadow);
 }
 
 .btn-clear-history:hover {
-    background: var(--danger-600);    /* Flips to solid red */
-    color: white;                     /* White text */
-    border-color: var(--danger-600);
+    background: var(--btn-red-hover);
+    box-shadow: var(--btn-red-shadow-hover);
+    transform: translateY(-2px);
 }
 
 /* ==========================================

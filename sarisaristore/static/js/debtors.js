@@ -149,7 +149,7 @@ window.renderDebtors = async function() {
       <div style="text-align: center; padding: 40px; color: #DC2626;">
         <h2>⚠️ Error Loading Debtors</h2>
         <p>${error.message || 'An unexpected error occurred'}</p>
-        <button onclick="renderDebtors()" style="margin-top: 20px; padding: 12px 24px; background: #87B382; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700;">Retry</button>
+        <button onclick="renderDebtors()" style="margin-top: 20px; padding: 12px 24px; background: var(--btn-green-bg); color: var(--btn-green-text); border: none; border-radius: 12px; cursor: pointer; font-weight: 700;">Retry</button>
       </div>
     `;
   }
@@ -366,8 +366,8 @@ function getDebtorStyles() {
       .debtor-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.6); position: relative; z-index: 2; }
       .debtor-name { font-size: 1.1rem; font-weight: 700; color: #2d3748; }
       .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-      .badge-unpaid { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.6); }
-      .badge-paid { background: linear-gradient(135deg, #c8efd9, #a8e6c8); color: #2d5238; border: 1px solid rgba(255,255,255,0.6); }
+      .badge-unpaid { background: var(--btn-red-bg); color: var(--btn-red-text); border: none; }
+      .badge-paid { background: var(--btn-green-bg); color: var(--btn-green-text); border: none; }
 
       .debtor-details { margin-bottom: 12px; position: relative; z-index: 2; }
       .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; }
@@ -379,8 +379,8 @@ function getDebtorStyles() {
       .items-list { color: #2d3748; font-size: 0.85rem; line-height: 1.4; }
 
       .debtor-amount { font-size: 1.6rem; font-weight: 800; text-align: center; padding: 14px; border-radius: 10px; margin-bottom: 12px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
-      .amount-unpaid { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; }
-      .amount-paid { background: linear-gradient(135deg, #c8efd9, #a8e6c8); color: #2d5238; }
+      .amount-unpaid { background: var(--btn-red-bg); color: var(--btn-red-text); }
+      .amount-paid { background: var(--btn-green-bg); color: var(--btn-green-text); }
 
       .debtor-amount-breakdown { padding: 12px; border-radius: 10px; margin-bottom: 10px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
       .amount-unpaid.debtor-amount-breakdown { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; }
@@ -401,10 +401,10 @@ function getDebtorStyles() {
 
       .debtor-actions { display: flex; gap: 10px; position: relative; z-index: 3; }
       .action-btn { flex: 1; padding: 11px; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 5px; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 3; }
-      .btn-mark-paid { background: linear-gradient(135deg, #a8d4ba, #98c8aa); color: #2d5238; }
-      .btn-mark-paid:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(125,184,159,0.25); }
-      .btn-delete-debtor { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); }
-      .btn-delete-debtor:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
+      .btn-mark-paid { background: var(--btn-green-bg); color: var(--btn-green-text); box-shadow: var(--btn-green-shadow); }
+      .btn-mark-paid:hover { transform: translateY(-2px); box-shadow: var(--btn-green-shadow-hover); background: var(--btn-green-hover); }
+      .btn-delete-debtor { background: var(--btn-red-bg); color: var(--btn-red-text); border: none; box-shadow: var(--btn-red-shadow); }
+      .btn-delete-debtor:hover { transform: translateY(-2px); box-shadow: var(--btn-red-shadow-hover); background: var(--btn-red-hover); }
 
       .paid-info { text-align: center; padding: 11px; background: linear-gradient(135deg, #c8efd9, #a8e6c8); border-radius: 8px; color: #2d5238; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(6px); position: relative; z-index: 2; }
       .auto-delete-countdown { text-align: center; padding: 8px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; color: #8a6a30; font-weight: 600; font-size: 0.75rem; margin-top: 8px; border: 1px solid rgba(253,230,138,0.6); position: relative; z-index: 2; }
@@ -415,11 +415,11 @@ function getDebtorStyles() {
 
       .section-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
       .toggle-section-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Quicksand', sans-serif; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.12); position: relative; z-index: 10; }
-      .toggle-btn-red { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); }
-      .toggle-btn-green { background: linear-gradient(135deg, #a8d4ba, #98c8aa); color: #2d5238; }
+      .toggle-btn-red { background: var(--btn-red-bg); color: var(--btn-red-text); border: none; box-shadow: var(--btn-red-shadow); }
+      .toggle-btn-green { background: var(--btn-green-bg); color: var(--btn-green-text); border: none; box-shadow: var(--btn-green-shadow); }
 
-      .btn-clear-paid { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.3s ease; font-family: 'Quicksand', sans-serif; position: relative; z-index: 10; }
-      .btn-clear-paid:hover { background: linear-gradient(135deg, #c41e3a, #a61828); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
+      .btn-clear-paid { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: var(--btn-red-bg); color: var(--btn-red-text); border: none; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.3s ease; font-family: 'Quicksand', sans-serif; position: relative; z-index: 10; box-shadow: var(--btn-red-shadow); }
+      .btn-clear-paid:hover { background: var(--btn-red-hover); transform: translateY(-2px); box-shadow: var(--btn-red-shadow-hover); }
 
       .auto-delete-notice-banner { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 16px 0; padding: 12px 16px; background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.05)); border: 1.5px solid rgba(239,68,68,0.25); border-left: 4px solid #ef4444; border-radius: 12px; backdrop-filter: blur(8px); position: relative; z-index: 2; }
       .adn-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }

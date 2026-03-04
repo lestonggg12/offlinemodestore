@@ -127,7 +127,13 @@ window.renderDebtors = async function() {
             </button>
           ` : ''}
         </div>
-        ${paidDebtors.length > 0 ? `<p class="auto-delete-notice">⏱️ Paid debts are automatically deleted after 7 days</p>` : ''}
+        ${paidDebtors.length > 0 ? `<div class="auto-delete-notice-banner">
+          <span class="adn-icon">⏱️</span>
+          <div class="adn-body">
+            <div class="adn-title">Auto-Delete Active</div>
+            <div class="adn-text">Paid debts are <strong>automatically deleted 7 days</strong> after being marked as paid. You can still view them in the <strong>📅 Calendar</strong> for up to 1 year.</div>
+          </div>
+        </div>` : ''}
         <div id="paidDebtContainer" style="transition: max-height 0.35s ease, opacity 0.3s ease; overflow: hidden; max-height: none; opacity: 1;">
           ${renderDebtorsCards(paidDebtors, true)}
         </div>
@@ -143,7 +149,7 @@ window.renderDebtors = async function() {
       <div style="text-align: center; padding: 40px; color: #DC2626;">
         <h2>⚠️ Error Loading Debtors</h2>
         <p>${error.message || 'An unexpected error occurred'}</p>
-        <button onclick="renderDebtors()" style="margin-top: 20px; padding: 12px 24px; background: #87B382; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700;">Retry</button>
+        <button onclick="renderDebtors()" style="margin-top: 20px; padding: 12px 24px; background: var(--btn-green-bg); color: var(--btn-green-text); border: none; border-radius: 12px; cursor: pointer; font-weight: 700;">Retry</button>
       </div>
     `;
   }
@@ -239,7 +245,18 @@ function renderDebtorsCards(debtors, isPaid) {
             }
             <button class="action-btn btn-delete-debtor" data-debtor-id="${debtor.id}"><span>🗑️</span>Delete</button>
           </div>
-          ${isPaid && debtor.date_paid ? `<div class="auto-delete-countdown">Auto-deletes after 7 days</div>` : ''}
+          ${isPaid && debtor.date_paid ? (() => {
+            const paidDate = new Date(debtor.date_paid);
+            const deleteDate = new Date(paidDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const now = new Date();
+            const msLeft = deleteDate.getTime() - now.getTime();
+            const daysLeft = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
+            const hoursLeft = Math.max(0, Math.ceil(msLeft / (60 * 60 * 1000)));
+            const isUrgent = daysLeft <= 2;
+            const countdownText = daysLeft === 0 ? `Deleting soon (${hoursLeft}h left)` : daysLeft === 1 ? '⏳ Auto-deletes in 1 day' : `⏳ Auto-deletes in ${daysLeft} days`;
+            const urgentClass = isUrgent ? 'countdown-urgent' : '';
+            return `<div class="auto-delete-countdown ${urgentClass}">${countdownText}</div>`;
+          })() : ''}
         </div>
       </div>
     `;
@@ -349,8 +366,8 @@ function getDebtorStyles() {
       .debtor-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.6); position: relative; z-index: 2; }
       .debtor-name { font-size: 1.1rem; font-weight: 700; color: #2d3748; }
       .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-      .badge-unpaid { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.6); }
-      .badge-paid { background: linear-gradient(135deg, #c8efd9, #a8e6c8); color: #2d5238; border: 1px solid rgba(255,255,255,0.6); }
+      .badge-unpaid { background: var(--btn-red-bg); color: var(--btn-red-text); border: none; }
+      .badge-paid { background: var(--btn-green-bg); color: var(--btn-green-text); border: none; }
 
       .debtor-details { margin-bottom: 12px; position: relative; z-index: 2; }
       .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; }
@@ -362,8 +379,8 @@ function getDebtorStyles() {
       .items-list { color: #2d3748; font-size: 0.85rem; line-height: 1.4; }
 
       .debtor-amount { font-size: 1.6rem; font-weight: 800; text-align: center; padding: 14px; border-radius: 10px; margin-bottom: 12px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
-      .amount-unpaid { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; }
-      .amount-paid { background: linear-gradient(135deg, #c8efd9, #a8e6c8); color: #2d5238; }
+      .amount-unpaid { background: var(--btn-red-bg); color: var(--btn-red-text); }
+      .amount-paid { background: var(--btn-green-bg); color: var(--btn-green-text); }
 
       .debtor-amount-breakdown { padding: 12px; border-radius: 10px; margin-bottom: 10px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
       .amount-unpaid.debtor-amount-breakdown { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; }
@@ -384,23 +401,36 @@ function getDebtorStyles() {
 
       .debtor-actions { display: flex; gap: 10px; position: relative; z-index: 3; }
       .action-btn { flex: 1; padding: 11px; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 5px; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 3; }
-      .btn-mark-paid { background: linear-gradient(135deg, #a8d4ba, #98c8aa); color: #2d5238; }
-      .btn-mark-paid:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(125,184,159,0.25); }
-      .btn-delete-debtor { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); }
-      .btn-delete-debtor:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
+      .btn-mark-paid { background: var(--btn-green-bg); color: var(--btn-green-text); box-shadow: var(--btn-green-shadow); }
+      .btn-mark-paid:hover { transform: translateY(-2px); box-shadow: var(--btn-green-shadow-hover); background: var(--btn-green-hover); }
+      .btn-delete-debtor { background: var(--btn-red-bg); color: var(--btn-red-text); border: none; box-shadow: var(--btn-red-shadow); }
+      .btn-delete-debtor:hover { transform: translateY(-2px); box-shadow: var(--btn-red-shadow-hover); background: var(--btn-red-hover); }
 
       .paid-info { text-align: center; padding: 11px; background: linear-gradient(135deg, #c8efd9, #a8e6c8); border-radius: 8px; color: #2d5238; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(6px); position: relative; z-index: 2; }
       .auto-delete-countdown { text-align: center; padding: 8px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; color: #8a6a30; font-weight: 600; font-size: 0.75rem; margin-top: 8px; border: 1px solid rgba(253,230,138,0.6); position: relative; z-index: 2; }
+      .auto-delete-countdown.countdown-urgent { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; border-color: rgba(248,113,113,0.5); animation: urgentPulse 2s ease-in-out infinite; }
+      @keyframes urgentPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+      body.dark-mode .auto-delete-countdown { background: linear-gradient(135deg, rgba(120,80,0,0.3), rgba(100,60,0,0.2)); color: #fcd34d; border-color: rgba(251,191,36,0.3); }
+      body.dark-mode .auto-delete-countdown.countdown-urgent { background: linear-gradient(135deg, rgba(100,20,20,0.3), rgba(80,15,15,0.2)); color: #fca5a5; border-color: rgba(248,113,113,0.3); }
 
       .section-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
       .toggle-section-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Quicksand', sans-serif; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.12); position: relative; z-index: 10; }
-      .toggle-btn-red { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); }
-      .toggle-btn-green { background: linear-gradient(135deg, #a8d4ba, #98c8aa); color: #2d5238; }
+      .toggle-btn-red { background: var(--btn-red-bg); color: var(--btn-red-text); border: none; box-shadow: var(--btn-red-shadow); }
+      .toggle-btn-green { background: var(--btn-green-bg); color: var(--btn-green-text); border: none; box-shadow: var(--btn-green-shadow); }
 
-      .btn-clear-paid { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; border: 1px solid rgba(231,76,60,0.4); border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.3s ease; font-family: 'Quicksand', sans-serif; position: relative; z-index: 10; }
-      .btn-clear-paid:hover { background: linear-gradient(135deg, #c41e3a, #a61828); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(231,76,60,0.3); }
+      .btn-clear-paid { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: var(--btn-red-bg); color: var(--btn-red-text); border: none; border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.3s ease; font-family: 'Quicksand', sans-serif; position: relative; z-index: 10; box-shadow: var(--btn-red-shadow); }
+      .btn-clear-paid:hover { background: var(--btn-red-hover); transform: translateY(-2px); box-shadow: var(--btn-red-shadow-hover); }
 
-      .auto-delete-notice { font-size: 12px; color: #6a8060; margin: 8px 0 12px 0; padding: 8px 12px; background: rgba(216,243,230,0.5); border-radius: 8px; border-left: 3px solid #a8d4ba; font-style: italic; backdrop-filter: blur(4px); position: relative; z-index: 2; }
+      .auto-delete-notice-banner { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0 16px 0; padding: 12px 16px; background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(220,38,38,0.05)); border: 1.5px solid rgba(239,68,68,0.25); border-left: 4px solid #ef4444; border-radius: 12px; backdrop-filter: blur(8px); position: relative; z-index: 2; }
+      .adn-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+      .adn-body { flex: 1; }
+      .adn-title { font-size: 12px; font-weight: 800; color: #991b1b; margin-bottom: 3px; letter-spacing: 0.3px; }
+      .adn-text { font-size: 11px; color: #7f1d1d; line-height: 1.6; }
+      .adn-text strong { color: #dc2626; }
+      body.dark-mode .auto-delete-notice-banner { background: linear-gradient(135deg, rgba(80,20,20,0.2), rgba(60,15,15,0.12)); border-color: rgba(239,68,68,0.2); border-left-color: #ef4444; }
+      body.dark-mode .adn-title { color: #fca5a5; }
+      body.dark-mode .adn-text { color: #fecaca; }
+      body.dark-mode .adn-text strong { color: #f87171; }
 
       .modern-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: 700; font-family: 'Quicksand', sans-serif; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 3px 8px rgba(0,0,0,0.1); }
 

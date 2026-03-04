@@ -111,8 +111,8 @@ body.dark-mode .btn-alert:hover, body.dark-mode .alert-btn:hover, body.dark-mode
 
 .in-cart-badge,
 .payment-badge.cash {
-    background: linear-gradient(135deg, #22c55e, #15803d);
-    color: white;
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
 }
 
 .payment-badge.gcash,
@@ -134,9 +134,9 @@ body.dark-mode .btn-alert:hover, body.dark-mode .alert-btn:hover, body.dark-mode
     border: 1.5px solid rgba(255,255,255,0.22);
 }
 
-.status-badge.success { background: linear-gradient(135deg, #22c55e, #15803d); color: white; }
+.status-badge.success { background: var(--btn-green-bg); color: var(--btn-green-text); }
 .status-badge.warning { background: linear-gradient(135deg, #fbbf24, #d97706); color: #1a1a1a; }
-.status-badge.danger  { background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; }
+.status-badge.danger  { background: var(--btn-red-bg); color: var(--btn-red-text); }
 
 /* ============================================================
    SIDEBAR OVERLAY
@@ -265,8 +265,8 @@ body.dark-mode .mobile-sidebar { background: #0f1a0f; }
 
 .sidebar-alert-badge {
     margin-left: auto;
-    background: linear-gradient(135deg, #EF4444, #DC2626);
-    color: white;
+    background: var(--btn-red-bg);
+    color: var(--btn-red-text);
     border-radius: 10px;
     padding: 2px 8px;
     font-size: 11px;
@@ -302,10 +302,10 @@ body.dark-mode .sidebar-divider { background: rgba(255,255,255,0.08); }
     padding: 14px;
     border-radius: 12px;
     border: none;
-    background: linear-gradient(135deg, #ef4444, #c41a1a) !important;
-    color: white !important;
+    background: var(--btn-red-bg) !important;
+    color: var(--btn-red-text) !important;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(220,38,38,0.3);
+    box-shadow: var(--btn-red-shadow);
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.12s;
@@ -314,8 +314,8 @@ body.dark-mode .sidebar-divider { background: rgba(255,255,255,0.08); }
 .sidebar-logout-btn:active { transform: scale(0.97); }
 
 body.dark-mode .sidebar-logout-btn {
-    background: linear-gradient(135deg, #dc2626, #ef4444) !important;
-    box-shadow: 0 4px 18px rgba(220,38,38,0.45);
+    background: var(--btn-red-bg) !important;
+    box-shadow: var(--btn-red-shadow-hover);
 }
 
 /* ============================================================
@@ -445,16 +445,49 @@ body.dark-mode .clear-search-btn { background: #2a3d2a !important; color: #a0c8a
     #cartSearchWrapper { padding: 8px 10px 4px !important; }
     .cart-search-bar   { min-height: 42px !important; border-radius: 12px !important; }
 }
-}
 /* ============================================================
-   FIX: Remove inner scrollbar — let the page scroll naturally
+   FIX: Remove inner scrollbar — let the page scroll naturally.
+   Only the browser's default scrollbar should appear.
    ============================================================ */
-html, body {
+html {
     height: 100%;
     overflow-x: hidden;
+    overflow-y: scroll;              /* Always show browser scrollbar */
+}
+
+body {
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto !important;
 }
 
 .page-container {
+    height: auto !important;
+    max-height: none !important;
     min-height: unset !important;
     overflow: visible !important;
+}
+
+#mainContent,
+.page,
+.page.active-page {
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Prevent any section/div inside pages from creating scroll containers */
+#inventoryContent,
+#profitContent,
+#calendarContent,
+#priceListContent,
+#debtorsContent,
+#settingsContent {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+}
+
+/* page-bg-applied must not create a scroll container */
+.page-bg-applied {
+    overflow: clip !important;
 }

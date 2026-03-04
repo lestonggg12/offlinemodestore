@@ -167,10 +167,10 @@ console.log('📦 Loading inventory module...');
             transition: all .2s ease;
             backdrop-filter: blur(8px);
         }
-        #inventoryContent .cat-btn-edit   { background: rgba(203,223,189,0.75); border: 1px solid rgba(168,201,156,0.5); }
-        #inventoryContent .cat-btn-edit:hover   { background: rgba(168,201,156,0.95); transform: scale(1.12); }
-        #inventoryContent .cat-btn-delete { background: rgba(241,156,121,0.75); border: 1px solid rgba(220,130,100,0.5); }
-        #inventoryContent .cat-btn-delete:hover { background: rgba(220,130,100,0.95); transform: scale(1.12); }
+        #inventoryContent .cat-btn-edit   { background: var(--btn-green-bg); border: none; color: var(--btn-green-text); }
+        #inventoryContent .cat-btn-edit:hover   { background: var(--btn-green-hover); transform: scale(1.12); }
+        #inventoryContent .cat-btn-delete { background: var(--btn-red-bg); border: none; color: var(--btn-red-text); }
+        #inventoryContent .cat-btn-delete:hover { background: var(--btn-red-hover); transform: scale(1.12); }
 
         /* Add category card */
         #inventoryContent .gl-cat-add {
@@ -267,14 +267,14 @@ console.log('📦 Loading inventory module...');
         }
         #inventoryContent #btnAddProduct {
             padding: 10px 22px; height: 42px; white-space: nowrap;
-            background: linear-gradient(135deg, #cbdfbd, #a8c99c);
-            color: #2d5238; border: 1px solid rgba(255,255,255,0.5);
+            background: var(--btn-green-bg);
+            color: var(--btn-green-text); border: none;
             border-radius: 10px; cursor: pointer; font-weight: 800;
             font-size: 13px; align-self: end;
-            box-shadow: 0 4px 14px rgba(80,140,75,0.2);
+            box-shadow: var(--btn-green-shadow);
             transition: all .3s cubic-bezier(.22,1,.36,1);
         }
-        #inventoryContent #btnAddProduct:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(80,140,75,0.3); }
+        #inventoryContent #btnAddProduct:hover { transform: translateY(-2px); box-shadow: var(--btn-green-shadow-hover); background: var(--btn-green-hover); }
 
         /* ════════ PRO TIP BANNER ════════ */
         #inventoryContent .gl-tip-banner {
@@ -321,14 +321,13 @@ console.log('📦 Loading inventory module...');
         /* ════════ QTY CONTROLS ════════ */
         #inventoryContent .btn-qty-modern {
             width: 36px; height: 36px;
-            background: linear-gradient(135deg, rgba(203,223,189,0.7), rgba(168,201,156,0.55));
-            color: #2d5238; border: 1.5px solid rgba(255,255,255,0.7);
+            background: var(--btn-green-bg);
+            color: var(--btn-green-text); border: none;
             border-radius: 8px; cursor: pointer; font-weight: 800;
             font-size: 18px; transition: all .2s ease;
-            backdrop-filter: blur(6px);
-            box-shadow: 0 2px 8px rgba(80,140,75,0.18);
+            box-shadow: var(--btn-green-shadow);
         }
-        #inventoryContent .btn-qty-modern:hover { transform: scale(1.12); box-shadow: 0 4px 14px rgba(80,140,75,0.3); }
+        #inventoryContent .btn-qty-modern:hover { transform: scale(1.12); box-shadow: var(--btn-green-shadow-hover); background: var(--btn-green-hover); }
         #inventoryContent .qty-input-modern {
             padding: 10px; text-align: center;
             border: 1.5px solid rgba(135,179,130,0.4); border-radius: 8px;
@@ -343,13 +342,13 @@ console.log('📦 Loading inventory module...');
 
         /* ════════ DELETE BUTTON ════════ */
         #inventoryContent .btn-delete-modern {
-            padding: 10px 16px; background: linear-gradient(135deg, rgba(241,156,121,0.6), rgba(220,130,100,0.5));
-            color: #7a2820; border: 1.5px solid rgba(241,156,121,0.5);
+            padding: 10px 16px; background: var(--btn-red-bg);
+            color: var(--btn-red-text); border: none;
             border-radius: 8px; cursor: pointer; font-size: 16px;
-            transition: all .2s ease; backdrop-filter: blur(6px);
-            box-shadow: 0 2px 8px rgba(200,80,60,0.15);
+            transition: all .2s ease;
+            box-shadow: var(--btn-red-shadow);
         }
-        #inventoryContent .btn-delete-modern:hover { transform: translateY(-2px); box-shadow: 0 5px 16px rgba(200,80,60,0.3); }
+        #inventoryContent .btn-delete-modern:hover { transform: translateY(-2px); box-shadow: var(--btn-red-shadow-hover); background: var(--btn-red-hover); }
 
         /* ════════ BACK BUTTON ════════ */
         #inventoryContent #btnBackToCategories {
@@ -471,13 +470,13 @@ console.log('📦 Loading inventory module...');
         body.dark-mode #inventoryContent .add-product-field label { color: #87B382 !important; }
         body.dark-mode #inventoryContent .add-product-field input { background: rgba(255,255,255,0.07) !important; color: #d8ecd4 !important; border-color: rgba(135,179,130,0.25) !important; caret-color: #a8c99c; }
         body.dark-mode #inventoryContent .add-product-field input::placeholder { color: #5a7a5e !important; }
-        body.dark-mode #inventoryContent #btnAddProduct { background: linear-gradient(135deg,#243020,#1c2819) !important; color: #87B382 !important; border-color: rgba(135,179,130,0.2) !important; }
+        body.dark-mode #inventoryContent #btnAddProduct { background: var(--btn-green-bg) !important; color: var(--btn-green-text) !important; border: none !important; }
         body.dark-mode #inventoryContent .gl-tip-banner { background: rgba(22,34,20,0.6) !important; border-color: rgba(135,179,130,0.2) !important; color: #87B382 !important; }
         body.dark-mode #inventoryContent .gl-table-wrap { background: rgba(22,34,20,0.7) !important; border-color: rgba(135,179,130,0.15) !important; }
         body.dark-mode #inventoryContent .gl-inv-table thead th { background: rgba(40,60,35,0.8) !important; color: #a8c99c !important; border-color: rgba(135,179,130,0.15) !important; }
         body.dark-mode #inventoryContent .gl-inv-table tbody td { border-color: rgba(135,179,130,0.1) !important; color: #d8ecd4 !important; }        body.dark-mode #inventoryContent .gl-inv-table tbody tr:hover td { background: rgba(80,120,75,0.15) !important; }
         body.dark-mode #inventoryContent .gl-inv-table tbody td strong { color: #e8fce4 !important; }
-        body.dark-mode #inventoryContent .btn-delete-modern { background: rgba(80,20,18,0.6) !important; color: #ff8a7a !important; border-color: rgba(200,80,70,0.3) !important; }
+        body.dark-mode #inventoryContent .btn-delete-modern { background: var(--btn-red-bg) !important; color: var(--btn-red-text) !important; border: none !important; }
         body.dark-mode #inventoryContent #btnBackToCategories { background: rgba(35,55,32,0.7) !important; color: #87B382 !important; border-color: rgba(135,179,130,0.2) !important; }
         body.dark-mode #inventoryContent .qty-input-modern { background: rgba(255,255,255,0.06) !important; color: #d8ecd4 !important; border-color: rgba(135,179,130,0.2) !important; }
         body.dark-mode #inventoryContent .gl-inv-card { background: rgba(25,40,23,0.7) !important; border-color: rgba(135,179,130,0.15) !important; }
@@ -490,8 +489,8 @@ console.log('📦 Loading inventory module...');
         body.dark-mode #inventoryContent .gl-empty-state { background: rgba(22,34,20,0.6) !important; border-color: rgba(135,179,130,0.15) !important; }
         body.dark-mode #inventoryContent .gl-empty-title { color: #6a8a66 !important; }
         body.dark-mode #inventoryContent .gl-empty-sub   { color: #4a6050 !important; }
-        body.dark-mode #inventoryContent .cat-btn-edit   { background: rgba(40,70,45,0.8) !important; }
-        body.dark-mode #inventoryContent .cat-btn-delete { background: rgba(80,30,25,0.8) !important; }
+        body.dark-mode #inventoryContent .cat-btn-edit   { background: var(--btn-green-bg) !important; color: var(--btn-green-text) !important; border: none !important; }
+        body.dark-mode #inventoryContent .cat-btn-delete { background: var(--btn-red-bg) !important; color: var(--btn-red-text) !important; border: none !important; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     `;
     document.head.appendChild(s);
@@ -507,7 +506,7 @@ console.log('📦 Loading inventory module...');
         #customDialogOverlay.active{display:flex!important;}
         #customDialogOverlay .dialog-box{background:linear-gradient(135deg,rgba(255,255,255,0.95),rgba(255,255,255,0.9))!important;border-radius:28px!important;padding:45px 40px 40px!important;width:90%!important;max-width:450px!important;box-shadow:0 30px 80px rgba(0,0,0,0.25)!important;text-align:center!important;position:relative!important;overflow:hidden!important;}
         #customDialogOverlay .dialog-btn{width:100%!important;padding:18px 28px!important;border:none!important;border-radius:16px!important;font-weight:800!important;font-size:16px!important;cursor:pointer!important;}
-        #customDialogOverlay .dialog-btn-primary{background:linear-gradient(135deg,#cbdfbd,#a8c99c)!important;color:#2d5a3b!important;}
+        #customDialogOverlay .dialog-btn-primary{background:var(--btn-green-bg)!important;color:var(--btn-green-text)!important;}
     `;
     document.head.appendChild(style);
 })();

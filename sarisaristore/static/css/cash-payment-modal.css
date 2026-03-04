@@ -168,9 +168,9 @@
 }
 
 .cash-btn-complete {
-    background: var(--primary-500);
-    color: #fff;
-    box-shadow: var(--neo-shadow-medium);
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
+    box-shadow: var(--btn-green-shadow);
 }
 
 .cash-btn-complete:disabled {
@@ -181,13 +181,14 @@
 }
 
 .cash-btn-cancel {
-    background: var(--danger-100);
-    color: var(--danger-700);
-    box-shadow: var(--neo-shadow-light);
+    background: var(--btn-red-bg);
+    color: var(--btn-red-text);
+    box-shadow: var(--btn-red-shadow);
 }
 .cash-btn-cancel:hover {
-    background: var(--danger-400);
-    color: #fff;
+    background: var(--btn-red-hover);
+    color: var(--btn-red-text);
+    box-shadow: var(--btn-red-shadow-hover);
 }
 /* DARK MODE OVERRIDES */
 body.dark-mode .cash-modal {
@@ -203,18 +204,18 @@ body.dark-mode .cash-change-display {
     box-shadow: var(--neo-shadow-light);
 }
 body.dark-mode .cash-btn-complete {
-    background: var(--primary-600);
-    color: #fff;
-    box-shadow: var(--neo-shadow-medium);
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
+    box-shadow: var(--btn-green-shadow);
 }
 body.dark-mode .cash-btn-cancel {
-    background: var(--danger-700);
-    color: #fff;
-    box-shadow: var(--neo-shadow-light);
+    background: var(--btn-red-bg);
+    color: var(--btn-red-text);
+    box-shadow: var(--btn-red-shadow);
 }
 body.dark-mode .cash-btn-cancel:hover {
-    background: var(--danger-400);
-    color: #fff;
+    background: var(--btn-red-hover);
+    color: var(--btn-red-text);
 }
 
 .cash-modal.active {

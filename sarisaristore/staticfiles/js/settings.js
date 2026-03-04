@@ -1,17 +1,15 @@
-// Dark mode: force Save Settings button to dark green if it appears light
+// Dark mode: force Save Settings button styling via CSS variables (no hardcoded colors needed)
     if (document.body.classList.contains('dark-mode')) {
-        const perfectBtnStyle = 'linear-gradient(135deg,#234d2e 0%,#3a6b3a 100%)';
-        const perfectBtnText = '#eaffea';
-        const perfectBtnBorder = '1.5px solid #4a7a45';
-        const perfectBtnShadow = '0 2px 16px 0 #1a2a1a44';
+        // The CSS variables handle dark mode styling automatically now
+        // Keep observer for any edge cases where inline styles override
         const observer = new MutationObserver(() => {
             document.querySelectorAll('button').forEach(btn => {
                 if (btn.textContent && btn.textContent.trim().toUpperCase().includes('SAVE SETTINGS')) {
-                    btn.style.background = perfectBtnStyle;
-                    btn.style.color = perfectBtnText;
-                    btn.style.border = perfectBtnBorder;
+                    btn.style.background = 'var(--btn-green-bg)';
+                    btn.style.color = 'var(--btn-green-text)';
+                    btn.style.border = 'none';
                     btn.style.textShadow = 'none';
-                    btn.style.boxShadow = perfectBtnShadow;
+                    btn.style.boxShadow = '';
                 }
             });
         });
@@ -115,36 +113,28 @@ function showSuccessDialog(message, icon = '✅') {
         </div>
         <style>
             body.dark-mode .success-btn,
-            body.dark-mode button,
-            body.dark-mode .save-settings-btn,
-            body.dark-mode button[style*="background: #e4f9d6"],
-            body.dark-mode button[style*="background: #e6f9d6"],
-            body.dark-mode button[style*="background: #d6f5c6"],
-            body.dark-mode button[style*="background: #d6f5c6;"],
-            body.dark-mode button[style*="background: #e4f9d6;"],
-            body.dark-mode button[style*="background: #e6f9d6;"] {
-                background: linear-gradient(135deg, #234d2e 0%, #3a6b3a 100%) !important;
-                color: #eaffea !important;
-                border: 1.5px solid #4a7a45 !important;
+            body.dark-mode .save-settings-btn {
+                background: var(--btn-green-bg) !important;
+                color: var(--btn-green-text) !important;
+                border: none !important;
                 text-shadow: none !important;
-                box-shadow: 0 2px 16px 0 #1a2a1a44;
+                box-shadow: var(--btn-green-shadow);
             }
             body.dark-mode .success-btn:hover,
-            body.dark-mode button:hover,
             body.dark-mode .save-settings-btn:hover {
-                background: linear-gradient(135deg, #3a6b3a 0%, #234d2e 100%) !important;
-                color: #fff !important;
+                background: var(--btn-green-hover) !important;
+                color: var(--btn-green-text) !important;
             }
             body.dark-mode .success-btn {
-                background: linear-gradient(135deg, #234d2e 0%, #3a6b3a 100%) !important;
-                color: #eaffea !important;
-                border: 1.5px solid #4a7a45 !important;
+                background: var(--btn-green-bg) !important;
+                color: var(--btn-green-text) !important;
+                border: none !important;
                 text-shadow: none !important;
-                box-shadow: 0 2px 16px 0 #1a2a1a44;
+                box-shadow: var(--btn-green-shadow);
             }
             body.dark-mode .success-btn:hover {
-                background: linear-gradient(135deg, #3a6b3a 0%, #234d2e 100%) !important;
-                color: #fff !important;
+                background: var(--btn-green-hover) !important;
+                color: var(--btn-green-text) !important;
             }
             #successDialogOverlay {
                 position: fixed;
@@ -214,14 +204,14 @@ function showSuccessDialog(message, icon = '✅') {
             .success-message { font-size:18px; line-height:1.8; color:#718096; font-weight:500; margin-bottom:40px; animation:slideDown 0.5s ease 0.4s backwards; padding:0 10px; }
             .success-btn {
                 width:100%; padding:20px 32px;
-                background:linear-gradient(135deg,#cbdfbd 0%,#a8c99c 100%);
-                color:#2d5a3b; border:none; border-radius:18px;
+                background:var(--btn-green-bg);
+                color:var(--btn-green-text); border:none; border-radius:18px;
                 font-weight:900; font-size:18px; cursor:pointer;
-                box-shadow:0 8px 25px rgba(203,223,189,0.5), 0 0 0 3px rgba(203,223,189,0.2) inset;
+                box-shadow:var(--btn-green-shadow);
                 transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
                 animation:slideDown 0.5s ease 0.45s backwards;
             }
-            .success-btn:hover { transform:translateY(-4px); box-shadow:0 15px 35px rgba(203,223,189,0.6), 0 0 0 3px rgba(203,223,189,0.3) inset; background:linear-gradient(135deg,#d4e09b 0%,#b8cc7d 100%); }
+            .success-btn:hover { transform:translateY(-4px); box-shadow:var(--btn-green-shadow-hover); background:var(--btn-green-hover); }
             .success-btn:active { transform:translateY(-2px); }
             @keyframes fadeIn { from{opacity:0} to{opacity:1} }
             @keyframes successSlideIn { from{transform:scale(0.7) translateY(50px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
@@ -376,33 +366,33 @@ window.renderSettings = async function() {
             /* ── SAVE SETTINGS button ── */
             .btn-save-modern {
                 padding:18px 48px;
-                background:linear-gradient(135deg,#cbdfbd 0%,#a8c99c 100%);
-                color:#3e5235; border:none; border-radius:16px;
+                background:var(--btn-green-bg);
+                color:var(--btn-green-text); border:none; border-radius:16px;
                 font-size:18px; font-weight:900; cursor:pointer;
                 text-transform:uppercase; letter-spacing:1.5px;
-                box-shadow:0 8px 25px rgba(203,223,189,0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+                box-shadow:var(--btn-green-shadow);
                 transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
             }
-            .btn-save-modern:hover { transform:translateY(-4px); box-shadow:0 12px 35px rgba(203,223,189,0.6), inset 0 1px 0 rgba(255,255,255,0.6); background:linear-gradient(135deg,#d4e09b 0%,#b8cc7d 100%); }
+            .btn-save-modern:hover { transform:translateY(-4px); box-shadow:var(--btn-green-shadow-hover); background:var(--btn-green-hover); }
             .btn-save-modern:active { transform:translateY(-2px); }
 
             /* ── SAVE SETTINGS dark mode ── */
             body.dark-mode .btn-save-modern {
-                background: linear-gradient(135deg, #1a3a20 0%, #2d5a35 100%) !important;
-                color: #b8e6c0 !important;
-                border: 1.5px solid #3a6b42 !important;
-                box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.05) inset !important;
-                text-shadow: 0 1px 2px rgba(0,0,0,0.4) !important;
+                background: var(--btn-green-bg) !important;
+                color: var(--btn-green-text) !important;
+                border: none !important;
+                box-shadow: var(--btn-green-shadow) !important;
+                text-shadow: none !important;
             }
             body.dark-mode .btn-save-modern:hover {
-                background: linear-gradient(135deg, #2d5a35 0%, #3a7040 100%) !important;
-                color: #d4f0d8 !important;
-                box-shadow: 0 10px 28px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.08) inset !important;
+                background: var(--btn-green-hover) !important;
+                color: var(--btn-green-text) !important;
+                box-shadow: var(--btn-green-shadow-hover) !important;
                 transform: translateY(-3px);
             }
             body.dark-mode .btn-save-modern:active {
                 transform: translateY(-1px) !important;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+                box-shadow: var(--btn-green-shadow) !important;
             }
 
             .info-box { background:linear-gradient(135deg,rgba(203,223,189,0.15),rgba(203,223,189,0.08)); border-left:4px solid #cbdfbd; padding:20px; margin-top:20px; border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,0.05); }

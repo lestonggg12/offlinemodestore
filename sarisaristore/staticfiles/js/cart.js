@@ -199,15 +199,15 @@ window.clearCart = async function() {
             }
             .neo-clear-buttons { display: grid; gap: 12px; }
             .neo-btn-danger {
-                background: #ef4444;
-                border: 1px solid #dc2626;
-                color: #fff;
+                background: var(--btn-red-bg);
+                border: none;
+                color: var(--btn-red-text);
             }
-            .neo-btn-danger:hover { background: #dc2626; border-color: #b91c1c; }
+            .neo-btn-danger:hover { background: var(--btn-red-hover); }
             .neo-btn-secondary {
-                background: #ffeaea;
-                color: #c41a1a;
-                border: 1px solid #ffd6d6;
+                background: var(--btn-red-bg);
+                color: var(--btn-red-text);
+                border: none;
             }
             @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
             body.dark-mode .neo-clear-confirm {
@@ -218,9 +218,9 @@ window.clearCart = async function() {
             body.dark-mode .neo-clear-title { color: #fff; }
             body.dark-mode .neo-clear-desc { color: #cccccc; }
             body.dark-mode .neo-btn-secondary {
-                background: #2d2323;
-                color: #ffbdbd;
-                border-color: #3a2323;
+                background: var(--btn-red-bg);
+                color: var(--btn-red-text);
+                border-color: transparent;
             }
         </style>
     `;
@@ -520,25 +520,25 @@ body.dark-mode .nci-subtotal { color: #4ade80; }
     padding: 13px;
     border-radius: 12px;
     border: none;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #fff;
+    background: var(--btn-red-bg);
+    color: var(--btn-red-text);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(220,38,38,0.25);
+    box-shadow: var(--btn-red-shadow);
 }
 .nci-btn-clear:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: var(--btn-red-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(220,38,38,0.35);
+    box-shadow: var(--btn-red-shadow-hover);
 }
 body.dark-mode .nci-btn-clear {
-    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    background: var(--btn-red-bg);
 }
 body.dark-mode .nci-btn-clear:hover {
-    background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+    background: var(--btn-red-hover);
 }
 
 .nci-btn-checkout {
@@ -546,28 +546,28 @@ body.dark-mode .nci-btn-clear:hover {
     padding: 15px;
     border-radius: 12px;
     border: none;
-    background: linear-gradient(135deg, #27AE60 0%, #1e8449 100%);
-    color: #fff;
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
     font-weight: 800;
     font-size: 15px;
     cursor: pointer;
     transition: all 0.2s;
     letter-spacing: 1px;
     text-transform: uppercase;
-    box-shadow: 0 4px 14px rgba(39,174,96,0.3);
+    box-shadow: var(--btn-green-shadow);
 }
 .nci-btn-checkout:hover {
-    background: linear-gradient(135deg, #229954 0%, #1a6b3a 100%);
+    background: var(--btn-green-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(39,174,96,0.4);
+    box-shadow: var(--btn-green-shadow-hover);
 }
 body.dark-mode .nci-btn-checkout {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    color: #052e16;
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
 }
 body.dark-mode .nci-btn-checkout:hover {
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-    color: #fff;
+    background: var(--btn-green-hover);
+    color: var(--btn-green-text);
 }
 
 /* ── Empty cart ── */
@@ -637,7 +637,7 @@ window.toggleCartPanel = function() {
         searchPanel.classList.remove('open');
         hideCartOverlay();
         document.body.classList.remove('cart-open');
-        document.body.style.overflow = 'auto';
+        document.body.style.overflow = '';
         setTimeout(() => { cartPanelToggling = false; }, 400);
         isCartPanelOpen = false;
     } else {
@@ -661,6 +661,7 @@ function ensureCartPanelClosed() {
         isCartPanelOpen = false;
         document.body.classList.remove('cart-open');
         hideCartOverlay();
+        document.body.style.overflow = '';
     }
 }
 
@@ -1111,7 +1112,7 @@ async function completeDebtSale(customerName, total, profit) {
             }
         }
 
-        for (const item of cart) {
+       for (const item of cart) {
             const product = products.find(p => p.id === item.id);
             if (product) {
                 try {
@@ -1122,7 +1123,34 @@ async function completeDebtSale(customerName, total, profit) {
             }
         }
 
-        const surchargePercent = parseFloat(window.storeSettings?.debtSurcharge || 0);
+// ✅ NEW: Create a Sale record for the debt transaction
+try {
+    await DB.addSale({
+        date: new Date().toISOString(),
+        total: total,
+        profit: profit,
+        payment_method: 'credit',
+        paymentType: 'credit',
+        customer_name: customerName,
+        items: cart.map(item => ({
+            id: item.id,
+            product_id: item.id,
+            productId: item.id,
+            name: item.name,
+            product_name: item.name,
+            quantity: item.quantity,
+            price: item.price || 0,
+            selling_price: item.price || 0,
+            cost: item.cost || 0,
+            cost_price: item.cost || 0
+        }))
+    });
+    console.log(`✅ Sale record created for debt: ${customerName}`);
+} catch (error) {
+    console.error('Failed to create sale record for debt:', error);
+}
+
+const surchargePercent = parseFloat(window.storeSettings?.debtSurcharge || 0);
         const surchargeAmount  = parseFloat(((surchargePercent / 100) * total).toFixed(2));
         const grandTotal       = parseFloat((total + surchargeAmount).toFixed(2));
         const hasSurcharge     = surchargePercent > 0 && surchargeAmount > 0;
@@ -1256,9 +1284,26 @@ async function showChangeCalculator(total, profit, products) {
                     <div class="neo-change-label">Change to Return:</div>
                     <div id="changeAmount" class="neo-change-amount-value">₱0.00</div>
                 </div>
-                <div class="neo-form-group">
-                    <label>Customer Name <span style="opacity: 0.6; font-weight: 400;">(Optional)</span>:</label>
-                    <input type="text" id="customerName" placeholder="e.g., John Doe" class="neo-input-field" autocomplete="off"/>
+            <!-- ✅ IMPROVED: Prominent Customer Name Section -->
+                <div class="neo-form-group" style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e5e7eb;">
+                    <label for="customerName" style="color: #059669; display: flex; align-items: center; gap: 6px; font-weight: 800;">
+                        👤 Customer Name
+                        <span style="opacity: 0.6; font-weight: 400;">(Optional - for tracking sales)</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="customerName" 
+                        placeholder="Enter name for this sale" 
+                        class="neo-input-field" 
+                        autocomplete="off"
+                        style="
+                            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+                            border: 2px solid #22c55e;
+                            color: #15803d;
+                            font-weight: 600;
+                            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+                        "
+                    />
                 </div>
                 <button id="confirmCash" class="neo-btn-primary neo-btn-success" disabled style="opacity: 0.5; margin-bottom: 14px;">Complete Sale</button>
                 <button id="cancelCash" class="neo-btn-red">Cancel</button>
@@ -1327,41 +1372,42 @@ async function showChangeCalculator(total, profit, products) {
 
 async function completeSale(paymentMethod, total, profit, products, customerName = '') {
     try {
+        const normalizedCustomerName = (customerName || '').trim() || 'N/A';
         const saleData = {
             date: new Date().toISOString(),
             total: parseFloat(total.toFixed(2)),
             profit: parseFloat(profit.toFixed(2)),
-            payment_method: paymentMethod, 
+            payment_method: paymentMethod,  // 'cash'
             paymentType: paymentMethod,
-            customer_name: customerName || '',  // ← NEW: Include customer name
+            customer_name: normalizedCustomerName,
             items: cart.map(item => ({
-                id: item.id, 
-                product_id: item.id, 
+                id: item.id,
+                product_id: item.id,
                 productId: item.id,
-                name: item.name, 
-                product_name: item.name, 
+                name: item.name,
+                product_name: item.name,
                 quantity: item.quantity,
-                price: item.price || 0, 
+                price: item.price || 0,
                 selling_price: item.price || 0,
-                cost: item.cost || 0, 
+                cost: item.cost || 0,
                 cost_price: item.cost || 0
             }))
         };
 
-        await DB.addSale(saleData);
+        await DB.addSale(saleData);  // ← ONLY this one for cash!
 
         for (const item of cart) {
             const product = products.find(p => p.id === item.id);
             if (product) {
                 try { 
                     await DB.updateProduct(product.id, { ...product, quantity: product.quantity - item.quantity }); 
-                }
-                catch (error) { 
+                } catch (error) { 
                     console.error(`Failed to update product ${product.name}:`, error); 
                 }
             }
         }
 
+        // ✅ SUCCESS DIALOG - show it here
         const successDialog = document.createElement('div');
         successDialog.innerHTML = `
             <div class="neo-modal-overlay" style="animation: fadeIn 0.3s ease;">
@@ -1377,12 +1423,10 @@ async function completeSale(paymentMethod, total, profit, products, customerName
                             <span>Profit:</span>
                             <span class="neo-success-value neo-success-profit">₱${profit.toFixed(2)}</span>
                         </div>
-                        ${customerName ? `
                         <div class="neo-success-item">
                             <span>Customer:</span>
-                            <span class="neo-success-value">👤 ${customerName}</span>
+                            <span class="neo-success-value">👤 ${normalizedCustomerName}</span>
                         </div>
-                        ` : ''}
                     </div>
                     <div class="neo-success-badge">💵 Cash Payment</div>
                     <button id="closeSuccess" class="neo-success-btn">Done</button>
@@ -1504,6 +1548,47 @@ function injectSearchBarStyles() {
         @media (max-width: 480px) {
             #cartSearchWrapper { padding: 10px 10px 4px 10px; }
             .cart-search-input { height: 42px; font-size: 14px; }
+        }
+            /* ── ENHANCED Customer Name Field Styling ── */
+        #customerName {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+            border: 2px solid #22c55e !important;
+            color: #15803d !important;
+            font-weight: 600 !important;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15) !important;
+        }
+
+        #customerName::placeholder {
+            color: #6b7280 !important;
+            opacity: 0.7 !important;
+        }
+
+        #customerName:focus {
+            border-color: #16a34a !important;
+            box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.25) !important;
+            background: linear-gradient(135deg, #f0fdf4 0%, #bbf7d0 100%) !important;
+        }
+
+        body.dark-mode #customerName {
+            background: linear-gradient(135deg, #1a3a1f 0%, #0f2e18 100%) !important;
+            border-color: #4ade80 !important;
+            color: #eaffea !important;
+        }
+
+        body.dark-mode #customerName:focus {
+            border-color: #22c55e !important;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2) !important;
+        }
+
+        /* ── Form group divider ── */
+        .neo-form-group:has(#customerName) {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px dashed #e5e7eb;
+        }
+
+        body.dark-mode .neo-form-group:has(#customerName) {
+            border-top-color: #374151;
         }
     `;
     document.head.appendChild(style);

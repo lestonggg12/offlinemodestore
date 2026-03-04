@@ -147,10 +147,10 @@ body.dark-mode #floatingCart:hover {
     height: 32px;
     border-radius: 50%;
 
-    background: linear-gradient(135deg, #e57373 0%, #ef5350 100%);
+    background: var(--btn-red-bg);
     border: 3px solid white;
-    color: white;
-    box-shadow: 0 4px 15px rgba(229, 115, 115, 0.4);
+    color: var(--btn-red-text);
+    box-shadow: var(--btn-red-shadow);
 
     display: none;
     align-items: center;
@@ -170,9 +170,9 @@ body.dark-mode #floatingCart:hover {
 }
 
 body.dark-mode #cartCount {
-    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    background: var(--btn-red-bg);
     border-color: #2f2d2a;
-    box-shadow: 0 4px 15px rgba(160, 80, 80, 0.35);
+    box-shadow: var(--btn-red-shadow);
 }
 
 /* ==========================================
@@ -411,19 +411,19 @@ body.dark-mode .search-result-item:hover { background: rgba(255, 255, 255, 0.05)
 
 .btn-add-search {
     padding: 8px 16px;
-    background: linear-gradient(135deg, #27AE60 0%, #229954 100%);
-    color: #ffffff;
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 700;
     font-size: 13px;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.25);
+    box-shadow: var(--btn-green-shadow);
 }
 
-.btn-add-search:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.35); filter: brightness(1.1); }
-body.dark-mode .btn-add-search { background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); }
+.btn-add-search:hover { transform: translateY(-2px); box-shadow: var(--btn-green-shadow-hover); background: var(--btn-green-hover); }
+body.dark-mode .btn-add-search { background: var(--btn-green-bg); color: var(--btn-green-text); }
 
 .btn-in-cart {
     padding: 8px 16px;
@@ -535,12 +535,12 @@ body.dark-mode .neo-subtotal-amount { color: #4ade80; }
     width: calc(100% - 32px); margin: 12px 16px; padding: 12px;
     border-radius: 12px; border: none; font-weight: 700; font-size: 13px;
     cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
-    background: linear-gradient(135deg, #e57373 0%, #ef5350 100%);
-    color: white; box-shadow: 0 2px 6px rgba(229, 115, 115, 0.3);
+    background: var(--btn-red-bg);
+    color: var(--btn-red-text); box-shadow: var(--btn-red-shadow);
 }
-.neo-btn-clear-cart:hover { background: linear-gradient(135deg, #ef5350 0%, #e53935 100%); box-shadow: 0 4px 12px rgba(229, 115, 115, 0.4); transform: translateY(-2px); }
-body.dark-mode .neo-btn-clear-cart { background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); }
-body.dark-mode .neo-btn-clear-cart:hover { background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%); }
+.neo-btn-clear-cart:hover { background: var(--btn-red-hover); box-shadow: var(--btn-red-shadow-hover); transform: translateY(-2px); }
+body.dark-mode .neo-btn-clear-cart { background: var(--btn-red-bg); }
+body.dark-mode .neo-btn-clear-cart:hover { background: var(--btn-red-hover); }
 
 /* ==========================================
    8. CART FOOTER & TOTALS
@@ -577,12 +577,12 @@ body.dark-mode .cart-total span { color: #4ade80; }
     width: calc(100% - 32px); margin: 0 16px 16px 16px; padding: 16px;
     border-radius: 12px; border: none; font-weight: 800; font-size: 14px;
     cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 1px;
-    background: linear-gradient(135deg, #27AE60 0%, #229954 100%);
-    color: white; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text); box-shadow: var(--btn-green-shadow);
 }
-.neo-btn-checkout:hover { background: linear-gradient(135deg, #229954 0%, #1e8449 100%); box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4); transform: translateY(-2px); }
-body.dark-mode .neo-btn-checkout { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #0a0a0a; }
-body.dark-mode .neo-btn-checkout:hover { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); }
+.neo-btn-checkout:hover { background: var(--btn-green-hover); box-shadow: var(--btn-green-shadow-hover); transform: translateY(-2px); }
+body.dark-mode .neo-btn-checkout { background: var(--btn-green-bg); color: var(--btn-green-text); }
+body.dark-mode .neo-btn-checkout:hover { background: var(--btn-green-hover); }
 
 /* ==========================================
    9. CHECKOUT MODALS

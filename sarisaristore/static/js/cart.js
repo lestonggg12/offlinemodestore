@@ -199,15 +199,15 @@ window.clearCart = async function() {
             }
             .neo-clear-buttons { display: grid; gap: 12px; }
             .neo-btn-danger {
-                background: #ef4444;
-                border: 1px solid #dc2626;
-                color: #fff;
+                background: var(--btn-red-bg);
+                border: none;
+                color: var(--btn-red-text);
             }
-            .neo-btn-danger:hover { background: #dc2626; border-color: #b91c1c; }
+            .neo-btn-danger:hover { background: var(--btn-red-hover); }
             .neo-btn-secondary {
-                background: #ffeaea;
-                color: #c41a1a;
-                border: 1px solid #ffd6d6;
+                background: var(--btn-red-bg);
+                color: var(--btn-red-text);
+                border: none;
             }
             @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
             body.dark-mode .neo-clear-confirm {
@@ -218,9 +218,9 @@ window.clearCart = async function() {
             body.dark-mode .neo-clear-title { color: #fff; }
             body.dark-mode .neo-clear-desc { color: #cccccc; }
             body.dark-mode .neo-btn-secondary {
-                background: #2d2323;
-                color: #ffbdbd;
-                border-color: #3a2323;
+                background: var(--btn-red-bg);
+                color: var(--btn-red-text);
+                border-color: transparent;
             }
         </style>
     `;
@@ -520,25 +520,25 @@ body.dark-mode .nci-subtotal { color: #4ade80; }
     padding: 13px;
     border-radius: 12px;
     border: none;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #fff;
+    background: var(--btn-red-bg);
+    color: var(--btn-red-text);
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(220,38,38,0.25);
+    box-shadow: var(--btn-red-shadow);
 }
 .nci-btn-clear:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    background: var(--btn-red-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(220,38,38,0.35);
+    box-shadow: var(--btn-red-shadow-hover);
 }
 body.dark-mode .nci-btn-clear {
-    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    background: var(--btn-red-bg);
 }
 body.dark-mode .nci-btn-clear:hover {
-    background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+    background: var(--btn-red-hover);
 }
 
 .nci-btn-checkout {
@@ -546,28 +546,28 @@ body.dark-mode .nci-btn-clear:hover {
     padding: 15px;
     border-radius: 12px;
     border: none;
-    background: linear-gradient(135deg, #27AE60 0%, #1e8449 100%);
-    color: #fff;
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
     font-weight: 800;
     font-size: 15px;
     cursor: pointer;
     transition: all 0.2s;
     letter-spacing: 1px;
     text-transform: uppercase;
-    box-shadow: 0 4px 14px rgba(39,174,96,0.3);
+    box-shadow: var(--btn-green-shadow);
 }
 .nci-btn-checkout:hover {
-    background: linear-gradient(135deg, #229954 0%, #1a6b3a 100%);
+    background: var(--btn-green-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(39,174,96,0.4);
+    box-shadow: var(--btn-green-shadow-hover);
 }
 body.dark-mode .nci-btn-checkout {
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-    color: #052e16;
+    background: var(--btn-green-bg);
+    color: var(--btn-green-text);
 }
 body.dark-mode .nci-btn-checkout:hover {
-    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-    color: #fff;
+    background: var(--btn-green-hover);
+    color: var(--btn-green-text);
 }
 
 /* ── Empty cart ── */

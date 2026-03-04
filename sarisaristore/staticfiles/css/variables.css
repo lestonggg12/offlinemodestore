@@ -265,11 +265,27 @@
     --cart-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --cart-glow: rgba(245, 245, 240, 0.6);
     
+    /* ==========================================
+       STANDARDISED BUTTON COLOURS
+       All green/red buttons MUST use these tokens
+       ========================================== */
+    --btn-green-bg:    linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    --btn-green-hover: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    --btn-green-text:  #ffffff;
+    --btn-green-shadow:       0 4px 12px rgba(34, 197, 94, 0.30);
+    --btn-green-shadow-hover: 0 6px 18px rgba(34, 197, 94, 0.45);
+
+    --btn-red-bg:    linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    --btn-red-hover: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    --btn-red-text:  #ffffff;
+    --btn-red-shadow:       0 4px 12px rgba(239, 68, 68, 0.30);
+    --btn-red-shadow-hover: 0 6px 18px rgba(239, 68, 68, 0.45);
+
     /* Button gradients */
     --cart-header-bg: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%);
-    --btn-add-bg: var(--gradient-profit);
-    --btn-remove-bg: linear-gradient(135deg, var(--danger-500) 0%, var(--danger-600) 100%);
-    --btn-checkout-bg: var(--gradient-profit);
+    --btn-add-bg: var(--btn-green-bg);
+    --btn-remove-bg: var(--btn-red-bg);
+    --btn-checkout-bg: var(--btn-green-bg);
     
     /* Floating cart */
     --floating-cart-bg: var(--bg-surface);
@@ -283,6 +299,19 @@
    variables override the light mode values
    ========================================== */
 body.dark-mode {
+      /* Standardised button colours — dark mode */
+      --btn-green-bg:    linear-gradient(135deg, #15803d 0%, #166534 100%);
+      --btn-green-hover: linear-gradient(135deg, #166534 0%, #14532d 100%);
+      --btn-green-text:  #dcfce7;
+      --btn-green-shadow:       0 4px 12px rgba(21, 128, 61, 0.30);
+      --btn-green-shadow-hover: 0 6px 18px rgba(21, 128, 61, 0.45);
+
+      --btn-red-bg:    linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      --btn-red-hover: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+      --btn-red-text:  #fee2e2;
+      --btn-red-shadow:       0 4px 12px rgba(220, 38, 38, 0.30);
+      --btn-red-shadow-hover: 0 6px 18px rgba(220, 38, 38, 0.45);
+
       /* Cart system dark mode overrides */
       --cart-primary: #232323;
       --cart-primary-dark: #181818;
@@ -296,11 +325,11 @@ body.dark-mode {
       --cart-border: #44403c;
       --cart-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
       --cart-glow: rgba(74, 222, 128, 0.18);
-      --btn-add-bg: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
-      --btn-remove-bg: linear-gradient(135deg, #a44a3f 0%, #a44a3f 100%);
-      --btn-checkout-bg: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+      --btn-add-bg: var(--btn-green-bg);
+      --btn-remove-bg: var(--btn-red-bg);
+      --btn-checkout-bg: var(--btn-green-bg);
       --floating-cart-bg: #232323;
-      --cart-count-bg: linear-gradient(135deg, #a44a3f 0%, #a44a3f 100%);
+      --cart-count-bg: var(--btn-red-bg);
     /* Dark backgrounds */
     --bg-base: #1c1917;      /* Dark stone color */
     --bg-surface: #292524;   /* Slightly lighter for cards */

@@ -298,15 +298,15 @@ console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
     }
     #profitContent #btnToggleRecent {
       display: inline-flex; align-items: center; gap: 7px;
-      padding: 10px 20px; border: 1px solid rgba(255,255,255,0.7);
+      padding: 10px 20px; border: none;
       border-radius: 14px; font-size: 12px; font-weight: 700;
-      cursor: pointer; color: #5D9456; letter-spacing: 0.3px;
+      cursor: pointer; color: var(--btn-green-text); letter-spacing: 0.3px;
       transition: all .25s ease;
-      background: linear-gradient(145deg,#eaf5e8,#d2e9ce);
-      box-shadow: var(--btn-neo);
+      background: var(--btn-green-bg);
+      box-shadow: var(--btn-green-shadow);
     }
     #profitContent #btnToggleRecent:hover {
-      box-shadow: var(--btn-neo-inset); transform: translateY(2px);
+      background: var(--btn-green-hover); box-shadow: var(--btn-green-shadow-hover); transform: translateY(-2px);
     }
     #profitContent .toggle-arrow {
       display: inline-block; transition: transform .35s cubic-bezier(.4,0,.2,1);
@@ -315,16 +315,16 @@ console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
     #profitContent .btn-label { display: inline-block; }
     #profitContent #btnClearHistory {
       display: inline-flex; align-items: center; gap: 7px;
-      padding: 10px 20px; border: 1px solid rgba(255,255,255,0.7);
+      padding: 10px 20px; border: none;
       border-radius: 14px; font-size: 12px; font-weight: 700;
-      cursor: pointer; color: #b91c1c; letter-spacing: 0.3px;
+      cursor: pointer; color: var(--btn-red-text); letter-spacing: 0.3px;
       transition: all .25s ease;
-      background: linear-gradient(145deg,#fef3f3,#fde2e2);
-      box-shadow: 5px 5px 14px rgba(185,28,28,0.14), -5px -5px 14px rgba(255,255,255,0.85);
+      background: var(--btn-red-bg);
+      box-shadow: var(--btn-red-shadow);
     }
     #profitContent #btnClearHistory:hover {
-      box-shadow: inset 4px 4px 10px rgba(185,28,28,0.12), inset -4px -4px 10px rgba(255,255,255,0.7);
-      transform: translateY(2px);
+      background: var(--btn-red-hover); box-shadow: var(--btn-red-shadow-hover);
+      transform: translateY(-2px);
     }
     #recentSalesContainer {
       overflow: hidden;
@@ -517,13 +517,13 @@ console.log('💰 Loading profit module (GLASS-NEO VERSION)...');
 
     /* ── Dark buttons ── */
     body.dark-mode #profitContent #btnToggleRecent {
-      background: linear-gradient(145deg,#243020,#1c2819);
-      color: #87B382; border-color: rgba(135,179,130,0.18);
+      background: var(--btn-green-bg);
+      color: var(--btn-green-text); border: none;
     }
     body.dark-mode #profitContent #btnClearHistory {
-      background: linear-gradient(145deg,#2e1a1a,#231212);
-      color: #f87171; border-color: rgba(248,113,113,0.15);
-      box-shadow: 4px 4px 12px rgba(0,0,0,0.4), -4px -4px 12px rgba(60,25,25,0.2);
+      background: var(--btn-red-bg);
+      color: var(--btn-red-text); border: none;
+      box-shadow: var(--btn-red-shadow);
     }
 
     /* ── Dark sale cards ── */
