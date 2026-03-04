@@ -26,31 +26,31 @@
     // =========================================================================
 
     const P = {
-        indigo:  { bg: '#6366f1', fg: '#3730a3' },
-        cyan:    { bg: '#06b6d4', fg: '#155e75' },
-        amber:   { bg: '#f59e0b', fg: '#92400e' },
-        orange:  { bg: '#f97316', fg: '#9a3412' },
-        violet:  { bg: '#8b5cf6', fg: '#5b21b6' },
-        slate:   { bg: '#94a3b8', fg: '#334155' },
-        yellow:  { bg: '#eab308', fg: '#854d0e' },
-        red:     { bg: '#ef4444', fg: '#991b1b' },
-        green:   { bg: '#22c55e', fg: '#166534' },
-        blue:    { bg: '#3b82f6', fg: '#1e40af' },
-        rose:    { bg: '#fb7185', fg: '#9f1239' },
-        emerald: { bg: '#34d399', fg: '#065f46' },
-        teal:    { bg: '#2dd4bf', fg: '#115e59' },
-        pink:    { bg: '#f472b6', fg: '#9d174d' },
-        lime:    { bg: '#a3e635', fg: '#3f6212' },
-        sky:     { bg: '#38bdf8', fg: '#075985' },
-        brown:   { bg: '#d97706', fg: '#78350f' },
-        warmGray:{ bg: '#a8a29e', fg: '#44403c' },
-        stone:   { bg: '#a1887f', fg: '#4e342e' },
-        copper:  { bg: '#d4a574', fg: '#6d4c2e' },
-        coral:   { bg: '#ff8a80', fg: '#c62828' },
-        mint:    { bg: '#80cbc4', fg: '#00695c' },
-        lavender:{ bg: '#b39ddb', fg: '#4527a0' },
-        peach:   { bg: '#ffab91', fg: '#bf360c' },
-        cream:   { bg: '#ffe0b2', fg: '#e65100' },
+        indigo:  { bg: '#6366f1', fg: '#3730a3', fgD: '#a5b4fc' },
+        cyan:    { bg: '#06b6d4', fg: '#155e75', fgD: '#67e8f9' },
+        amber:   { bg: '#f59e0b', fg: '#92400e', fgD: '#fcd34d' },
+        orange:  { bg: '#f97316', fg: '#9a3412', fgD: '#fdba74' },
+        violet:  { bg: '#8b5cf6', fg: '#5b21b6', fgD: '#c4b5fd' },
+        slate:   { bg: '#94a3b8', fg: '#334155', fgD: '#cbd5e1' },
+        yellow:  { bg: '#eab308', fg: '#854d0e', fgD: '#fde047' },
+        red:     { bg: '#ef4444', fg: '#991b1b', fgD: '#fca5a5' },
+        green:   { bg: '#22c55e', fg: '#166534', fgD: '#86efac' },
+        blue:    { bg: '#3b82f6', fg: '#1e40af', fgD: '#93c5fd' },
+        rose:    { bg: '#fb7185', fg: '#9f1239', fgD: '#fda4af' },
+        emerald: { bg: '#34d399', fg: '#065f46', fgD: '#6ee7b7' },
+        teal:    { bg: '#2dd4bf', fg: '#115e59', fgD: '#5eead4' },
+        pink:    { bg: '#f472b6', fg: '#9d174d', fgD: '#f9a8d4' },
+        lime:    { bg: '#a3e635', fg: '#3f6212', fgD: '#bef264' },
+        sky:     { bg: '#38bdf8', fg: '#075985', fgD: '#7dd3fc' },
+        brown:   { bg: '#d97706', fg: '#78350f', fgD: '#e5a04a' },
+        warmGray:{ bg: '#a8a29e', fg: '#44403c', fgD: '#d6d3d1' },
+        stone:   { bg: '#a1887f', fg: '#4e342e', fgD: '#d7ccc8' },
+        copper:  { bg: '#d4a574', fg: '#6d4c2e', fgD: '#e8c9a0' },
+        coral:   { bg: '#ff8a80', fg: '#c62828', fgD: '#ffab91' },
+        mint:    { bg: '#80cbc4', fg: '#00695c', fgD: '#b2dfdb' },
+        lavender:{ bg: '#b39ddb', fg: '#4527a0', fgD: '#d1c4e9' },
+        peach:   { bg: '#ffab91', fg: '#bf360c', fgD: '#ffccbc' },
+        cream:   { bg: '#ffe0b2', fg: '#e65100', fgD: '#ffe8c8' },
     };
 
     // =========================================================================
@@ -810,18 +810,32 @@
         _defsInjected = true;
 
         let defs = '';
+        let darkCss = '';
         for (const [name, col] of Object.entries(P)) {
+            // Light-mode gradient (subtle glass)
             defs += `
                 <linearGradient id="gm-g-${name}" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0%"   stop-color="${col.bg}" stop-opacity="0.38"/>
                     <stop offset="100%" stop-color="${col.bg}" stop-opacity="0.10"/>
-                </linearGradient>
+                </linearGradient>`;
+            // Dark-mode gradient (stronger glass)
+            defs += `
+                <linearGradient id="gm-gd-${name}" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%"   stop-color="${col.bg}" stop-opacity="0.55"/>
+                    <stop offset="100%" stop-color="${col.bg}" stop-opacity="0.22"/>
+                </linearGradient>`;
+            // Filter (shared)
+            defs += `
                 <filter id="gm-f-${name}" x="-20%" y="-20%" width="140%" height="140%">
                     <feDropShadow dx="0" dy="1.5" stdDeviation="2.5"
                                   flood-color="${col.bg}" flood-opacity="0.30"/>
                 </filter>`;
+            // Dark-mode CSS: swap fg color + gradient
+            darkCss += `body.dark-mode .gm-icon[data-gm-palette="${name}"]{color:${col.fgD}}`;
+            darkCss += `body.dark-mode .gm-icon[data-gm-palette="${name}"] .gm-bg{fill:url(#gm-gd-${name})}`;
         }
 
+        // Inject shared SVG defs
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('width', '0');
         svg.setAttribute('height', '0');
@@ -831,6 +845,14 @@
         svg.id = 'gm-shared-defs';
         svg.innerHTML = `<defs>${defs}</defs>`;
         document.body.insertBefore(svg, document.body.firstChild);
+
+        // Inject dark-mode CSS for per-palette color + gradient swapping
+        const style = document.createElement('style');
+        style.id = 'gm-dark-mode-css';
+        style.textContent = darkCss +
+            'body.dark-mode .gm-icon .gm-bg{stroke:rgba(255,255,255,0.22)}' +
+            'body.dark-mode .gm-icon .gm-highlight{fill:rgba(255,255,255,0.06)}';
+        document.head.appendChild(style);
     }
 
 
@@ -855,18 +877,18 @@
         let innerContent;
 
         if (def.i) {
-            // Custom icon: replace FG placeholder with foreground colour
-            innerContent = def.i.replace(/FG/g, col.fg);
+            // Custom icon: use currentColor so CSS can control fg per mode
+            innerContent = def.i.replace(/FG/g, 'currentColor');
         } else if (def.t) {
             // Text-fallback: render the emoji inside the SVG as <text>
             innerContent =
-                `<text x="20" y="27" font-size="18" text-anchor="middle" fill="${col.fg}">${def.t}</text>`;
+                `<text x="20" y="27" font-size="18" text-anchor="middle" fill="currentColor">${def.t}</text>`;
         } else {
             return emoji;
         }
 
         // Build the full SVG with glass background
-        return `<span class="gm-icon" role="img" aria-label="${emoji}">` +
+        return `<span class="gm-icon" data-gm-palette="${cName}" role="img" aria-label="${emoji}" style="color:${col.fg}">` +
             `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">` +
                 // Glass background
                 `<rect class="gm-bg" x="2" y="2" width="36" height="36" rx="11" ` +

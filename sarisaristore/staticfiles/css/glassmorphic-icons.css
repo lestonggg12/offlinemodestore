@@ -97,22 +97,21 @@
 
 /* ══════════════════════════════════════════
    DARK MODE ADJUSTMENTS
+   Gradient + fg-color swapping is handled by
+   auto-generated CSS in emoji-to-svg.js
+   (injected into <style id="gm-dark-mode-css">).
    ══════════════════════════════════════════ */
 
-body.dark-mode .gm-icon .gm-bg {
-    opacity: 0.85;
-}
-
-body.dark-mode .gm-icon .gm-highlight {
-    opacity: 0.08;
+body.dark-mode .gm-icon {
+    filter: drop-shadow(0 0 3px rgba(255,255,255,0.06));
 }
 
 body.dark-mode .gm-icon .gm-icon-path {
-    opacity: 0.95;
+    opacity: 1;
 }
 
 body.dark-mode .gm-icon:hover {
-    filter: brightness(1.15);
+    filter: brightness(1.18) drop-shadow(0 0 5px rgba(255,255,255,0.10));
 }
 
 /* ── Ensure icons don't break text flow ── */
