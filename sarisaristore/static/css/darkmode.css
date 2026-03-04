@@ -1047,3 +1047,266 @@ body.dark-mode #profitContent .p-sale-total {
 body.dark-mode #profitContent .p-sale-profit {
     color: #5edc8a !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK MODE — GLOBAL INLINE TEXT VISIBILITY FIX
+   Overrides ALL hardcoded dark text colors set via inline styles
+   in JS-generated HTML so every label, heading, price, and
+   description is clearly readable on dark backgrounds.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Very dark text (headings, product names) → near-white ─────── */
+body.dark-mode [style*="color:#2d3a2d"],
+body.dark-mode [style*="color: #2d3a2d"],
+body.dark-mode [style*="color:#2d3748"],
+body.dark-mode [style*="color: #2d3748"],
+body.dark-mode [style*="color:#2C3E50"],
+body.dark-mode [style*="color: #2C3E50"],
+body.dark-mode [style*="color:#1c1917"],
+body.dark-mode [style*="color: #1c1917"] {
+    color: #e8f5e9 !important;
+}
+
+/* ── Dark green text (buttons, modal titles) → light mint ──────── */
+body.dark-mode [style*="color:#3e5235"],
+body.dark-mode [style*="color: #3e5235"],
+body.dark-mode [style*="color:#2d5238"],
+body.dark-mode [style*="color: #2d5238"],
+body.dark-mode [style*="color:#2d5a3b"],
+body.dark-mode [style*="color: #2d5a3b"],
+body.dark-mode [style*="color:#32422b"],
+body.dark-mode [style*="color: #32422b"] {
+    color: #c8e6c0 !important;
+}
+
+/* ── Medium green (sell price, stock value) → bright green ─────── */
+body.dark-mode [style*="color:#3e6e48"],
+body.dark-mode [style*="color: #3e6e48"] {
+    color: #86efac !important;
+}
+
+/* ── Warm brown labels → light warm gray ───────────────────────── */
+body.dark-mode [style*="color:#5D534A"],
+body.dark-mode [style*="color: #5D534A"],
+body.dark-mode [style*="color:#5d534a"],
+body.dark-mode [style*="color: #5d534a"] {
+    color: #d6d3d1 !important;
+}
+
+/* ── Muted tan (descriptions, hints) → lighter tan ─────────────── */
+body.dark-mode [style*="color:#9E9382"],
+body.dark-mode [style*="color: #9E9382"],
+body.dark-mode [style*="color:#9e9382"],
+body.dark-mode [style*="color: #9e9382"] {
+    color: #b8b0a8 !important;
+}
+
+/* ── Medium gray (loading text, subtitles) → lighter gray ──────── */
+body.dark-mode [style*="color:#666"],
+body.dark-mode [style*="color: #666"] {
+    color: #a0a0a0 !important;
+}
+body.dark-mode [style*="color:#7F8C8D"],
+body.dark-mode [style*="color: #7F8C8D"] {
+    color: #b0b8b0 !important;
+}
+
+/* ── Olive-green subtitles → soft sage ─────────────────────────── */
+body.dark-mode [style*="color:#7a9070"],
+body.dark-mode [style*="color: #7a9070"] {
+    color: #a8c8a0 !important;
+}
+
+/* ── Muted green (debtor labels) → soft green ──────────────────── */
+body.dark-mode [style*="color:#6a7a6a"],
+body.dark-mode [style*="color: #6a7a6a"] {
+    color: #a8b8a8 !important;
+}
+
+/* ── Cost-red (₱ prices) → salmon ──────────────────────────────── */
+body.dark-mode [style*="color:#a44a3f"],
+body.dark-mode [style*="color: #a44a3f"] {
+    color: #f5a8a8 !important;
+}
+
+/* ── Error/danger headings → light red ─────────────────────────── */
+body.dark-mode [style*="color:#7a2820"],
+body.dark-mode [style*="color: #7a2820"],
+body.dark-mode [style*="color:#7F1D1D"],
+body.dark-mode [style*="color: #7F1D1D"] {
+    color: #ffa0a0 !important;
+}
+
+/* ── Warning amber (LOW badges) → bright yellow ────────────────── */
+body.dark-mode [style*="color:#d4a726"],
+body.dark-mode [style*="color: #d4a726"] {
+    color: #fde047 !important;
+}
+
+/* ── Emerald (customer labels) → lighter emerald ───────────────── */
+body.dark-mode [style*="color:#059669"],
+body.dark-mode [style*="color: #059669"] {
+    color: #6ee7b7 !important;
+}
+
+/* ── Surcharge/caution brown → warm gold ───────────────────────── */
+body.dark-mode [style*="color:#8a6a30"],
+body.dark-mode [style*="color: #8a6a30"] {
+    color: #e8c87a !important;
+}
+body.dark-mode [style*="color:#b67a2a"],
+body.dark-mode [style*="color: #b67a2a"] {
+    color: #f0d48a !important;
+}
+
+/* ── Red text (errors, DC2626) → softer red ────────────────────── */
+body.dark-mode [style*="color:#DC2626"],
+body.dark-mode [style*="color: #DC2626"],
+body.dark-mode [style*="color:#dc2626"],
+body.dark-mode [style*="color: #dc2626"] {
+    color: #ff8888 !important;
+}
+
+/* ── Red-brown (E74C3C error text) → lighter ───────────────────── */
+body.dark-mode [style*="color:#E74C3C"],
+body.dark-mode [style*="color: #E74C3C"],
+body.dark-mode [style*="color:#e74c3c"],
+body.dark-mode [style*="color: #e74c3c"] {
+    color: #ffa0a0 !important;
+}
+
+/* ── Deep green button text on green bg → keep readable ────────── */
+body.dark-mode [style*="color:#1e3a1e"],
+body.dark-mode [style*="color: #1e3a1e"] {
+    color: #dcfce7 !important;
+}
+
+/* ── Gray-blue (cart/search hints) → lighter ───────────────────── */
+body.dark-mode [style*="color:#999"],
+body.dark-mode [style*="color: #999"] {
+    color: #a0a0a0 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK MODE — DEBTORS CSS-IN-JS TEXT OVERRIDES
+   (For classes defined in debtors.js embedded <style> blocks)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Debtor stat card labels & values (all card colors) */
+body.dark-mode .debt-card-red .card-label,
+body.dark-mode .debt-card-red .card-sub {
+    color: #c8e0a8 !important;
+}
+body.dark-mode .debt-card-red .card-value {
+    color: #e8f5d8 !important;
+}
+body.dark-mode .debt-card-green .card-label,
+body.dark-mode .debt-card-green .card-sub {
+    color: #a8d4ba !important;
+}
+body.dark-mode .debt-card-green .card-value {
+    color: #c8efd9 !important;
+}
+body.dark-mode .debt-card-blue .card-label,
+body.dark-mode .debt-card-blue .card-sub {
+    color: #d4d4a8 !important;
+}
+body.dark-mode .debt-card-blue .card-value {
+    color: #e8e8c8 !important;
+}
+body.dark-mode .debt-card-amber .card-label,
+body.dark-mode .debt-card-amber .card-sub {
+    color: #d4b89a !important;
+}
+body.dark-mode .debt-card-amber .card-value {
+    color: #e8d4c8 !important;
+}
+body.dark-mode .debt-card-orange .card-label,
+body.dark-mode .debt-card-orange .card-sub {
+    color: #d4c0a0 !important;
+}
+body.dark-mode .debt-card-orange .card-value {
+    color: #e8dcc8 !important;
+}
+body.dark-mode .debt-card-purple .card-label,
+body.dark-mode .debt-card-purple .card-sub {
+    color: #d4b89a !important;
+}
+body.dark-mode .debt-card-purple .card-value {
+    color: #e8d4c8 !important;
+}
+
+/* Debtor info text */
+body.dark-mode .debtor-name {
+    color: #e8f5e9 !important;
+}
+body.dark-mode .detail-label {
+    color: #a8b8a8 !important;
+}
+body.dark-mode .detail-value {
+    color: #e8f5e9 !important;
+}
+body.dark-mode .items-label {
+    color: #a8b8a8 !important;
+}
+body.dark-mode .items-list {
+    color: #e8f5e9 !important;
+}
+
+/* Surcharge note text */
+body.dark-mode .surcharge-note {
+    background: linear-gradient(135deg, rgba(100,70,10,0.25), rgba(80,50,0,0.15)) !important;
+    border-color: rgba(200,150,50,0.3) !important;
+    border-left-color: #d4a843 !important;
+    color: #e8c87a !important;
+}
+body.dark-mode .surcharge-note strong {
+    color: #f0d48a !important;
+}
+
+/* Paid info */
+body.dark-mode .paid-info {
+    background: linear-gradient(135deg, #3a5a48, #2a4a38) !important;
+    color: #a8d4ba !important;
+    border-color: rgba(168, 212, 186, 0.2) !important;
+}
+
+/* Section headers in debtors */
+body.dark-mode .section-header {
+    color: #e8f5e9 !important;
+}
+body.dark-mode .unpaid-header {
+    color: #ff9999 !important;
+}
+body.dark-mode .paid-header {
+    color: #a8d4ba !important;
+}
+
+/* No data placeholder */
+body.dark-mode .no-data {
+    background: rgba(30, 30, 30, 0.6) !important;
+    color: #a0a0a0 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK MODE — INVENTORY CSS-IN-JS TEXT OVERRIDES
+   (For .ms-red stat card that was missing a dark override)
+   ═══════════════════════════════════════════════════════════════════ */
+body.dark-mode .ms-red .ms-label {
+    color: #fca5a5 !important;
+}
+body.dark-mode .ms-red .ms-value {
+    color: #fecaca !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIGHT MODE — TERTIARY TEXT CONTRAST BOOST
+   Ensure pale/muted text passes WCAG AA on light backgrounds
+   ═══════════════════════════════════════════════════════════════════ */
+.stat-label,
+.card-sub,
+.detail-label,
+.items-label {
+    opacity: 1 !important;
+}
