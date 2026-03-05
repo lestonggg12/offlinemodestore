@@ -1293,7 +1293,7 @@ async function showChangeCalculator(total, profit, products) {
                     <div class="neo-change-label">Change to Return:</div>
                     <div id="changeAmount" class="neo-change-amount-value">₱0.00</div>
                 </div>
-            <!-- Customer name field (optional, for tracking who bought what) -->", "oldString": "            <!-- ✅ IMPROVED: Prominent Customer Name Section -->
+            <!-- Customer name field (optional, for tracking who bought what) -->
                 <div class="neo-form-group" style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e5e7eb;">
                     <label for="customerName" style="color: #059669; display: flex; align-items: center; gap: 6px; font-weight: 800;">
                         👤 Customer Name
