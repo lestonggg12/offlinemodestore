@@ -938,20 +938,55 @@ async function clearTransactionHistory() {
 }
 
 // ─── setupMidnightRefresh ─────────────────────────────────────────────────────
+// Robust midnight detection: setTimeout (precision) + interval (backup for
+// browser throttling / sleep-wake) + visibilitychange (tab reactivation).
 function setupMidnightRefresh() {
+  window._lastKnownDate = new Date().toDateString();
+
   const now      = new Date();
-  const tomorrow = new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const msLeft   = tomorrow - now;
-  if (window.midnightTimeout) clearTimeout(window.midnightTimeout);
-  window.midnightTimeout = setTimeout(async () => {
-    try {
-      await DB.updatePeriods();
-      const pg = document.getElementById('profitPage');
-      if (pg && pg.classList.contains('active-page')) await renderProfit();
-    } catch(e) { console.error('❌ Midnight refresh:', e); }
-    setupMidnightRefresh();
-  }, msLeft);
-  console.log(`⏰ Midnight refresh in ${Math.round(msLeft/60000)} min`);
+
+  // Clear previous timers
+  if (window._midnightTimeout)    clearTimeout(window._midnightTimeout);
+  if (window._dateCheckInterval)  clearInterval(window._dateCheckInterval);
+
+  // 1) Primary: fire ~1 s after midnight
+  window._midnightTimeout = setTimeout(() => _onMidnightCrossed(), msLeft + 1000);
+
+  // 2) Backup: poll every 30 s (catches throttled tabs, sleep/wake)
+  window._dateCheckInterval = setInterval(() => {
+    if (new Date().toDateString() !== window._lastKnownDate) _onMidnightCrossed();
+  }, 30000);
+
+  // 3) Tab reactivation: check immediately when user returns
+  if (!window._visibilityListenerAdded) {
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && new Date().toDateString() !== window._lastKnownDate) {
+        _onMidnightCrossed();
+      }
+    });
+    window._visibilityListenerAdded = true;
+  }
+
+  console.log(`⏰ Midnight refresh in ${Math.round(msLeft / 60000)} min`);
+}
+
+async function _onMidnightCrossed() {
+  // Guard against multiple rapid fires
+  const today = new Date().toDateString();
+  if (today === window._lastKnownDate) return;
+  window._lastKnownDate = today;
+
+  console.log('🕛 Midnight crossed — refreshing period cards…');
+  try {
+    await DB.updatePeriods();
+    const pg = document.getElementById('profitPage');
+    if (pg && pg.classList.contains('active-page')) await renderProfit();
+  } catch (e) { console.error('❌ Midnight refresh error:', e); }
+
+  // Re-arm timers for the next midnight
+  setupMidnightRefresh();
 }
 
 // ─── showModernAlert ──────────────────────────────────────────────────────────
