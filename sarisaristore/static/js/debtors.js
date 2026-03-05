@@ -116,8 +116,8 @@ window.renderDebtors = async function() {
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <h3 class="section-header paid-header">✅ Paid Debts</h3>
             <button class="toggle-section-btn toggle-btn-green" onclick="toggleDebtSection('paid')">
-              <span id="paidToggleIcon">�️</span>
-              <span id="paidToggleLabel">Show</span>
+              <span id="paidToggleIcon">🙈</span>
+              <span id="paidToggleLabel">Hide</span>
             </button>
           </div>
           ${paidDebtors.length > 0 ? `
@@ -134,7 +134,7 @@ window.renderDebtors = async function() {
             <div class="adn-text">Paid debts are <strong>automatically deleted 7 days</strong> after being marked as paid. You can still view them in the <strong>📅 Calendar</strong> for up to 1 year.</div>
           </div>
         </div>` : ''}
-        <div id="paidDebtContainer" style="transition: max-height 0.35s ease, opacity 0.3s ease; overflow: hidden; max-height: 0px; opacity: 0;">
+        <div id="paidDebtContainer" style="transition: max-height 0.35s ease, opacity 0.3s ease; overflow: hidden; max-height: none; opacity: 1;">
           ${renderDebtorsCards(paidDebtors, true)}
         </div>
       </div>
@@ -384,10 +384,10 @@ function getDebtorStyles() {
 
       .debtor-amount-breakdown { padding: 12px; border-radius: 10px; margin-bottom: 10px; backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.5); position: relative; z-index: 2; }
       .amount-unpaid.debtor-amount-breakdown { background: linear-gradient(135deg, #e74c3c, #c41e3a); color: #ffffff; }
-      .amount-paid.debtor-amount-breakdown { background: linear-gradient(135deg, #c8efd9, #a8e6c8); }
+      .amount-paid.debtor-amount-breakdown { background: linear-gradient(135deg, #c8efd9, #a8e6c8); color: #1a3d28; }
 
       .breakdown-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 0.9rem; }
-      .breakdown-label { color: inherit; opacity: 0.8; font-weight: 600; }
+      .breakdown-label { color: inherit; opacity: 0.9; font-weight: 600; }
       .breakdown-value { font-weight: 700; }
       .surcharge-row .breakdown-label { opacity: 1; }
       .surcharge-value { color: #d4945c !important; font-weight: 700; }
@@ -406,7 +406,7 @@ function getDebtorStyles() {
       .btn-delete-debtor { background: var(--btn-red-bg); color: var(--btn-red-text); border: none; box-shadow: var(--btn-red-shadow); }
       .btn-delete-debtor:hover { transform: translateY(-2px); box-shadow: var(--btn-red-shadow-hover); background: var(--btn-red-hover); }
 
-      .paid-info { text-align: center; padding: 11px; background: linear-gradient(135deg, #c8efd9, #a8e6c8); border-radius: 8px; color: #2d5238; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(6px); position: relative; z-index: 2; }
+      .paid-info { text-align: center; padding: 11px; background: linear-gradient(135deg, #c8efd9, #a8e6c8); border-radius: 8px; color: #1a3d28; font-weight: 700; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(6px); position: relative; z-index: 2; }
       .auto-delete-countdown { text-align: center; padding: 8px; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 8px; color: #8a6a30; font-weight: 600; font-size: 0.75rem; margin-top: 8px; border: 1px solid rgba(253,230,138,0.6); position: relative; z-index: 2; }
       .auto-delete-countdown.countdown-urgent { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; border-color: rgba(248,113,113,0.5); animation: urgentPulse 2s ease-in-out infinite; }
       @keyframes urgentPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
