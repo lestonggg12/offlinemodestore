@@ -116,8 +116,8 @@ window.renderDebtors = async function() {
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <h3 class="section-header paid-header">✅ Paid Debts</h3>
             <button class="toggle-section-btn toggle-btn-green" onclick="toggleDebtSection('paid')">
-              <span id="paidToggleIcon">🙈</span>
-              <span id="paidToggleLabel">Hide</span>
+              <span id="paidToggleIcon">�️</span>
+              <span id="paidToggleLabel">Show</span>
             </button>
           </div>
           ${paidDebtors.length > 0 ? `
@@ -134,7 +134,7 @@ window.renderDebtors = async function() {
             <div class="adn-text">Paid debts are <strong>automatically deleted 7 days</strong> after being marked as paid. You can still view them in the <strong>📅 Calendar</strong> for up to 1 year.</div>
           </div>
         </div>` : ''}
-        <div id="paidDebtContainer" style="transition: max-height 0.35s ease, opacity 0.3s ease; overflow: hidden; max-height: none; opacity: 1;">
+        <div id="paidDebtContainer" style="transition: max-height 0.35s ease, opacity 0.3s ease; overflow: hidden; max-height: 0px; opacity: 0;">
           ${renderDebtorsCards(paidDebtors, true)}
         </div>
       </div>

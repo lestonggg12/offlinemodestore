@@ -469,7 +469,7 @@ console.log('📦 Loading inventory module...');
         body.dark-mode #inventoryContent .gl-form-title { color: #d8ecd4 !important; }
         body.dark-mode #inventoryContent .add-product-field label { color: #87B382 !important; }
         body.dark-mode #inventoryContent .add-product-field input { background: rgba(255,255,255,0.07) !important; color: #d8ecd4 !important; border-color: rgba(135,179,130,0.25) !important; caret-color: #a8c99c; }
-        body.dark-mode #inventoryContent .add-product-field input::placeholder { color: #5a7a5e !important; }
+        body.dark-mode #inventoryContent .add-product-field input::placeholder { color: #8aab85 !important; opacity: 0.85 !important; }
         body.dark-mode #inventoryContent #btnAddProduct { background: var(--btn-green-bg) !important; color: var(--btn-green-text) !important; border: none !important; }
         body.dark-mode #inventoryContent .gl-tip-banner { background: rgba(22,34,20,0.6) !important; border-color: rgba(135,179,130,0.2) !important; color: #87B382 !important; }
         body.dark-mode #inventoryContent .gl-table-wrap { background: rgba(22,34,20,0.7) !important; border-color: rgba(135,179,130,0.15) !important; }
@@ -1106,7 +1106,7 @@ function showCategoryModal({ title, icon='📦', name='', color='', submitLabel,
             </div>
             <div style="display:flex;gap:12px;">
                 <button id="catModalCancel" style="flex:1;padding:14px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;background:${isDark?'rgba(50,30,28,0.9)':'linear-gradient(135deg,#FEE2E2,#FECACA)'};color:${isDark?'#d08070':'#DC2626'};border:1px solid ${isDark?'rgba(120,50,40,0.5)':'#fca5a5'};transition:all 0.2s ease;">Cancel</button>
-                <button id="catModalSubmit" style="flex:2;padding:14px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;background:linear-gradient(135deg,#cbdfbd,#a8c99c);color:#3e5235;border:none;box-shadow:0 4px 15px rgba(203,223,189,0.4);transition:all 0.2s ease;">${submitLabel}</button>
+                <button id="catModalSubmit" style="flex:2;padding:14px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;background:linear-gradient(135deg,${isDark?'#2e7d32':'#cbdfbd'},${isDark?'#388e3c':'#a8c99c'});color:${isDark?'#e8f5e9':'#3e5235'};border:${isDark?'1.5px solid #4caf50':'none'};box-shadow:0 4px 15px ${isDark?'rgba(46,125,50,0.4)':'rgba(203,223,189,0.4)'};transition:all 0.2s ease;">${submitLabel}</button>
             </div>
         </div>
         <style>
