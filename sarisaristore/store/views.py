@@ -386,7 +386,7 @@ def _get_period_data(start_date, end_date):
 def period_totals(request):
     try:
         now   = timezone.now()
-        today = now.date()
+        today = timezone.localdate()
         today_start = timezone.make_aware(datetime.combine(today, time.min))
         today_end   = timezone.make_aware(datetime.combine(today, time.max))
 
@@ -484,7 +484,7 @@ def period_totals(request):
 def update_periods(request):
     try:
         now       = timezone.now()
-        today     = now.date()
+        today     = timezone.localdate()
         yesterday = today - timedelta(days=1)
 
         rev, prof, cnt = _get_period_data(yesterday, yesterday)
@@ -758,7 +758,7 @@ def _snapshot_last_year_totals():
     underlying DailySummary rows.  This keeps 'Last Year' visible in the
     dashboard even after old data is purged.
     """
-    today    = timezone.now().date()
+    today    = timezone.localdate()
     ly       = today.year - 1
     ly_start = datetime(ly, 1,  1).date()
     ly_end   = datetime(ly, 12, 31).date()
@@ -784,7 +784,7 @@ def _auto_cleanup_old_records():
 
     Returns a dict with deletion counts, or None when nothing was deleted.
     """
-    cutoff = timezone.now().date() - timedelta(days=365)
+    cutoff = timezone.localdate() - timedelta(days=365)
     cutoff_dt = timezone.make_aware(datetime.combine(cutoff, time.min))
 
     old_summaries = DailySummary.objects.filter(date__lt=cutoff)
@@ -904,7 +904,7 @@ def cleanup_old_transactions(request):
     try:
         days_threshold  = max(int(request.data.get('days', 2)), 2)
         now             = timezone.now()
-        today           = now.date()
+        today           = timezone.localdate()
         yesterday       = today - timedelta(days=1)
 
         cutoff_time     = now - timedelta(days=days_threshold)
