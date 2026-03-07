@@ -25,15 +25,26 @@ from . import views
 from django.views.generic import RedirectView
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.contrib.staticfiles import finders
+from django.http import FileResponse
 
 def health_check(request):
     return JsonResponse({'status': 'ok'})
 def favicon(request):
     return HttpResponse(status=204)
 
+def service_worker(request):
+    """Serve the service worker from the root scope so it can control all pages."""
+    sw_path = finders.find('js/service-worker.js')
+    if sw_path:
+        return FileResponse(open(sw_path, 'rb'), content_type='application/javascript',
+                            headers={'Service-Worker-Allowed': '/'})
+    return HttpResponse(status=404)
+
 urlpatterns = [
 
-    path('favicon.ico', favicon), 
+    path('favicon.ico', favicon),
+    path('service-worker.js', service_worker, name='service-worker'),
     # ── Auth & Dashboard ──────────────────────────────────────────────────────
     path('',           views.login_view,     name='login'),
     path('dashboard/', views.dashboard_view, name='dashboard'),

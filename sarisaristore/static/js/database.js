@@ -120,6 +120,72 @@ window.showModernConfirm = showModernConfirm;
 window.showModernAlert   = showModernAlert;
 
 // =============================================================================
+//  OFFLINE QUEUE (IndexedDB)
+// =============================================================================
+function openOfflineDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('sarisari-offline', 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('queue')) {
+        db.createObjectStore('queue', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+async function enqueueOfflineMutation(url, method, headers, body) {
+  try {
+    const db = await openOfflineDB();
+    const tx = db.transaction('queue', 'readwrite');
+    tx.objectStore('queue').add({ url, method, headers, body, timestamp: Date.now() });
+    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+    console.log(`📴 Queued offline ${method} ${url}`);
+    // Request Background Sync if available
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg.sync) await reg.sync.register('replay-offline-queue');
+    }
+  } catch (e) { console.error('❌ Failed to enqueue offline mutation:', e); }
+}
+
+async function replayOfflineQueue() {
+  try {
+    const db = await openOfflineDB();
+    const tx = db.transaction('queue', 'readonly');
+    const all = await new Promise((res, rej) => {
+      const r = tx.objectStore('queue').getAll();
+      r.onsuccess = () => res(r.result);
+      r.onerror   = () => rej(r.error);
+    });
+    if (!all.length) return;
+    console.log(`🔄 Replaying ${all.length} queued offline requests…`);
+    for (const entry of all) {
+      try {
+        const resp = await fetch(entry.url, {
+          method: entry.method, headers: entry.headers,
+          body: entry.body, credentials: 'include',
+        });
+        if (resp.ok || resp.status < 500) {
+          const delTx = db.transaction('queue', 'readwrite');
+          delTx.objectStore('queue').delete(entry.id);
+        }
+      } catch { break; } // still offline
+    }
+  } catch (e) { console.error('❌ Replay failed:', e); }
+}
+
+// Replay queued requests when the browser signals we're back online
+window.addEventListener('online', () => {
+  console.log('🌐 Back online — replaying queued requests…');
+  replayOfflineQueue().then(() => {
+    if (typeof DB !== 'undefined') DB.syncUI();
+  });
+});
+
+// =============================================================================
 //  DB — Main API Client Object
 // =============================================================================
 const DB = {
@@ -132,18 +198,16 @@ const DB = {
   },
 
   async apiCall(endpoint, method = 'GET', data = null) {
-    const options = {
-      method,
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': this.getCsrfToken() },
-      credentials: 'include',
-    };
+    const url = `${this.API_URL}${endpoint}`;
+    const headers = { 'Content-Type': 'application/json', 'X-CSRFToken': this.getCsrfToken() };
+    const options = { method, headers, credentials: 'include' };
     // ← Send body for POST, PUT, PATCH, and DELETE (needed for category delete with reassign)
     if (data && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
       options.body = JSON.stringify(data);
     }
     try {
-      console.log(`🌐 API ${method} ${this.API_URL}${endpoint}`, data || '');
-      const response = await fetch(`${this.API_URL}${endpoint}`, options);
+      console.log(`🌐 API ${method} ${url}`, data || '');
+      const response = await fetch(url, options);
       if (method === 'DELETE' && response.status === 204) {
         console.log('✅ DELETE successful (204)');
         return { success: true };
@@ -159,6 +223,11 @@ const DB = {
       console.log(`✅ API ${method} response:`, result);
       return result;
     } catch (error) {
+      // ── Offline fallback for mutations ──────────────────────────────────
+      if (!navigator.onLine && method !== 'GET') {
+        await enqueueOfflineMutation(url, method, headers, options.body || null);
+        return { _offline: true, message: 'Queued for sync when back online' };
+      }
       console.error('❌ API Call Failed:', error);
       throw error;
     }

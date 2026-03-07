@@ -18,7 +18,7 @@ if is_railway_env:
     # health-checks and the public domain both work.
     ALLOWED_HOSTS = ['*']
 else:
-    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,192.168.1.155').split(',')
     if railway_public_domain and railway_public_domain not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(railway_public_domain)
 
