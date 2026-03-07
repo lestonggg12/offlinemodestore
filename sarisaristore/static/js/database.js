@@ -224,7 +224,8 @@ const DB = {
       return result;
     } catch (error) {
       // ── Offline fallback for mutations ──────────────────────────────────
-      if (!navigator.onLine && method !== 'GET') {
+      const isNetworkError = !navigator.onLine || error.name === 'TypeError';
+      if (isNetworkError && method !== 'GET') {
         await enqueueOfflineMutation(url, method, headers, options.body || null);
         return { _offline: true, message: 'Queued for sync when back online' };
       }
@@ -649,7 +650,30 @@ const DB = {
 
   async init() {
     console.log('✅ Django API Database Ready');
+    // Warm the SW cache — fetch key data so it's available offline
+    if (navigator.onLine) {
+      this._warmCache();
+    }
     return Promise.resolve();
+  },
+
+  /** Pre-fetch all key API endpoints so the service worker caches them. */
+  async _warmCache() {
+    try {
+      console.log('📦 Warming offline cache…');
+      const now = new Date();
+      await Promise.allSettled([
+        this.getProducts(),
+        this.getCategories(),
+        this.getSales(),
+        this.getDebtors(),
+        this.getPeriodTotals(),
+        this.getAccumulatedTotals(),
+        this.apiCall('/get-settings/'),
+        this.getCalendarData(now.getFullYear(), now.getMonth() + 1),
+      ]);
+      console.log('✅ Offline cache warmed');
+    } catch (e) { console.warn('⚠️ Cache warm-up partial failure:', e); }
   },
 
   // ---------------------------------------------------------------------------

@@ -771,9 +771,9 @@ window.saveAllSettings = async function() {
     } catch (error) {
         console.error("Failed to save settings:", error);
         if (window.DialogSystem) {
-            await DialogSystem.alert('Network error. Please check your connection and try again.', '❌');
+            await DialogSystem.alert('Settings will be saved when you are back online.', '⏳');
         } else {
-            alert('❌ Network error. Please check your connection and try again.');
+            alert('⏳ Settings will be saved when you are back online.');
         }
     }
 };

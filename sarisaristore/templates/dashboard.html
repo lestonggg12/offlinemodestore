@@ -534,37 +534,15 @@
     }
     </script>
 
-    <!-- ═══════════════════════════════
-         OFFLINE STATUS INDICATOR
-    ═══════════════════════════════ -->
-    <div id="offlineBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;
-      background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;text-align:center;
-      padding:8px 16px;font-family:'Quicksand',sans-serif;font-weight:700;font-size:0.85rem;
-      box-shadow:0 2px 12px rgba(0,0,0,0.3);transition:transform 0.3s ease;">
-      📴 You are offline &mdash; changes will sync when reconnected
-    </div>
+    <!-- Replay offline queue when back online -->
     <script>
-    (function() {
-      var banner = document.getElementById('offlineBanner');
-      function updateStatus() {
-        if (!navigator.onLine) {
-          banner.style.display = 'block';
-          document.body.style.paddingTop = '36px';
-        } else {
-          banner.style.display = 'none';
-          document.body.style.paddingTop = '';
-          // Replay offline queue when back online
-          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.ready.then(function(reg) {
-              if (reg.sync) reg.sync.register('replay-offline-queue');
-            });
-          }
-        }
+    window.addEventListener('online', function() {
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then(function(reg) {
+          if (reg.sync) reg.sync.register('replay-offline-queue');
+        });
       }
-      window.addEventListener('online', updateStatus);
-      window.addEventListener('offline', updateStatus);
-      updateStatus();
-    })();
+    });
     </script>
 
 </body>

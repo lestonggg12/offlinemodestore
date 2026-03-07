@@ -294,32 +294,7 @@
                 50%      { transform: scale(1.5); opacity: 0.6; }
             }
 
-            /* -- OFFLINE BANNER -- */
-            #neoOfflineBanner {
-                position: fixed;
-                top: 0; left: 0; right: 0;
-                z-index: 1100000;
-                padding: 12px 20px;
-                background: linear-gradient(135deg, #ef4444, #dc2626);
-                color: white;
-                font-family: 'Quicksand', 'Segoe UI', sans-serif;
-                font-size: 14px;
-                font-weight: 700;
-                text-align: center;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                gap: 8px;
-                box-shadow: 0 4px 20px rgba(239,68,68,0.4);
-            }
-            #neoOfflineBanner.show {
-                display: flex;
-                animation: neoBannerSlide 0.3s ease;
-            }
-            @keyframes neoBannerSlide {
-                from { transform: translateY(-100%); opacity: 0; }
-                to   { transform: translateY(0);     opacity: 1; }
-            }
+
         `;
         document.head.appendChild(style);
     })();
@@ -347,11 +322,7 @@
         pill.innerHTML = '<div class="pill-dot"></div><span class="pill-text"></span>';
         document.body.appendChild(pill);
 
-        // Offline banner
-        const banner = document.createElement('div');
-        banner.id    = 'neoOfflineBanner';
-        banner.textContent = '\uD83D\uDCE1 No internet connection \u2014 please check your network';
-        document.body.appendChild(banner);
+
     }
 
     if (document.body) {
@@ -464,24 +435,7 @@
         );
     };
 
-    // =========================================================================
-    //  OFFLINE / ONLINE DETECTION
-    // =========================================================================
 
-    function updateOnlineStatus() {
-        const banner = document.getElementById('neoOfflineBanner');
-        if (!banner) return;
-        if (!navigator.onLine) {
-            banner.classList.add('show');
-            pillShow('slow', '\uD83D\uDCE1 No internet');
-        } else {
-            banner.classList.remove('show');
-        }
-    }
-
-    window.addEventListener('online',  updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    document.addEventListener('DOMContentLoaded', updateOnlineStatus);
 
     // =========================================================================
     //  EXPOSE MANUAL API
