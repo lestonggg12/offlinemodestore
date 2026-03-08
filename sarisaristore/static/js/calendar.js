@@ -91,6 +91,7 @@ async function renderCalendar() {
           <span class="retention-text">
             Sales records, daily summaries, and paid debt entries older than <strong>1 year</strong>
             are automatically deleted to free up space. Last Year's totals are preserved.
+            💚 Paid debts are saved here for 1 year, even after being deleted from the Debtors page.
           </span>
         </div>
 
@@ -701,25 +702,36 @@ function showDateModal(dateStr, details, paidDebtors, isLoading) {
 function buildPaidDebtorsHTML(paidDebtors) {
   if (!paidDebtors || paidDebtors.length === 0) return '';
 
-  // ✅ Support both PaymentHistory shape (customer_name / total_amount)
-  //    and legacy Debtor shape (name / total_debt) gracefully
   const totalPaid = paidDebtors.reduce((sum, d) => {
     return sum + parseFloat(d.total_amount || d.total_debt || 0);
   }, 0);
 
   const items = paidDebtors.map(d => {
     const name   = d.customer_name || d.name || 'Unknown';
-    const amount = parseFloat(d.total_amount || d.total_debt || 0).toFixed(2);
+    const amount = parseFloat(d.total_amount || d.total_debt || 0);
     const initial = name.charAt(0).toUpperCase();
+    const originalTotal    = parseFloat(d.original_total || 0);
+    const surchargePercent = parseFloat(d.surcharge_percent || 0);
+    const surchargeAmount  = parseFloat(d.surcharge_amount || 0);
+    const hasSurcharge     = surchargeAmount > 0;
 
-    // Items list — PaymentHistory stores them in d.items as parsed array
+    // Format date_borrowed if available
+    let borrowedDateStr = '';
+    if (d.date_borrowed) {
+      try {
+        const bd = new Date(d.date_borrowed);
+        borrowedDateStr = bd.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+      } catch (e) { /* ignore */ }
+    }
+
+    // Items list
     let itemsList = '';
     try {
       const debtItems = d.items || [];
       if (debtItems.length > 0) {
         itemsList = debtItems.map(i => {
           const iName = i.product_name || i.name || 'Unknown';
-          return `${iName} ×${i.quantity || 0}`;
+          return `${iName} (×${i.quantity || 0})`;
         }).join(', ');
       }
     } catch (e) { /* ignore */ }
@@ -729,9 +741,16 @@ function buildPaidDebtorsHTML(paidDebtors) {
         <div class="mpd-avatar">${initial}</div>
         <div class="mpd-info">
           <div class="mpd-name">${name}</div>
+          ${borrowedDateStr ? `<div class="mpd-borrowed">📅 Borrowed: ${borrowedDateStr}</div>` : ''}
           ${itemsList ? `<div class="mpd-items">${itemsList}</div>` : ''}
+          ${hasSurcharge ? `
+            <div class="mpd-surcharge-details">
+              <span class="mpd-original">Original: ₱${originalTotal.toFixed(2)}</span>
+              <span class="mpd-surcharge-tag">⚡ +${surchargePercent}% (₱${surchargeAmount.toFixed(2)})</span>
+            </div>
+          ` : ''}
         </div>
-        <div class="mpd-amount">₱${amount}</div>
+        <div class="mpd-amount">₱${amount.toFixed(2)}</div>
       </div>
     `;
   }).join('');
@@ -784,6 +803,13 @@ function modalPaidDebtorStyles() {
       body.dark-mode .mpd-name { color: #bbf7d0; }
       .mpd-items { font-size: 11px; color: #15803d; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; }
       body.dark-mode .mpd-items { color: #86efac; }
+      .mpd-borrowed { font-size: 11px; color: #6b7280; margin-top: 2px; font-weight: 500; }
+      body.dark-mode .mpd-borrowed { color: #9ca3af; }
+      .mpd-surcharge-details { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; align-items: center; }
+      .mpd-original { font-size: 11px; color: #6b7280; font-weight: 600; }
+      body.dark-mode .mpd-original { color: #9ca3af; }
+      .mpd-surcharge-tag { font-size: 10px; font-weight: 700; color: #d97706; background: rgba(251,191,36,0.15); padding: 1px 6px; border-radius: 6px; border: 1px solid rgba(251,191,36,0.3); }
+      body.dark-mode .mpd-surcharge-tag { color: #fbbf24; background: rgba(120,80,0,0.25); border-color: rgba(251,191,36,0.2); }
       .mpd-amount { font-size: 14px; font-weight: 800; color: #16a34a; flex-shrink: 0; }
       body.dark-mode .mpd-amount { color: #4ade80; }
       .mpd-receipt-divider { border-top: 2px dashed rgba(74,222,128,0.4); margin: 12px 0 10px; }

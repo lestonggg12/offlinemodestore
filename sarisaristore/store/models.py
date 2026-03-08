@@ -294,13 +294,17 @@ class PaymentHistory(models.Model):
     debtor_id stores the original Debtor PK (not a FK — intentional, so it
     survives deletion of the Debtor row).
     """
-    debtor_id     = models.IntegerField(db_index=True, unique=True)
-    date_paid     = models.DateField(db_index=True)
-    customer_name = models.CharField(max_length=200)
-    total_amount  = models.DecimalField(max_digits=12, decimal_places=2)
-    items_json    = models.TextField(default='[]', blank=True)
-    expires_at    = models.DateField()
-    created_at    = models.DateTimeField(auto_now_add=True)
+    debtor_id         = models.IntegerField(db_index=True, unique=True)
+    date_paid         = models.DateField(db_index=True)
+    date_borrowed     = models.DateTimeField(null=True, blank=True)
+    customer_name     = models.CharField(max_length=200)
+    total_amount      = models.DecimalField(max_digits=12, decimal_places=2)
+    original_total    = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    surcharge_percent = models.DecimalField(max_digits=5,  decimal_places=2, default=0)
+    surcharge_amount  = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    items_json        = models.TextField(default='[]', blank=True)
+    expires_at        = models.DateField()
+    created_at        = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.customer_name} paid ₱{self.total_amount} on {self.date_paid}"
@@ -324,11 +328,15 @@ class PaymentHistory(models.Model):
         cls.objects.update_or_create(
             debtor_id=debtor.pk,
             defaults={
-                'date_paid':     date_paid,
-                'customer_name': debtor.name,
-                'total_amount':  debtor.total_debt,
-                'items_json':    json.dumps(items),
-                'expires_at':    date_paid + timedelta(days=365),
+                'date_paid':         date_paid,
+                'date_borrowed':     debtor.date_borrowed,
+                'customer_name':     debtor.name,
+                'total_amount':      debtor.total_debt,
+                'original_total':    debtor.original_total,
+                'surcharge_percent': debtor.surcharge_percent,
+                'surcharge_amount':  debtor.surcharge_amount,
+                'items_json':        json.dumps(items),
+                'expires_at':        date_paid + timedelta(days=365),
             },
         )
 

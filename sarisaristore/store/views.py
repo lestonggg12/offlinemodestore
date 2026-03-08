@@ -622,9 +622,13 @@ def date_details(request, date_str):
             try:    items = json.loads(record.items_json) if record.items_json else []
             except (json.JSONDecodeError, ValueError, TypeError): items = []
             debts_paid.append({
-                'customer_name': record.customer_name or 'Unknown',
-                'total_amount':  float(record.total_amount or 0),
-                'items':         items,
+                'customer_name':     record.customer_name or 'Unknown',
+                'total_amount':      float(record.total_amount or 0),
+                'original_total':    float(record.original_total or 0),
+                'surcharge_percent': float(record.surcharge_percent or 0),
+                'surcharge_amount':  float(record.surcharge_amount or 0),
+                'date_borrowed':     record.date_borrowed.isoformat() if record.date_borrowed else None,
+                'items':             items,
             })
 
         # ── Fallback: if PaymentHistory is empty, check credit-paid Sales ────
