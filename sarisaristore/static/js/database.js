@@ -1,11 +1,11 @@
 /**
  * database.js — Central API-client layer for the Sari-Sari Store SPA.
  *
- * CHANGES (Category Management Update):
- *  - apiCall() now sends body for DELETE requests too (needed for
- *    category deletion with reassign_to payload).
- *  - Added DB.getCategories(), addCategory(), updateCategory(), deleteCategory().
- *  - window.CATEGORIES is populated by getCategories() for backward compat.
+ * OFFLINE FIXES:
+ *  - All GET methods now save responses to localStorage as offline fallback.
+ *  - When offline, data is served from localStorage instead of returning [].
+ *  - Offline banner added to notify users when they're offline.
+ *  - _setupOfflineBanner() called automatically in DB.init().
  */
 
 console.log('📦 Loading database.js...');
@@ -143,7 +143,6 @@ async function enqueueOfflineMutation(url, method, headers, body) {
     tx.objectStore('queue').add({ url, method, headers, body, timestamp: Date.now() });
     await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
     console.log(`📴 Queued offline ${method} ${url}`);
-    // Request Background Sync if available
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       const reg = await navigator.serviceWorker.ready;
       if (reg.sync) await reg.sync.register('replay-offline-queue');
@@ -172,18 +171,31 @@ async function replayOfflineQueue() {
           const delTx = db.transaction('queue', 'readwrite');
           delTx.objectStore('queue').delete(entry.id);
         }
-      } catch { break; } // still offline
+      } catch { break; }
     }
   } catch (e) { console.error('❌ Replay failed:', e); }
 }
 
-// Replay queued requests when the browser signals we're back online
 window.addEventListener('online', () => {
   console.log('🌐 Back online — replaying queued requests…');
   replayOfflineQueue().then(() => {
     if (typeof DB !== 'undefined') DB.syncUI();
   });
 });
+
+// =============================================================================
+//  LOCAL STORAGE HELPERS
+// =============================================================================
+function saveToLocalCache(key, data) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch (e) { console.warn('⚠️ localStorage save failed:', e); }
+}
+
+function loadFromLocalCache(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
 
 // =============================================================================
 //  DB — Main API Client Object
@@ -201,7 +213,6 @@ const DB = {
     const url = `${this.API_URL}${endpoint}`;
     const headers = { 'Content-Type': 'application/json', 'X-CSRFToken': this.getCsrfToken() };
     const options = { method, headers, credentials: 'include' };
-    // ← Send body for POST, PUT, PATCH, and DELETE (needed for category delete with reassign)
     if (data && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
       options.body = JSON.stringify(data);
     }
@@ -223,7 +234,6 @@ const DB = {
       console.log(`✅ API ${method} response:`, result);
       return result;
     } catch (error) {
-      // ── Offline fallback for mutations ──────────────────────────────────
       const isNetworkError = !navigator.onLine || error.name === 'TypeError';
       if (isNetworkError && method !== 'GET') {
         await enqueueOfflineMutation(url, method, headers, options.body || null);
@@ -246,45 +256,64 @@ const DB = {
   },
 
   // ---------------------------------------------------------------------------
-  //  CATEGORIES  ← NEW
+  //  OFFLINE BANNER
   // ---------------------------------------------------------------------------
 
-  /**
-   * Fetch all categories from the API.
-   * Also updates window.CATEGORIES for backward-compatible modules (cart.js etc.).
-   */
+  _setupOfflineBanner() {
+    const banner = document.createElement('div');
+    banner.id = 'offline-banner';
+    banner.style.cssText = `
+      display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      background:#303952; color:white; padding:12px 24px; border-radius:12px;
+      font-family:'Quicksand',sans-serif; font-weight:700; z-index:9999;
+      box-shadow:0 4px 20px rgba(0,0,0,0.3); white-space:nowrap;
+      transition: opacity 0.3s ease;
+    `;
+    banner.textContent = '📴 Offline — changes will sync when reconnected';
+    document.body.appendChild(banner);
+
+    const show = () => banner.style.display = 'block';
+    const hide = () => banner.style.display = 'none';
+
+    window.addEventListener('offline', show);
+    window.addEventListener('online',  hide);
+    if (!navigator.onLine) show();
+  },
+
+  // ---------------------------------------------------------------------------
+  //  CATEGORIES
+  // ---------------------------------------------------------------------------
+
   async getCategories() {
     try {
       const cats = await this.apiCall('/categories/');
-      // Normalise to the same shape the old hardcoded array used
       const normalised = cats.map(c => ({
-        id:         c.slug,          // inventory.js uses category.id as slug
-        slug:       c.slug,
-        pk:         c.id,            // DB primary key
-        name:       c.name,
-        icon:       c.icon,
-        color:      c.color,
-        is_default: c.is_default,
-        order:      c.order,
+        id:            c.slug,
+        slug:          c.slug,
+        pk:            c.id,
+        name:          c.name,
+        icon:          c.icon,
+        color:         c.color,
+        is_default:    c.is_default,
+        order:         c.order,
         product_count: c.product_count,
       }));
-      // Keep global in sync for any module still using window.CATEGORIES
+      saveToLocalCache('cached_categories', normalised);
       window.CATEGORIES = normalised;
       return normalised;
     } catch (error) {
-      console.error('❌ Failed to fetch categories:', error);
-      // Graceful fallback — return whatever is cached globally
+      console.warn('⚠️ Using locally cached categories');
+      const cached = loadFromLocalCache('cached_categories');
+      if (cached) { window.CATEGORIES = cached; return cached; }
       return window.CATEGORIES || [];
     }
   },
 
-  /** Create a new custom category. */
   async addCategory({ name, icon = '📦', color = '' }) {
     try {
       const data   = { name, icon: icon || '📦' };
       if (color) data.color = color;
       const result = await this.apiCall('/categories/', 'POST', data);
-      // Refresh global cache
       await this.getCategories();
       return result;
     } catch (error) {
@@ -293,7 +322,6 @@ const DB = {
     }
   },
 
-  /** Update an existing category (name / icon / color only — slug is immutable). */
   async updateCategory(pk, { name, icon, color }) {
     try {
       const data   = {};
@@ -309,13 +337,6 @@ const DB = {
     }
   },
 
-  /**
-   * Delete a category.
-   * @param {number}  pk          - Category primary key (integer DB id).
-   * @param {string?} reassignTo  - Slug of the category to move products into.
-   *                                Pass null + deleteProducts=true to remove them.
-   * @param {boolean} deleteProducts - If true, delete all products in the category.
-   */
   async deleteCategory(pk, reassignTo = null, deleteProducts = false) {
     try {
       const body = {};
@@ -337,22 +358,40 @@ const DB = {
   async getProducts() {
     try {
       const products = await this.apiCall('/products/');
+      saveToLocalCache('cached_products', products);
       return products.map(p => ({
-        id:           p.id,
-        name:         p.name,
-        category:     p.category,
-        category_id:  p.category,
-        cost:         parseFloat(p.cost),
-        cost_price:   parseFloat(p.cost),
-        price:        parseFloat(p.price),
-        selling_price:parseFloat(p.price),
-        quantity:     parseInt(p.quantity),
-        stock:        parseInt(p.quantity),
-        created_at:   p.created_at,
-        updated_at:   p.updated_at,
+        id:            p.id,
+        name:          p.name,
+        category:      p.category,
+        category_id:   p.category,
+        cost:          parseFloat(p.cost),
+        cost_price:    parseFloat(p.cost),
+        price:         parseFloat(p.price),
+        selling_price: parseFloat(p.price),
+        quantity:      parseInt(p.quantity),
+        stock:         parseInt(p.quantity),
+        created_at:    p.created_at,
+        updated_at:    p.updated_at,
       }));
     } catch (error) {
-      console.error('❌ Failed to fetch products:', error);
+      console.warn('⚠️ Using locally cached products');
+      const cached = loadFromLocalCache('cached_products');
+      if (cached) {
+        return cached.map(p => ({
+          id:            p.id,
+          name:          p.name,
+          category:      p.category,
+          category_id:   p.category,
+          cost:          parseFloat(p.cost),
+          cost_price:    parseFloat(p.cost),
+          price:         parseFloat(p.price),
+          selling_price: parseFloat(p.price),
+          quantity:      parseInt(p.quantity),
+          stock:         parseInt(p.quantity),
+          created_at:    p.created_at,
+          updated_at:    p.updated_at,
+        }));
+      }
       return [];
     }
   },
@@ -418,18 +457,32 @@ const DB = {
   async getSales() {
     try {
       const sales = await this.apiCall('/sales/');
+      saveToLocalCache('cached_sales', sales);
       return sales.map(s => ({
-  id:             s.id,
-  date:           s.date,
-  total:          parseFloat(s.total),
-  profit:         parseFloat(s.profit || 0),
-  paymentType:    s.payment_method,
-  payment_method: s.payment_method,
-  customer_name:  s.customer_name || '',  
-  items:          s.items || [],
-}));
+        id:             s.id,
+        date:           s.date,
+        total:          parseFloat(s.total),
+        profit:         parseFloat(s.profit || 0),
+        paymentType:    s.payment_method,
+        payment_method: s.payment_method,
+        customer_name:  s.customer_name || '',
+        items:          s.items || [],
+      }));
     } catch (error) {
-      console.error('❌ Failed to fetch sales:', error);
+      console.warn('⚠️ Using locally cached sales');
+      const cached = loadFromLocalCache('cached_sales');
+      if (cached) {
+        return cached.map(s => ({
+          id:             s.id,
+          date:           s.date,
+          total:          parseFloat(s.total),
+          profit:         parseFloat(s.profit || 0),
+          paymentType:    s.payment_method,
+          payment_method: s.payment_method,
+          customer_name:  s.customer_name || '',
+          items:          s.items || [],
+        }));
+      }
       return [];
     }
   },
@@ -458,13 +511,14 @@ const DB = {
         totalProfit    += (itemPrice - itemCost) * quantity;
         return { product_id: item.id || item.productId || item.product_id, quantity, price: itemPrice, cost: itemCost };
       });
-     const saleData = {
-  total:          parseFloat(sale.total.toFixed(2)),
-  profit:         parseFloat(totalProfit.toFixed(2)),
-  payment_method: paymentMethod,
-  customer_name:  normalizedCustomerName,
-  items:          itemsWithCost,
-};
+
+      const saleData = {
+        total:          parseFloat(sale.total.toFixed(2)),
+        profit:         parseFloat(totalProfit.toFixed(2)),
+        payment_method: paymentMethod,
+        customer_name:  normalizedCustomerName,
+        items:          itemsWithCost,
+      };
       const newSale = await this.apiCall('/sales/', 'POST', saleData);
       await this.syncUI();
       return newSale;
@@ -496,6 +550,7 @@ const DB = {
   async getPeriodTotals() {
     try {
       const data = await this.apiCall('/period-totals/');
+      saveToLocalCache('cached_period_totals', data);
       const norm = (k) => ({
         revenue:          parseFloat(data[k]?.revenue          || 0),
         profit:           parseFloat(data[k]?.profit           || 0),
@@ -509,7 +564,20 @@ const DB = {
       return { today: norm('today'), yesterday: norm('yesterday'), last_week: norm('last_week'),
                last_month: norm('last_month'), last_year: norm('last_year') };
     } catch (error) {
-      console.error('❌ Failed to fetch period totals:', error);
+      console.warn('⚠️ Using locally cached period totals');
+      const cached = loadFromLocalCache('cached_period_totals');
+      if (cached) {
+        const norm = (k) => ({
+          revenue:      parseFloat(cached[k]?.revenue      || 0),
+          profit:       parseFloat(cached[k]?.profit       || 0),
+          sales_count:  parseInt(cached[k]?.sales_count    || 0),
+          has_data:     cached[k]?.has_data                || false,
+          period_start: cached[k]?.period_start,
+          period_end:   cached[k]?.period_end,
+        });
+        return { today: norm('today'), yesterday: norm('yesterday'), last_week: norm('last_week'),
+                 last_month: norm('last_month'), last_year: norm('last_year') };
+      }
       const empty = { revenue: 0, profit: 0, sales_count: 0, has_data: false };
       return { today: {...empty}, yesterday: {...empty}, last_week: {...empty},
                last_month: {...empty}, last_year: {...empty} };
@@ -526,13 +594,26 @@ const DB = {
   // ---------------------------------------------------------------------------
 
   async getCalendarData(year, month) {
-    try   { return await this.apiCall(`/calendar/?year=${year}&month=${month}`); }
-    catch (error) { console.error('❌ Failed to fetch calendar data:', error); return { year, month, summaries: [] }; }
+    try {
+      const data = await this.apiCall(`/calendar/?year=${year}&month=${month}`);
+      saveToLocalCache(`cached_calendar_${year}_${month}`, data);
+      return data;
+    } catch (error) {
+      console.warn('⚠️ Using locally cached calendar data');
+      const cached = loadFromLocalCache(`cached_calendar_${year}_${month}`);
+      return cached || { year, month, summaries: [] };
+    }
   },
 
   async getDateDetails(dateStr) {
-    try   { return await this.apiCall(`/calendar/${dateStr}/`); }
-    catch (error) { console.error('❌ Failed to fetch date details:', error); return null; }
+    try {
+      const data = await this.apiCall(`/calendar/${dateStr}/`);
+      saveToLocalCache(`cached_date_${dateStr}`, data);
+      return data;
+    } catch (error) {
+      console.warn('⚠️ Using locally cached date details');
+      return loadFromLocalCache(`cached_date_${dateStr}`) || null;
+    }
   },
 
   // ---------------------------------------------------------------------------
@@ -542,24 +623,44 @@ const DB = {
   async getDebtors() {
     try {
       const debtors = await this.apiCall('/debtors/');
+      saveToLocalCache('cached_debtors', debtors);
       return debtors.map(d => ({
-        id:               d.id,
-        name:             d.name,
-        contact:          d.contact || '',
-        totalAmount:      parseFloat(d.total_debt),
-        total_debt:       parseFloat(d.total_debt),
-        original_total:   parseFloat(d.original_total   || 0),
-        surcharge_percent:parseFloat(d.surcharge_percent || 0),
-        surcharge_amount: parseFloat(d.surcharge_amount  || 0),
-        date:             d.date_borrowed,
-        date_borrowed:    d.date_borrowed,
-        paid:             d.paid || false,
-        date_paid:        d.date_paid,
-        products:         d.items || [],
-        items:            d.items || [],
+        id:                d.id,
+        name:              d.name,
+        contact:           d.contact || '',
+        totalAmount:       parseFloat(d.total_debt),
+        total_debt:        parseFloat(d.total_debt),
+        original_total:    parseFloat(d.original_total   || 0),
+        surcharge_percent: parseFloat(d.surcharge_percent || 0),
+        surcharge_amount:  parseFloat(d.surcharge_amount  || 0),
+        date:              d.date_borrowed,
+        date_borrowed:     d.date_borrowed,
+        paid:              d.paid || false,
+        date_paid:         d.date_paid,
+        products:          d.items || [],
+        items:             d.items || [],
       }));
     } catch (error) {
-      console.error('❌ Failed to fetch debtors:', error);
+      console.warn('⚠️ Using locally cached debtors');
+      const cached = loadFromLocalCache('cached_debtors');
+      if (cached) {
+        return cached.map(d => ({
+          id:                d.id,
+          name:              d.name,
+          contact:           d.contact || '',
+          totalAmount:       parseFloat(d.total_debt),
+          total_debt:        parseFloat(d.total_debt),
+          original_total:    parseFloat(d.original_total   || 0),
+          surcharge_percent: parseFloat(d.surcharge_percent || 0),
+          surcharge_amount:  parseFloat(d.surcharge_amount  || 0),
+          date:              d.date_borrowed,
+          date_borrowed:     d.date_borrowed,
+          paid:              d.paid || false,
+          date_paid:         d.date_paid,
+          products:          d.items || [],
+          items:             d.items || [],
+        }));
+      }
       return [];
     }
   },
@@ -593,11 +694,9 @@ const DB = {
 
   async updateDebtor(id, updates) {
     try {
-      // Only send fields that are allowed by the backend and required for the update
       const updateData = {};
-      if (updates.paid !== undefined) updateData.paid = updates.paid;
+      if (updates.paid      !== undefined) updateData.paid      = updates.paid;
       if (updates.date_paid !== undefined) updateData.date_paid = updates.date_paid;
-      // Optionally add more fields if needed by your backend
       const updatedDebtor = await this.apiCall(`/debtors/${id}/`, 'PUT', updateData);
       await this.syncUI();
       return updatedDebtor;
@@ -629,10 +728,20 @@ const DB = {
   async getAccumulatedTotals() {
     try {
       const data = await this.apiCall('/accumulated-totals/');
+      saveToLocalCache('cached_accumulated_totals', data);
       return { revenue: parseFloat(data.accumulated_revenue || 0),
                profit:  parseFloat(data.accumulated_profit  || 0),
                lastCleared: data.last_cleared };
-    } catch (error) { return { revenue: 0, profit: 0, lastCleared: null }; }
+    } catch (error) {
+      console.warn('⚠️ Using locally cached accumulated totals');
+      const cached = loadFromLocalCache('cached_accumulated_totals');
+      if (cached) {
+        return { revenue: parseFloat(cached.accumulated_revenue || 0),
+                 profit:  parseFloat(cached.accumulated_profit  || 0),
+                 lastCleared: cached.last_cleared };
+      }
+      return { revenue: 0, profit: 0, lastCleared: null };
+    }
   },
 
   async updateAccumulatedTotals(revenue, profit) {
@@ -645,19 +754,33 @@ const DB = {
   },
 
   // ---------------------------------------------------------------------------
+  //  SETTINGS
+  // ---------------------------------------------------------------------------
+
+  async getSettings() {
+    try {
+      const data = await this.apiCall('/get-settings/');
+      saveToLocalCache('cached_settings', data);
+      return data;
+    } catch (error) {
+      console.warn('⚠️ Using locally cached settings');
+      return loadFromLocalCache('cached_settings') || {};
+    }
+  },
+
+  // ---------------------------------------------------------------------------
   //  INITIALISATION
   // ---------------------------------------------------------------------------
 
   async init() {
     console.log('✅ Django API Database Ready');
-    // Warm the SW cache — fetch key data so it's available offline
+    this._setupOfflineBanner();
     if (navigator.onLine) {
       this._warmCache();
     }
     return Promise.resolve();
   },
 
-  /** Pre-fetch all key API endpoints so the service worker caches them. */
   async _warmCache() {
     try {
       console.log('📦 Warming offline cache…');
@@ -669,7 +792,7 @@ const DB = {
         this.getDebtors(),
         this.getPeriodTotals(),
         this.getAccumulatedTotals(),
-        this.apiCall('/get-settings/'),
+        this.getSettings(),
         this.getCalendarData(now.getFullYear(), now.getMonth() + 1),
       ]);
       console.log('✅ Offline cache warmed');

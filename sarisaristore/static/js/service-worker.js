@@ -46,14 +46,19 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   // Don't cache the login page, admin, or the SW itself
-  if (url.pathname === '/' || url.pathname.startsWith('/admin/') ||
-      url.pathname === '/service-worker.js') return;
+  if (url.pathname.startsWith('/admin/') ||
+    url.pathname === '/service-worker.js') return;
+
+   if (url.pathname === '/') {
+  event.respondWith(networkFirst(request));
+  return;
+} 
 
   // API requests → network-first, cache-fallback
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirst(request));
-    return;
-  }
+ if (url.pathname === '/') {
+  event.respondWith(networkFirst(request));
+  return;
+}
 
   // Dashboard page → network-first, cache-fallback
   if (url.pathname === '/dashboard/' || url.pathname === '/dashboard') {
