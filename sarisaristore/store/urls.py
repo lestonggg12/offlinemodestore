@@ -30,6 +30,7 @@ from django.http import FileResponse
 
 def health_check(request):
     return JsonResponse({'status': 'ok'})
+
 def favicon(request):
     return HttpResponse(status=204)
 
@@ -41,10 +42,19 @@ def service_worker(request):
                             headers={'Service-Worker-Allowed': '/'})
     return HttpResponse(status=404)
 
+def manifest(request):
+    """Serve manifest.json at the root scope for PWA support."""
+    manifest_path = finders.find('manifest.json')
+    if manifest_path:
+        return FileResponse(open(manifest_path, 'rb'), content_type='application/manifest+json')
+    return HttpResponse(status=404)
+
 urlpatterns = [
 
-    path('favicon.ico', favicon),
+    path('favicon.ico',      favicon,        name='favicon'),
     path('service-worker.js', service_worker, name='service-worker'),
+    path('manifest.json',    manifest,        name='manifest'),  # ← PWA manifest
+
     # ── Auth & Dashboard ──────────────────────────────────────────────────────
     path('',           views.login_view,     name='login'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
@@ -66,7 +76,7 @@ urlpatterns = [
     path('api/products/<int:pk>/', views.product_detail, name='product-detail'),
 
     # ── Sales API ─────────────────────────────────────────────────────────────
-    path('api/sales/',       views.sale_list,    name='sale-list'),
+    path('api/sales/',       views.sale_list,      name='sale-list'),
     path('api/sales/clear/', views.sale_clear_all, name='sale-clear'),
 
     # ── Debtor API ────────────────────────────────────────────────────────────
@@ -82,13 +92,16 @@ urlpatterns = [
     # ── Calendar & Daily Summary API ──────────────────────────────────────────
     # NOTE: Fixed-path routes (generate, cleanup, backfill) must come BEFORE
     # the <str:date_str> catch-all to avoid URL conflicts.
-    path('api/calendar/',                views.calendar_data,    name='calendar-data'),
-    path('api/calendar/generate/',       views.generate_summary, name='generate-summary'),
-    path('api/calendar/cleanup/',        views.cleanup_old_data, name='cleanup-old-data'),
-    path('api/calendar/backfill/',           views.backfill_summaries,        name='backfill-summaries'),
-    path('api/calendar/backfill-payments/', views.backfill_payment_history, name='backfill-payments'),
-    path('api/calendar/<str:date_str>/', views.date_details,     name='date-details'),
+    path('api/calendar/',                    views.calendar_data,           name='calendar-data'),
+    path('api/calendar/generate/',           views.generate_summary,        name='generate-summary'),
+    path('api/calendar/cleanup/',            views.cleanup_old_data,        name='cleanup-old-data'),
+    path('api/calendar/backfill/',           views.backfill_summaries,      name='backfill-summaries'),
+    path('api/calendar/backfill-payments/',  views.backfill_payment_history,name='backfill-payments'),
+    path('api/calendar/<str:date_str>/',     views.date_details,            name='date-details'),
 
     # ── Transaction Cleanup API ───────────────────────────────────────────────
     path('api/transactions/cleanup-old/', views.cleanup_old_transactions, name='cleanup-old-transactions'),
-    path('health/', health_check, name='health'),]
+
+    # ── Health Check ──────────────────────────────────────────────────────────
+    path('health/', health_check, name='health'),
+]
